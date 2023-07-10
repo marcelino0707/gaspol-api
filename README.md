@@ -5,3 +5,13 @@
 ## Setup environment
 1. Bikin file dengan nama `.env` ke dalam folder `src`
 2. Copy semua isi file yang berada di `.env-example` terus paste ke file `.env`
+
+## Migration
+# create migration
+`npx sequelize-cli migration:generate --name create_name_table`
+# run migration
+`npx sequelize-cli db:migrate`
+
+## Seeder
+# create seeder
+# run seeder
