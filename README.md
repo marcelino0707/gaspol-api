@@ -1,3 +1,5 @@
+## Kebutuhan
+1. MySQL minimal version 8 yak
 ## Cara install
 1. Install NPM dulu
 2. Jalankan `npm install` di terminal

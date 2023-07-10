@@ -1,7 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const { sequelize } = require('./models');
+// const { sequelize } = require('./models');
 
 const app = express()
 dotenv.config();
@@ -14,13 +14,13 @@ app.use(require('./routes'))
 
 // Sync database and start server
 const port = process.env.PORT;
-sequelize
-    .sync()
-    .then(() => {
+// sequelize
+    // .sync()
+    // .then(() => {
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });
-    })
-    .catch((error) => {
-        console.log('Unable to connect to the database:', error);
-    });
+    // })
+    // .catch((error) => {
+        // console.log('Unable to connect to the database:', error);
+    // });
