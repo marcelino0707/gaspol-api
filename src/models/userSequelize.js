@@ -1,0 +1,18 @@
+module.exports = (sequelize, DataTypes) => {
+    const User = sequelize.define('user', {
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    });
+  
+    User.associate = (models) => {
+        User.belongsTo(models.Outlet, { foreignKey: 'outlet_id' });
+    };
+
+    return User;
+  };
