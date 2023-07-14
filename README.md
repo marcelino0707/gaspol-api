@@ -5,7 +5,7 @@
 2. Jalankan `npm install` di terminal
 
 ## Setup environment
-1. Bikin file dengan nama `.env` ke dalam folder `src`
+1. Bikin file dengan nama `.env`
 2. Copy semua isi file yang berada di `.env-example` terus paste ke file `.env`
 
 ## Migration

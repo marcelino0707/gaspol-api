@@ -27,7 +27,7 @@ module.exports = {
         name: "Creamer Premium",
         stock: 30,
         cost: 300000,
-        unit: "pc",
+        unit: "pcs",
         created_at: new Date(),
         updated_at: new Date()
       },
