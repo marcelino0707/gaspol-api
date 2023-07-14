@@ -16,4 +16,6 @@
 
 ## Seeder
 # create seeder
+`npx sequelize-cli seed:generate --name table-name`
 # run seeder
+`npx sequelize-cli db:seed:all`
