@@ -18,6 +18,9 @@ route.delete('/product/:id', product.deleteProduct);
 
 // Menu
 route.get('/menu', menu.getMenus);
+route.get('/menu/:id', menu.getMenuById);
+
+
 
 
 module.exports = route;
