@@ -5,7 +5,7 @@ const Menu = {
       return new Promise((resolve, reject) => {
         connectDB()
           .then((connection) => {
-              connection.query('SELECT id, id_outlet, name, stock, cost, unit FROM products', (error, results) => {
+              connection.query('SELECT id, name, menu_type FROM menus', (error, results) => {
                 disconnectDB();
                 if (error) {
                   reject(error);
