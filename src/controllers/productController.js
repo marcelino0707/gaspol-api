@@ -16,16 +16,16 @@ exports.getProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
     try {
-        const category = await Products.getById(req.params.id)
+        const product = await Products.getById(req.params.id)
     
-        if (category.length == 0) {
+        if (product.length == 0) {
             return res.status(404).json({
                 message: "Product not found!"
             })   
         }
     
         return res.status(200).json({
-            data: category
+            data: product
         })
     } catch (error) {
         return res.status(500).json({
@@ -83,12 +83,12 @@ exports.updateProduct = async (req, res) => {
         await Products.update(req.params.id, product)
 
         return res.status(200).json({
-            message: "Berhasil mengubah data kategori",
+            message: "Berhasil mengubah data product",
         })
 
     } catch (error) {
         return res.status(500).json({
-            message: error.message || 'Error to update category',
+            message: error.message || 'Error to update product',
         })
     }
 }
@@ -99,7 +99,7 @@ exports.deleteProduct = async (req, res) => {
 
         if(product.changedRows == 0) {
             res.status(404).json({
-                message: `Category not found!`
+                message: `Product not found!`
             })
         }
 
@@ -110,12 +110,12 @@ exports.deleteProduct = async (req, res) => {
         await Products.delete(req.params.id, data)
 
         res.status(200).json({
-            message: "Berhasil menghapus data kategori",
+            message: "Berhasil menghapus data product",
         })
 
     } catch(error) {
         res.status(500).json({
-            message: error || 'Error to get category',
+            message: error || 'Error to get product',
         })
     }
 };
