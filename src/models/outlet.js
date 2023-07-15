@@ -53,7 +53,7 @@ const Outlet = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('UPDATE outlets SET ? WHERE id = ?', [newData, id], (error, results) => {
+          connection.query('UPDATE products SET ? WHERE id = ?', [newData, id], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -69,7 +69,7 @@ const Outlet = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('DELETE FROM outlets WHERE id = ?', id, (error, results) => {
+          connection.query('DELETE FROM products WHERE id = ?', id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
