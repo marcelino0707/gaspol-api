@@ -5,6 +5,7 @@ const route = express.Router();
 const outlet = require('./controllers/outletController');
 const product = require('./controllers/productController');
 const menu = require('./controllers/menuController');
+const transaction = require('./controllers/transactionController');
 
 // Outlet
 route.get('/outlet', outlet.getOutlets);
@@ -20,7 +21,8 @@ route.delete('/product/:id', product.deleteProduct);
 route.get('/menu', menu.getMenus);
 route.get('/menu/:id', menu.getMenuById);
 
-
-
+// Transaction 
+route.get('/transaction', transaction.getTransactions);
+route.post('/transaction', transaction.createTransaction);
 
 module.exports = route;

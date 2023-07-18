@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       receipt_number: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       customer_name: {
