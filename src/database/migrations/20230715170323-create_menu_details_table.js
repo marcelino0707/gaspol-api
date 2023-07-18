@@ -13,12 +13,12 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      serving_type_id: {
+      serving_type: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
       },
       varian: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       price: {

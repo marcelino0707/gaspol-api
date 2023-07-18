@@ -29,7 +29,7 @@ module.exports = {
       },
       unit: {
         allowNull: false,
-        type: Sequelize.ENUM("kg", "pcs"),
+        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,
