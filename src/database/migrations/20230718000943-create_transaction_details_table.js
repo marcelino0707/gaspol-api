@@ -2,29 +2,34 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('menu_details', {
+    await queryInterface.createTable('transaction_details', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      menu_id: {
+      transaction_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      serving_type_id: {
+      menu_detail_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      varian: {
+      topping_id: {
         allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+      total_item: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+        defaultValue: 0, 
+      },
+      note_item: {
+        allowNull: true,
         type: Sequelize.STRING,
-      },
-      price: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT,
+        defaultValue: null, 
       },
       created_at: {
         allowNull: false,
@@ -35,16 +40,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
-      deleted_at: {
-        allowNull: true,
-        type: Sequelize.DATE,
-        defaultValue: null, 
-      },
+      }
     });
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('menu_details');
+    await queryInterface.dropTable('transaction_details');
   }
 };
