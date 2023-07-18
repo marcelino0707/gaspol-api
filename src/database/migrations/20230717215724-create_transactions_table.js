@@ -29,7 +29,8 @@ module.exports = {
       },
       customer_change: {
         type: Sequelize.DECIMAL(10, 2),
-        allowNull: false
+        allowNull: true,
+        defaultValue: 0, 
       },
       subtotal: {
         type: Sequelize.DECIMAL(10, 2),

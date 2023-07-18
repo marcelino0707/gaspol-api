@@ -2,14 +2,14 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('transaction_details', {
+    await queryInterface.createTable('transaction_toppings', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      transaction_id: {
+      transaction_detail_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
@@ -21,11 +21,6 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: true,
         defaultValue: 0, 
-      },
-      note_item: {
-        allowNull: true,
-        type: Sequelize.STRING,
-        defaultValue: null, 
       },
       created_at: {
         allowNull: false,
@@ -41,6 +36,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('transaction_details');
+    await queryInterface.dropTable('transaction_toppings');
   }
 };
