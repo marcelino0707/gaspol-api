@@ -6,8 +6,20 @@ exports.getTransactions = async (req, res) => {
     try {
         const transactions = await Transaction.getAll();
         
+        const filteredTransactions = transactions.map((transaction) => {
+            const filteredTransaction = {};
+      
+            for (const key in transaction) {
+              if (transaction[key] !== null && transaction[key] !== "" && transaction[key] !== "0.00" && transaction[key] !== 0) {
+                filteredTransaction[key] = transaction[key];
+              }
+            }
+      
+            return filteredTransaction;
+          });
+
         return res.status(200).json({
-            data: transactions
+            data: filteredTransactions
         })
     } catch (error) {
         return res.status(500).json({
