@@ -18,29 +18,14 @@ exports.getTransactions = async (req, res) => {
 
 exports.createTransaction = async (req, res) => {
     try {
-        if (!req.body.customer_name) {
-            return res.status(400).json({
-                message: 'Nama customer tidak boleh kosong!',
-            });
-        }
-
-        if (!req.body.subtotal) {
-            return res.status(400).json({
-                message: 'Subtotal tidak boleh kosong!',
-            });
-        }
-
-        if (!req.body.total) {
-            return res.status(400).json({
-                message: 'Total tidak boleh kosong!',
-            });
-        }
-
-        const transaction = {
-            customer_name: req.body.customer_name,
-            customer_seat: req.body.customer_seat,
-            subtotal: req.body.subtotal,
-            total: req.body.total,
+        let transaction = {}
+        if(!req.body.transaction_id) {
+            transaction = {
+                customer_name: req.body.customer_name,
+                customer_seat: req.body.customer_seat,
+                subtotal: req.body.subtotal,
+                total: req.body.total,
+            }
         }
 
         if(req.body.customer_cash) {
@@ -54,33 +39,39 @@ exports.createTransaction = async (req, res) => {
             transaction.delivery_note = req.body.delivery_note
         }
 
-        const createdTransaction = await Transaction.create(transaction)
+        let createdTransaction
+        if(!req.body.transaction_id) {
+            createdTransaction = await Transaction.create(transaction)
+        } else {
+            createdTransaction = await Transaction.update(req.body.transaction_id, transaction)
+        }
 
-        const transactionDetails = req.body.transaction_details;
-
-        transactionDetails.forEach(async (transactionDetail) => {
-            const newTransactionDetail = {
-                transaction_id: createdTransaction.insertId,
-                menu_detail_id: transactionDetail.menu_detail_id,
-                total_item: transactionDetail.total_item,
-                note_item: transactionDetail.note_item,
-            };
-
-            const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
-
-            if (transactionDetail.topping) {
-                const toppings = transactionDetail.topping;
-                toppings.forEach(async (topping) => {
-                    const newTopping = {
-                        transaction_detail_id: createdTransactionDetail.insertId,
-                        topping_id: topping.topping_id,
-                        total_topping: topping.total_topping,
+        if (req.body.transaction_details) 
+        {
+            const transactionDetails = req.body.transaction_details;
+            for (const transactionDetail of transactionDetails) {
+                const newTransactionDetail = {
+                    transaction_id: createdTransaction.insertId,
+                    menu_detail_id: transactionDetail.menu_detail_id,
+                    total_item: transactionDetail.total_item,
+                    note_item: transactionDetail.note_item,
+                };
+    
+                const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
+                if (transactionDetail.topping) {
+                    const toppings = transactionDetail.topping;
+                    for (const topping of toppings) {
+                        const newTopping = {
+                            transaction_detail_id: createdTransactionDetail.insertId,
+                            menu_detail_id: topping.topping_id,
+                            total_item: topping.total_topping,
+                        };
+                
+                        await Topping.create(newTopping);
                     };
-            
-                    await Topping.create(newTopping);
-                });
-            }
-        });
+                };
+            };
+        }
 
         return res.status(201).json({
             message: "Data transaksi berhasil ditambahkan!",

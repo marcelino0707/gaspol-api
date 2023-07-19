@@ -18,7 +18,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       total_refund_item: {
-        type: Sequelize.DECIMAL(10, 2),
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       created_at: {

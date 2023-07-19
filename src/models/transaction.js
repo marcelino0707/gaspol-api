@@ -42,6 +42,22 @@ const Transaction = {
           .catch((error) => reject(error));
       });
     },
+    update: (id, transaction) => {
+        return new Promise((resolve, reject) => {
+          connectDB()
+            .then((connection) => {
+              connection.query('UPDATE transactions SET ? WHERE id = ?', [transaction, id],  (error, results) => {
+                disconnectDB();
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve(results);
+                }
+              });
+            })
+            .catch((error) => reject(error));
+        });
+      },
 }
 
 module.exports = Transaction;
