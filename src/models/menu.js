@@ -22,12 +22,28 @@ const Menu = {
       connectDB()
         .then((connection) => {
           const query = `SELECT id, name, menu_type FROM menus WHERE id = ?`;
-          connection.query(query, [id], (error, results) => {
+          connection.query(query, id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
             } else {
               resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getAllByMenuName: (name) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id, name, menu_type FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
             }
           });
         })

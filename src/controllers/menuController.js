@@ -3,7 +3,13 @@ const MenuDetail = require("../models/menu_detail");
 
 exports.getMenus = async (req, res) => {
   try {
-    const menus = await Menu.getAll();
+    let menus;
+
+    if (req.query.name) {
+      menus = await Menu.getAllByMenuName(req.query.name);
+    } else {
+      menus = await Menu.getAll();
+    }
 
     return res.status(200).json({
       data: menus,
