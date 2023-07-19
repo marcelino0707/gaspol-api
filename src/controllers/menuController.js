@@ -1,4 +1,5 @@
 const Menu = require("../models/menu");
+const MenuDetail = require("../models/menu_detail");
 
 exports.getMenus = async (req, res) => {
   try {
@@ -19,22 +20,24 @@ exports.getMenuById = async (req, res) => {
     const { id } = req.params;
     const serving_type = req.query.serving_type;
 
-    let menu;
+    const menu = await Menu.getById(id);
 
+    let menuDetails;
     if (serving_type) {
-      menu = await Menu.getByServingTypeId(id, serving_type);
+      menuDetails = await MenuDetail.getByServingTypeId(id, serving_type);
     } else {
-      menu = await Menu.getByMenuId(id);
+      menuDetails = await MenuDetail.getAllByMenuID(id);
     }
 
-    if (menu.length == 0) {
-      return res.status(404).json({
-        message: "Menu not found!",
-      });
-    }
+    const result = {
+      id: menu.id,
+      name: menu.name,
+      menu_type: menu.menu_type,
+      menu_details: menuDetails,
+    };
 
     return res.status(200).json({
-      data: menu,
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
@@ -45,40 +48,39 @@ exports.getMenuById = async (req, res) => {
 
 exports.createMenu = async (req, res) => {
   try {
-    if (!req.body.menu_details || !Array.isArray(req.body.menu_details) || req.body.menu_details.length === 0) {
-      return res.status(400).json({
-        message: "Data menu harus berupa array yang berisi setidaknya satu menu.",
-      });
+    const { name, menu_type, menu_details, menu_id } = req.body;
+
+    const menu = {
+      name: name,
+      menu_type: menu_type,
+    };
+
+    let menuId;
+    if (!menu_id) {
+      const createdMenu = await Menu.createMenus(menu);
+      menuId = createdMenu.insertId;
+    } else {
+      menuId = menu_id;
     }
 
-    for (const menuDetail of req.body.menu_details) {
-      if (!menuDetail.name || !menuDetail.menu_type || !menuDetail.serving_type || !menuDetail.price) {
+    for (const menuDetail of menu_details) {
+      if (!menuDetail.serving_type || !menuDetail.price) {
         return res.status(400).json({
           message: "Semua field pada setiap Menu Detail harus diisi.",
         });
       }
 
-      const menu = {
-        name: menuDetail.name,
-        menu_type: menuDetail.menu_type,
-      };
-
-      const createdMenu = await Menu.createMenus(menu);
-
-      if (!createdMenu.insertId) {
-        return res.status(500).json({
-          message: "Failed to create Menu in the database.",
-        });
-      }
-
       const menuDetailData = {
-        menu_id: createdMenu.insertId,
+        menu_id: menuId,
         serving_type: menuDetail.serving_type,
         price: menuDetail.price,
-        varian: menuDetail.varian,
       };
 
-      await Menu.createMenuDetail(menuDetailData);
+      if (menuDetail.varian) {
+        menuDetailData.varian = menuDetail.varian;
+      }
+
+      await MenuDetail.create(menuDetailData);
     }
 
     return res.status(201).json({
@@ -107,15 +109,21 @@ exports.updateMenu = async (req, res) => {
       menu_type: req.body.menu_type || oldMenuDetail.menu_type,
     };
 
-    await Menu.updateMenus(menuId, updatedMenu);
+    if (req.body.name != oldMenuDetail.name || req.body.menu_type != oldMenuDetail.menu_type) {
+      await Menu.updateMenus(menuId, updatedMenu);
+    }
 
-    const updatedMenuDetail = {
-      serving_type: req.body.serving_type || oldMenuDetail.serving_type,
-      varian: req.body.varian || oldMenuDetail.varian,
-      price: req.body.price || oldMenuDetail.price,
-    };
+    if (req.body.menu_details) {
+      for (const menuDetail of req.body.menu_details) {
+        const updatedMenuDetail = {
+          serving_type: menuDetail.serving_type,
+          varian: menuDetail.varian,
+          price: menuDetail.price,
+        };
 
-    await Menu.updateMenuDetail(menuId, updatedMenuDetail);
+        await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+      }
+    }
 
     return res.status(200).json({
       message: "Berhasil mengubah data menu",
@@ -129,26 +137,45 @@ exports.updateMenu = async (req, res) => {
 
 exports.deleteMenu = async (req, res) => {
   try {
-    const menu = await Menu.getByMenuId(req.params.id);
+    const menuId = req.params.id;
+    const menu = await Menu.getByMenuId(menuId);
 
-    if (menu.changedRows == 0) {
-      res.status(404).json({
-        message: `Menu not found!`,
+    if (menu.length === 0) {
+      return res.status(404).json({
+        message: "Menu not found!",
       });
     }
 
-    const data = {
-      deleted_at: new Date(),
-    };
+    for (const menuDetailId of req.body.menu_detail_id) {
+      const deletedAtNow = {
+        deleted_at: new Date(),
+      };
 
-    await Menu.delete(req.params.id, data);
+      const menuDetailRemainingOne = await checkRemainingOneData(menuId);
 
-    res.status(200).json({
-      message: "Berhasil menghapus data Menu",
+      await MenuDetail.delete(menuDetailId, deletedAtNow);
+
+      if (menuDetailRemainingOne) {
+        await Menu.delete(menuId, deletedAtNow);
+      }
+    }
+
+    return res.status(200).json({
+      message: "Berhasil menghapus data Menu Detail",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error || "Error to get Menu",
+    return res.status(500).json({
+      message: error.message || "Error while deleting Menu Detail",
     });
   }
 };
+
+async function checkRemainingOneData(menuId) {
+  const existMenuDetail = await MenuDetail.getIdByMenuID(menuId);
+
+  if (existMenuDetail.length == 1) {
+    return true;
+  }
+
+  return false;
+}
