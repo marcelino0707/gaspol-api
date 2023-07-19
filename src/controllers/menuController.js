@@ -54,7 +54,7 @@ exports.getMenuById = async (req, res) => {
 
 exports.createMenu = async (req, res) => {
   try {
-    const { name, menu_type, menu_details, menu_id } = req.body;
+    const { name, menu_type, menu_details } = req.body;
 
     const menu = {
       name: name,
@@ -62,11 +62,11 @@ exports.createMenu = async (req, res) => {
     };
 
     let menuId;
-    if (!menu_id) {
+    if (!req.query.menu_id) {
       const createdMenu = await Menu.createMenus(menu);
       menuId = createdMenu.insertId;
     } else {
-      menuId = menu_id;
+      menuId = req.query.menu_id;
     }
 
     for (const menuDetail of menu_details) {
