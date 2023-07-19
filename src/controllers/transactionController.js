@@ -16,7 +16,7 @@ exports.getTransactions = async (req, res) => {
             }
       
             return filteredTransaction;
-          });
+        });
 
         return res.status(200).json({
             data: filteredTransactions
