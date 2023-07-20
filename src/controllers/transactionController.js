@@ -32,18 +32,23 @@ exports.createTransaction = async (req, res) => {
     try {
         let transaction = {}
         if(!req.body.transaction_id) {
+            const customer_seat = req.body.customer_seat || 0;
             transaction = {
                 customer_name: req.body.customer_name,
-                customer_seat: req.body.customer_seat,
+                customer_seat: customer_seat,
                 subtotal: req.body.subtotal,
                 total: req.body.total,
+                receipt_number : "AT-" + req.body.customer_name + "-" + customer_seat + "-" + generateTimeNow(),
             }
         }
 
         if(req.body.customer_cash) {
+            const total = transaction.total;
             transaction.customer_cash = req.body.customer_cash,
             transaction.customer_change = req.body.customer_change,
-            transaction.payment_type = req.body.payment_type
+            transaction.payment_type = req.body.payment_type,
+            transaction.invoice_number = "INV-" + generateTimeNow() + "-" + req.body.payment_type,
+            transaction.invoice_due_date =  new Date();
         };
 
         if(req.body.delivery_type) {
@@ -57,9 +62,8 @@ exports.createTransaction = async (req, res) => {
         } else {
             createdTransaction = await Transaction.update(req.body.transaction_id, transaction)
         }
-
-        if (req.body.transaction_details) 
-        {
+        
+        if(req.body.transaction_details) {
             const transactionDetails = req.body.transaction_details;
             for (const transactionDetail of transactionDetails) {
                 const newTransactionDetail = {
@@ -93,4 +97,18 @@ exports.createTransaction = async (req, res) => {
             message: error.message || 'Some error occurred while creating the transaction',
         })
     }
+}
+
+function generateTimeNow() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0'); 
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+
+    const thisTime = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+
+    return thisTime;
 }
