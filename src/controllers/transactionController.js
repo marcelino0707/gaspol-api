@@ -43,7 +43,6 @@ exports.createTransaction = async (req, res) => {
         }
 
         if(req.body.customer_cash) {
-            const total = transaction.total;
             transaction.customer_cash = req.body.customer_cash,
             transaction.customer_change = req.body.customer_change,
             transaction.payment_type = req.body.payment_type,
@@ -53,8 +52,8 @@ exports.createTransaction = async (req, res) => {
 
         if(req.body.delivery_type) {
             transaction.delivery_type = req.body.delivery_type,
-            transaction.delivery_note = req.body.delivery_note
-        }
+            transaction. = req.body.delivery_note
+        }delivery_note
 
         let createdTransaction
         if(!req.body.transaction_id) {
