@@ -52,8 +52,8 @@ exports.createTransaction = async (req, res) => {
 
         if(req.body.delivery_type) {
             transaction.delivery_type = req.body.delivery_type,
-            transaction. = req.body.delivery_note
-        }delivery_note
+            transaction.delivery_note = req.body.delivery_note
+        }
 
         let createdTransaction
         if(!req.body.transaction_id) {
