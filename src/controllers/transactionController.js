@@ -68,6 +68,7 @@ exports.createTransaction = async (req, res) => {
                 const newTransactionDetail = {
                     transaction_id: createdTransaction.insertId,
                     menu_detail_id: transactionDetail.menu_detail_id,
+                    serving_type_id: transactionDetail.serving_type_id,
                     total_item: transactionDetail.total_item,
                     note_item: transactionDetail.note_item,
                 };
@@ -79,6 +80,7 @@ exports.createTransaction = async (req, res) => {
                         const newTopping = {
                             transaction_detail_id: createdTransactionDetail.insertId,
                             menu_detail_id: topping.topping_id,
+                            serving_type_id: transactionDetail.serving_type_id,
                             total_item: topping.total_topping,
                         };
                 

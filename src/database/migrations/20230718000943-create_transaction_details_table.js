@@ -17,6 +17,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
+      serving_type_id: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
       total_item: {
         type: Sequelize.INTEGER,
         allowNull: true,

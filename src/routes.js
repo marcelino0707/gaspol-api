@@ -6,6 +6,7 @@ const outlet = require("./controllers/outletController");
 const product = require("./controllers/productController");
 const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
+const servingType = require("./controllers/servingTypeController")
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -23,6 +24,9 @@ route.post("/menu", menu.createMenu);
 route.get("/menu/:id", menu.getMenuById);
 route.patch("/menu/:id", menu.updateMenu);
 route.delete("/menu/:id", menu.deleteMenu);
+
+// Serving Type
+route.get("/serving-type", servingType.getServingType);
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);
