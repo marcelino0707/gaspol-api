@@ -24,21 +24,27 @@ exports.getMenus = async (req, res) => {
 exports.getMenuById = async (req, res) => {
   try {
     const { id } = req.params;
-    const serving_type = req.query.serving_type;
 
     const menu = await Menu.getById(id);
+    const menuDetails = await MenuDetail.getAllByMenuID(id);
 
-    let menuDetails;
-    if (serving_type) {
-      menuDetails = await MenuDetail.getByServingTypeId(id, serving_type);
-    } else {
-      menuDetails = await MenuDetail.getAllByMenuID(id);
+    for (const menuDetail of menuDetails) {
+      menuDetail.take_away_price =
+        menuDetail.dine_in_price + (menuDetail.dine_in_price * 3) / 100;
+      menuDetail.gofood_price =
+        menuDetail.dine_in_price + (menuDetail.dine_in_price * 25) / 100;
+      menuDetail.grabfood_price =
+        menuDetail.dine_in_price + (menuDetail.dine_in_price * 5) / 100;
     }
 
     const result = {
       id: menu.id,
       name: menu.name,
       menu_type: menu.menu_type,
+      dine_in_price: menu.dine_in_price,
+      take_away_price: menu.dine_in_price + (menu.dine_in_price * 3) / 100,
+      gofood_price: menu.dine_in_price + (menu.dine_in_price * 25) / 100,
+      grabfood_price: menu.dine_in_price + (menu.dine_in_price * 5) / 100,
       menu_details: menuDetails,
     };
 
@@ -54,37 +60,28 @@ exports.getMenuById = async (req, res) => {
 
 exports.createMenu = async (req, res) => {
   try {
-    const { name, menu_type, menu_details } = req.body;
+    const { name, menu_type, price, menu_details } = req.body;
 
     const menu = {
       name: name,
       menu_type: menu_type,
+      price: price,
     };
 
     let menuId;
     if (!req.query.menu_id) {
-      const createdMenu = await Menu.createMenus(menu);
+      const createdMenu = await Menu.createMenu(menu);
       menuId = createdMenu.insertId;
     } else {
       menuId = req.query.menu_id;
     }
 
     for (const menuDetail of menu_details) {
-      if (!menuDetail.serving_type || !menuDetail.price) {
-        return res.status(400).json({
-          message: "Semua field pada setiap Menu Detail harus diisi.",
-        });
-      }
-
       const menuDetailData = {
         menu_id: menuId,
-        serving_type: menuDetail.serving_type,
         price: menuDetail.price,
+        varian: menuDetail.varian,
       };
-
-      if (menuDetail.varian) {
-        menuDetailData.varian = menuDetail.varian;
-      }
 
       await MenuDetail.create(menuDetailData);
     }
@@ -104,7 +101,7 @@ exports.updateMenu = async (req, res) => {
     const menuId = req.params.id;
     const oldMenuDetail = await Menu.getByMenuId(menuId);
 
-    if (oldMenuDetail.length === 0) {
+    if (oldMenuDetail.length == 0) {
       return res.status(404).json({
         message: "Menu not found!",
       });
@@ -113,16 +110,20 @@ exports.updateMenu = async (req, res) => {
     const updatedMenu = {
       name: req.body.name || oldMenuDetail.name,
       menu_type: req.body.menu_type || oldMenuDetail.menu_type,
+      price: req.body.price || oldMenuDetail.price,
     };
 
-    if (req.body.name != oldMenuDetail.name || req.body.menu_type != oldMenuDetail.menu_type) {
+    if (
+      req.body.name != oldMenuDetail.name ||
+      req.body.menu_type != oldMenuDetail.menu_type ||
+      req.body.price != oldMenuDetail.price
+    ) {
       await Menu.updateMenus(menuId, updatedMenu);
     }
 
     if (req.body.menu_details) {
       for (const menuDetail of req.body.menu_details) {
         const updatedMenuDetail = {
-          serving_type: menuDetail.serving_type,
           varian: menuDetail.varian,
           price: menuDetail.price,
         };
@@ -146,7 +147,7 @@ exports.deleteMenu = async (req, res) => {
     const menuId = req.params.id;
     const menu = await Menu.getByMenuId(menuId);
 
-    if (menu.length === 0) {
+    if (menu.length == 0) {
       return res.status(404).json({
         message: "Menu not found!",
       });

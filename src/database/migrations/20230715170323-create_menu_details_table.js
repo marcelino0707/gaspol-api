@@ -13,10 +13,6 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      serving_type: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
       varian: {
         allowNull: true,
         type: Sequelize.STRING,

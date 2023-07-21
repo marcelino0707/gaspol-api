@@ -6,7 +6,6 @@ module.exports = {
     [
       {
         menu_id: 1,
-        serving_type: "Dine In",
         varian: "Kecombrang",
         price: 20000,
         created_at: new Date(),
@@ -14,15 +13,13 @@ module.exports = {
       },
       {
         menu_id: 1,
-        serving_type: "Take Away",
-        varian: "Kecombrang",
+        varian: "Teri Medan",
         price: 22000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 2,
-        serving_type: "Dine In",
         varian: "Pedas Banget",
         price: 25000,
         created_at: new Date(),
@@ -30,92 +27,77 @@ module.exports = {
       },
       {
         menu_id: 2,
-        serving_type: "Take Away",
-        varian: "Pedas Banget",
-        price: 27000,
+        varian: "Sambal Bawang",
+        price: 3000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 3,
-        serving_type: "Dine In",
+        varian: "Coca Cola",
         price: 8000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 3,
-        serving_type: "Take Away",
+        varian: "Original",
         price: 10000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 4,
-        serving_type: "Dine In",
+        varian: "Lemon",
         price: 3000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 4,
-        serving_type: "Take Away",
+        varian: "Original",
         price: 5000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 5,
-        serving_type: "Dine In",
+        varian: "Vanila",
         price: 10000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 5,
-        serving_type: "Take Away",
         price: 12000,
+        varian: "Original",
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 6,
-        serving_type: "Dine In",
+        varian: "Manja Banget",
         price: 10000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 6,
-        serving_type: "Take Away",
         price: 12000,
+        varian: "Original",
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 7,
-        serving_type: "Dine In",
-        price: 3000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 7,
-        serving_type: "Take Away",
-        price: 3500,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 8,
-        serving_type: "Dine In",
+        varian: "Original",
         price: 3000,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         menu_id: 8,
-        serving_type: "Take Away",
+        varian: "Original",
         price: 3500,
         created_at: new Date(),
         updated_at: new Date()

@@ -5,7 +5,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type FROM menus", (error, results) => {
+          connection.query("SELECT id, name, menu_type, price FROM menus", (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -21,7 +21,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          const query = `SELECT id, name, menu_type FROM menus WHERE id = ?`;
+          const query = `SELECT id, name, menu_type, price AS dine_in_price FROM menus WHERE id = ?`;
           connection.query(query, id, (error, results) => {
             disconnectDB();
             if (error) {
@@ -38,7 +38,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
+          connection.query("SELECT id, name, menu_type, price FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -50,7 +50,7 @@ const Menu = {
         .catch((error) => reject(error));
     });
   },
-  createMenus: (menu) => {
+  createMenu: (menu) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
@@ -66,7 +66,7 @@ const Menu = {
         .catch((error) => reject(error));
     });
   },
-  updateMenus: (id, updateMenu) => {
+  updateMenu: (id, updateMenu) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
