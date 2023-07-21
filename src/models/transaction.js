@@ -5,7 +5,7 @@ const Transaction = {
       return new Promise((resolve, reject) => {
         connectDB()
           .then((connection) => {
-              connection.query('SELECT id, receipt_number, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note, invoice_number, invoice_due_date, refund_reason FROM transactions', (error, results) => {
+              connection.query('SELECT id, receipt_number, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note, refund_reason FROM transactions WHERE invoice_due_date IS NULL OR refund_reason IS NULL', (error, results) => {
                 disconnectDB();
                 if (error) {
                   reject(error);
@@ -27,15 +27,6 @@ const Transaction = {
                 reject(error);
               } else {
                 resolve(results);
-                // const insertedTransactionId = results.insertId;
-                // connection.query('SELECT id, customer_name, customer_seat, subtotal, total FROM transactions WHERE id = ?', insertedTransactionId, (error, results) => {
-                    // disconnectDB();
-                    // if (error) {
-                        // reject(error);
-                    // } else {
-                        // resolve(results[0]);
-                    // }
-                // });
               }
             });
           })
