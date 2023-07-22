@@ -33,6 +33,23 @@ const MenuDetail = {
         .catch((error) => reject(error));
     });
   },
+  getMenuDetailById: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query = "SELECT id AS menu_detail_id, menu_id AS menu, varian, price AS dine_in_price FROM menu_details WHERE id = ?";
+          connection.query(query, id, (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   create: (menu_detail) => {
     return new Promise((resolve, reject) => {
       connectDB()

@@ -6,7 +6,7 @@ const outlet = require("./controllers/outletController");
 const product = require("./controllers/productController");
 const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
-const servingType = require("./controllers/servingTypeController")
+const servingType = require("./controllers/servingTypeController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -31,5 +31,6 @@ route.get("/serving-type", servingType.getServingType);
 // Transaction
 route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
+route.get("/transaction/:id", transaction.getTransactionById);
 
 module.exports = route;

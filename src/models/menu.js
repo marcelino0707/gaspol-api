@@ -21,8 +21,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          const query = `SELECT id, name, menu_type, price AS dine_in_price FROM menus WHERE id = ?`;
-          connection.query(query, id, (error, results) => {
+          connection.query("SELECT id, name, menu_type, price AS dine_in_price FROM menus WHERE id = ?", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
