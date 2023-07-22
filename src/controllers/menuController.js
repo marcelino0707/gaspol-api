@@ -29,12 +29,10 @@ exports.getMenuById = async (req, res) => {
     const menuDetails = await MenuDetail.getAllByMenuID(id);
 
     for (const menuDetail of menuDetails) {
-      menuDetail.take_away_price =
-        menuDetail.dine_in_price + (menuDetail.dine_in_price * 3) / 100;
-      menuDetail.gofood_price =
-        menuDetail.dine_in_price + (menuDetail.dine_in_price * 25) / 100;
-      menuDetail.grabfood_price =
-        menuDetail.dine_in_price + (menuDetail.dine_in_price * 5) / 100;
+      menuDetail.take_away_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 3) / 100;
+      menuDetail.gofood_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 25) / 100;
+      menuDetail.grabfood_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 5) / 100;
+      menuDetail.delivery_service_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 10) / 100;
     }
 
     const result = {
@@ -45,6 +43,7 @@ exports.getMenuById = async (req, res) => {
       take_away_price: menu.dine_in_price + (menu.dine_in_price * 3) / 100,
       gofood_price: menu.dine_in_price + (menu.dine_in_price * 25) / 100,
       grabfood_price: menu.dine_in_price + (menu.dine_in_price * 5) / 100,
+      delivery_service_price: menu.dine_in_price + (menu.dine_in_price * 10) / 100,
       menu_details: menuDetails,
     };
 
@@ -113,11 +112,7 @@ exports.updateMenu = async (req, res) => {
       price: req.body.price || oldMenuDetail.price,
     };
 
-    if (
-      req.body.name != oldMenuDetail.name ||
-      req.body.menu_type != oldMenuDetail.menu_type ||
-      req.body.price != oldMenuDetail.price
-    ) {
+    if (req.body.name != oldMenuDetail.name || req.body.menu_type != oldMenuDetail.menu_type || req.body.price != oldMenuDetail.price) {
       await Menu.updateMenus(menuId, updatedMenu);
     }
 
