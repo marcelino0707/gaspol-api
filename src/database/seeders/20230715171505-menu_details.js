@@ -40,23 +40,9 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        menu_id: 3,
-        varian: "Original",
-        price: 10000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
         menu_id: 4,
         varian: "Lemon",
         price: 3000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 4,
-        varian: "Original",
-        price: 5000,
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -68,37 +54,9 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        menu_id: 5,
-        price: 12000,
-        varian: "Original",
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
         menu_id: 6,
         varian: "Manja Banget",
         price: 10000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 6,
-        price: 12000,
-        varian: "Original",
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 7,
-        varian: "Original",
-        price: 3000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 8,
-        varian: "Original",
-        price: 3500,
         created_at: new Date(),
         updated_at: new Date()
       },

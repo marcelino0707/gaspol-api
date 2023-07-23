@@ -3,7 +3,8 @@ const MenuDetail = require("../models/menu_detail");
 const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
-const Topping = require("../models/transaction_toppings");
+const Topping = require("../models/transaction_topping");
+const { priceDeterminant } = require("../utils/generalFunctions");
 
 exports.getTransactions = async (req, res) => {
   try {
@@ -46,15 +47,16 @@ exports.createTransaction = async (req, res) => {
     }
 
     if (req.body.customer_cash) {
-      (transaction.customer_cash = req.body.customer_cash),
-        (transaction.customer_change = req.body.customer_change),
-        (transaction.payment_type = req.body.payment_type),
-        (transaction.invoice_number = "INV-" + generateTimeNow() + "-" + req.body.payment_type),
-        (transaction.invoice_due_date = new Date());
+      transaction.customer_cash = req.body.customer_cash,
+      transaction.customer_change = req.body.customer_change,
+      transaction.payment_type = req.body.payment_type,
+      transaction.invoice_number = "INV-" + generateTimeNow() + "-" + req.body.payment_type,
+      transaction.invoice_due_date = new Date();
     }
 
     if (req.body.delivery_type) {
-      (transaction.delivery_type = req.body.delivery_type), (transaction.delivery_note = req.body.delivery_note);
+      transaction.delivery_type = req.body.delivery_type, 
+      transaction.delivery_note = req.body.delivery_note;
     }
 
     let createdTransaction;
@@ -67,23 +69,27 @@ exports.createTransaction = async (req, res) => {
     if (req.body.transaction_details) {
       const transactionDetails = req.body.transaction_details;
       for (const transactionDetail of transactionDetails) {
-        const newTransactionDetail = {
-          transaction_id: createdTransaction.insertId,
-          menu_detail_id: transactionDetail.menu_detail_id,
-          serving_type_id: transactionDetail.serving_type_id,
-          total_item: transactionDetail.total_item,
-          note_item: transactionDetail.note_item,
-        };
+        let newTransactionDetail = {}
+        newTransactionDetail.transaction_id = createdTransaction.insertId;
+        newTransactionDetail.menu_id = transactionDetail.menu_id;
+        newTransactionDetail.serving_type_id = transactionDetail.serving_type_id;
+        newTransactionDetail.total_item = transactionDetail.total_item;
+        newTransactionDetail.note_item = transactionDetail.note_item;
 
+        if (transactionDetail.menu_varian_id) {
+          newTransactionDetail.menu_varian_id = transactionDetail.menu_varian_id;
+        }
+        
         const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
-        if (transactionDetail.topping) {
-          const toppings = transactionDetail.topping;
+
+        if (transactionDetail.toppings) {
+          const toppings = transactionDetail.toppings;
           for (const topping of toppings) {
             const newTopping = {
               transaction_detail_id: createdTransactionDetail.insertId,
-              menu_detail_id: topping.topping_id,
+              menu_id: topping.menu_id,
               serving_type_id: transactionDetail.serving_type_id,
-              total_item: topping.total_topping,
+              total_item: topping.total_item,
             };
 
             await Topping.create(newTopping);
@@ -108,30 +114,49 @@ exports.getTransactionById = async (req, res) => {
 
     const transaction = await Transaction.getById(id);
     const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
-    const menuDetail = await MenuDetail.getMenuDetailById(transactionDetails[0].menu_detail_id);
-    const servingType = await ServingType.getServingTypeById(transactionDetails[0].serving_type_id);
-    const menu = await Menu.getById(menuDetail[0].menu);
 
     for (const transactionDetail of transactionDetails) {
-      transactionDetail.menu_name = menu.name;
-      transactionDetail.menu_type = menu.menu_type;
-      transactionDetail.serving_type = servingType[0].name;
-      if (menuDetail[0].varian) {
-        transactionDetail.menu_varian = menuDetail[0].varian;
-        transactionDetail.menu_price = menuDetail[0].dine_in_price + (menuDetail[0].dine_in_price * servingType[0].percent) / 100;
-      } else {
-        transactionDetail.menu_price = menu.dine_in_price + (menu.dine_in_price * servingType[0].percent) / 100;
-      }
+        let menuDetail, menu
+
+        if (transactionDetail.menu_varian_id) {
+          menuDetail = await MenuDetail.getByID(transactionDetail.menu_varian_id);
+          transactionDetail.menu_varian = menuDetail.varian;
+          transactionDetail.menu_price = await priceDeterminant(menuDetail.price, transactionDetail.serving_type_id);
+          menu = await Menu.getById(menuDetail.menu_id);
+        } else {
+          menu = await Menu.getById(transactionDetail.menu_id);
+          transactionDetail.menu_price = await priceDeterminant(menu.price, transactionDetail.serving_type_id);
+        }
+
+        const servingType = await ServingType.getServingTypeById(transactionDetail.serving_type_id);
+        const toppings = await Topping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
+        
+        transactionDetail.menu_name = menu.name;
+        transactionDetail.menu_type = menu.menu_type;
+        
+        transactionDetail.serving_type = servingType.name;
+        transactionDetail.serving_type_percent = servingType.percent; 
+        
+        if(toppings.length != 0) {
+            transactionDetail.topping = []
+            for (const topping of toppings) {
+                const menuTopping = await Menu.getById(topping.menu_id);
+                topping.topping_name = menuTopping.name;
+                topping.topping_price = await priceDeterminant(menuTopping.price, topping.serving_type_id);
+                transactionDetail.topping.push({
+                  topping_name : topping.topping_name,
+                  topping_price : topping.topping_price,
+                  toping_total_item : topping.total_item
+                });
+            }
+        }
     }
-    // console.log(transactionDetails[0].menu_name);
 
     const result = {
       id: transaction.id,
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
-      customer_cash: transaction.customer_cash,
-      customer_change: transaction.customer_change,
       subtotal: transaction.subtotal,
       total: transaction.total,
       transaction_detail: transactionDetails,

@@ -3,12 +3,15 @@ const MenuDetail = require("../models/menu_detail");
 
 exports.getMenus = async (req, res) => {
   try {
-    let menus;
-
-    if (req.query.name) {
-      menus = await Menu.getAllByMenuName(req.query.name);
-    } else {
-      menus = await Menu.getAll();
+    const menus = await Menu.getAll();
+    
+    for (const menu of menus) {
+      menu.dine_in_price = menu.price;
+      menu.take_away_price = menu.price + (menu.price * 3) / 100;
+      menu.delivery_service_price = menu.price + (menu.price * 10) / 100;
+      menu.gofood_price = menu.price + ((menu.price * 20) / 100) + 1000;
+      menu.grabfood_price = menu.price + (menu.price * 30) / 100;
+      menu.shopeefood_price = menu.price + (menu.price * 20) / 100;
     }
 
     return res.status(200).json({
@@ -29,21 +32,25 @@ exports.getMenuById = async (req, res) => {
     const menuDetails = await MenuDetail.getAllByMenuID(id);
 
     for (const menuDetail of menuDetails) {
-      menuDetail.take_away_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 3) / 100;
-      menuDetail.gofood_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 25) / 100;
-      menuDetail.grabfood_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 5) / 100;
-      menuDetail.delivery_service_price = menuDetail.dine_in_price + (menuDetail.dine_in_price * 10) / 100;
+      menuDetail.dine_in_price = menuDetail.price;
+      menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
+      menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
+      menuDetail.gofood_price = menuDetail.price + ((menuDetail.price * 20) / 100) + 1000;
+      menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
+      menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
     }
 
     const result = {
       id: menu.id,
       name: menu.name,
       menu_type: menu.menu_type,
-      dine_in_price: menu.dine_in_price,
-      take_away_price: menu.dine_in_price + (menu.dine_in_price * 3) / 100,
-      gofood_price: menu.dine_in_price + (menu.dine_in_price * 25) / 100,
-      grabfood_price: menu.dine_in_price + (menu.dine_in_price * 5) / 100,
-      delivery_service_price: menu.dine_in_price + (menu.dine_in_price * 10) / 100,
+      price: menu.price,
+      dine_in_price: menu.price,
+      take_away_price: menu.price + (menu.price * 3) / 100,
+      delivery_service_price: menu.price + (menu.price * 10) / 100,
+      gofood_price: menu.price + ((menu.price * 20) / 100) + 1000,
+      grabfood_price: menu.price + (menu.price * 30) / 100,
+      shopeefood_price: menu.price + (menu.price * 20) / 100,
       menu_details: menuDetails,
     };
 
@@ -86,7 +93,7 @@ exports.createMenu = async (req, res) => {
     }
 
     return res.status(201).json({
-      message: "Data Menu berhasil ditambahkan!",
+      message: "Data menu berhasil ditambahkan!",
     });
   } catch (error) {
     return res.status(500).json({
@@ -98,22 +105,23 @@ exports.createMenu = async (req, res) => {
 exports.updateMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const oldMenuDetail = await Menu.getByMenuId(menuId);
 
-    if (oldMenuDetail.length == 0) {
-      return res.status(404).json({
-        message: "Menu not found!",
-      });
-    }
+    if (req.body.name || req.body.menu_type || req.body.price) {
+      const updatedMenu = {};
 
-    const updatedMenu = {
-      name: req.body.name || oldMenuDetail.name,
-      menu_type: req.body.menu_type || oldMenuDetail.menu_type,
-      price: req.body.price || oldMenuDetail.price,
-    };
+      if(req.body.name) {
+        updatedMenu.name = req.body.name;
+      }
+      
+      if (req.body.menu_type) {
+        updatedMenu.menu_type = req.body.menu_type;
+      }
+      
+      if (req.body.price) {
+        updatedMenu.price = req.body.price;
+      }
 
-    if (req.body.name != oldMenuDetail.name || req.body.menu_type != oldMenuDetail.menu_type || req.body.price != oldMenuDetail.price) {
-      await Menu.updateMenus(menuId, updatedMenu);
+      await Menu.updateMenu(menuId, updatedMenu);
     }
 
     if (req.body.menu_details) {
@@ -128,7 +136,7 @@ exports.updateMenu = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "Berhasil mengubah data menu",
+      message: "Berhasil mengubah data menu!",
     });
   } catch (error) {
     return res.status(500).json({

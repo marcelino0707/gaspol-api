@@ -60,6 +60,27 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date()
       },
+      {
+        name: "Bakso Bakar",
+        price: 2500,
+        menu_type: "Topping",
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: "Sosis Goreng",
+        price: 2500,
+        menu_type: "Topping",
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: "Leci",
+        price: 2500,
+        menu_type: "Topping",
+        created_at: new Date(),
+        updated_at: new Date()
+      },
     ],{});
   },
 

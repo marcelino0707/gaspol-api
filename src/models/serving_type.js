@@ -24,7 +24,7 @@ const ServingType = {
             if (error) {
               reject(error);
             } else {
-              resolve(results);
+              resolve(results[0]);
             }
           });
         })

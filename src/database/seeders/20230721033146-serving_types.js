@@ -17,20 +17,26 @@ module.exports = {
         updated_at: new Date()
       },
       {
+        name: "Delivery Service",
+        percent: 10,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
         name: "GoFood",
-        percent: 25,
+        percent: 20,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         name: "GrabFood",
-        percent: 5,
+        percent: 30,
         created_at: new Date(),
         updated_at: new Date()
       },
       {
-        name: "Delivery Service",
-        percent: 10,
+        name: "ShopeeFood",
+        percent: 20,
         created_at: new Date(),
         updated_at: new Date()
       },

@@ -13,8 +13,12 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      menu_detail_id: {
-        allowNull: false,
+      menu_id :{
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
+      menu_varian_id: {
+        allowNull: true,
         type: Sequelize.INTEGER,
       },
       serving_type_id: {
@@ -40,7 +44,12 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      }
+      },
+      deleted_at: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null, 
+      },
     });
   },
 

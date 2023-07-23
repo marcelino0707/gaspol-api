@@ -5,7 +5,7 @@ const TransactionDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id AS transaction_detail_id, menu_detail_id, serving_type_id, total_item, note_item FROM transaction_details WHERE transaction_id = ?", id, (error, results) => {
+          connection.query("SELECT id AS transaction_detail_id, menu_id, menu_varian_id, serving_type_id, total_item, note_item FROM transaction_details WHERE transaction_id = ?", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
