@@ -4,12 +4,12 @@ const MenuDetail = require("../models/menu_detail");
 exports.getMenus = async (req, res) => {
   try {
     const menus = await Menu.getAll();
-    
+
     for (const menu of menus) {
       menu.dine_in_price = menu.price;
       menu.take_away_price = menu.price + (menu.price * 3) / 100;
       menu.delivery_service_price = menu.price + (menu.price * 10) / 100;
-      menu.gofood_price = menu.price + ((menu.price * 20) / 100) + 1000;
+      menu.gofood_price = menu.price + (menu.price * 20) / 100 + 1000;
       menu.grabfood_price = menu.price + (menu.price * 30) / 100;
       menu.shopeefood_price = menu.price + (menu.price * 20) / 100;
     }
@@ -35,7 +35,7 @@ exports.getMenuById = async (req, res) => {
       menuDetail.dine_in_price = menuDetail.price;
       menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
       menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-      menuDetail.gofood_price = menuDetail.price + ((menuDetail.price * 20) / 100) + 1000;
+      menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
       menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
       menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
     }
@@ -48,7 +48,7 @@ exports.getMenuById = async (req, res) => {
       dine_in_price: menu.price,
       take_away_price: menu.price + (menu.price * 3) / 100,
       delivery_service_price: menu.price + (menu.price * 10) / 100,
-      gofood_price: menu.price + ((menu.price * 20) / 100) + 1000,
+      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
       grabfood_price: menu.price + (menu.price * 30) / 100,
       shopeefood_price: menu.price + (menu.price * 20) / 100,
       menu_details: menuDetails,
@@ -111,14 +111,14 @@ exports.updateMenu = async (req, res) => {
     if (req.body.name || req.body.menu_type || req.body.price) {
       const updatedMenu = {};
 
-      if(req.body.name) {
+      if (req.body.name) {
         updatedMenu.name = req.body.name;
       }
-      
+
       if (req.body.menu_type) {
         updatedMenu.menu_type = req.body.menu_type;
       }
-      
+
       if (req.body.price) {
         updatedMenu.price = req.body.price;
       }
@@ -150,44 +150,32 @@ exports.updateMenu = async (req, res) => {
 exports.deleteMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const menu = await Menu.getByMenuId(menuId);
+    const { menu_details_id } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
 
-    if (menu.length == 0) {
-      return res.status(404).json({
-        message: "Menu not found!",
-      });
-    }
-
-    for (const menuDetailId of req.body.menu_detail_id) {
-      const deletedAtNow = {
-        deleted_at: new Date(),
-      };
-
-      const menuDetailRemainingOne = await checkRemainingOneData(menuId);
-
-      await MenuDetail.delete(menuDetailId, deletedAtNow);
-
-      if (menuDetailRemainingOne) {
-        await Menu.delete(menuId, deletedAtNow);
+    if (menu_details_id) {
+      for (const menu_detail_id of menu_details_id) {
+        await MenuDetail.delete(menu_detail_id, deletedAtNow);
       }
-    }
+    } else {
+      const menuDetails = await MenuDetail.getAllByMenuID(menuId);
 
+      if (menuDetails) {
+        for (const menuDetail of menuDetails) {
+          await MenuDetail.delete(menuDetail.menu_detail_id, deletedAtNow);
+        }
+      }
+
+      await Menu.delete(menuId, deletedAtNow);
+    }
     return res.status(200).json({
-      message: "Berhasil menghapus data Menu Detail",
+      message: "Berhasil menghapus data menu",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Error while deleting Menu Detail",
+      message: error.message || "Error while deleting menu",
     });
   }
 };
-
-async function checkRemainingOneData(menuId) {
-  const existMenuDetail = await MenuDetail.getIdByMenuID(menuId);
-
-  if (existMenuDetail.length == 1) {
-    return true;
-  }
-
-  return false;
-}
