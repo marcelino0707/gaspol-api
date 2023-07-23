@@ -148,53 +148,32 @@ exports.updateMenu = async (req, res) => {
 exports.deleteMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const menu = await Menu.getById(menuId);
+    const { menu_details_id } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
 
-    if (menu.length == 0) {
-      return res.status(404).json({
-        message: "Menu not found!",
-      });
+    if (menu_details_id) {
+      for (const menu_detail_id of menu_details_id) {
+        await MenuDetail.delete(menu_detail_id, deletedAtNow);
+      }
+    } else {
+      const menuDetails = await MenuDetail.getAllByMenuID(menuId);
+
+      if (menuDetails) {
+        for (const menuDetail of menuDetails) {
+          await MenuDetail.delete(menuDetail.menu_detail_id, deletedAtNow);
+        }
+      }
+
+      await Menu.delete(menuId, deletedAtNow);
     }
-
-    if (menu) {
-      const deleteMenu = {
-        deleted_at: new Date(),
-      };
-
-      await Menu.delete(req.params.id, deleteMenu);
-      await MenuDetail.delete(menu.id, deleteMenu);
-    }
-
-    // for (const menuDetailId of req.body.menu_detail_id) {
-    //   const deletedAtNow = {
-    //     deleted_at: new Date(),
-    //   };
-
-    //   const menuDetailRemainingOne = await checkRemainingOneData(menuId);
-
-    //   await MenuDetail.delete(menuDetailId, deletedAtNow);
-
-    //   if (menuDetailRemainingOne) {
-    //     await Menu.delete(menuId, deletedAtNow);
-    //   }
-    // }
-
     return res.status(200).json({
-      message: "Berhasil menghapus data Menu dan Varian nya",
+      message: "Berhasil menghapus data menu",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Error while deleting Menu and Varian",
+      message: error.message || "Error while deleting menu",
     });
   }
 };
-
-async function checkRemainingOneData(menuId) {
-  const existMenuDetail = await MenuDetail.getIdByMenuID(menuId);
-
-  if (existMenuDetail.length == 1) {
-    return true;
-  }
-
-  return false;
-}
