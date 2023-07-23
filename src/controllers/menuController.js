@@ -4,12 +4,12 @@ const MenuDetail = require("../models/menu_detail");
 exports.getMenus = async (req, res) => {
   try {
     const menus = await Menu.getAll();
-    
+
     for (const menu of menus) {
       menu.dine_in_price = menu.price;
       menu.take_away_price = menu.price + (menu.price * 3) / 100;
       menu.delivery_service_price = menu.price + (menu.price * 10) / 100;
-      menu.gofood_price = menu.price + ((menu.price * 20) / 100) + 1000;
+      menu.gofood_price = menu.price + (menu.price * 20) / 100 + 1000;
       menu.grabfood_price = menu.price + (menu.price * 30) / 100;
       menu.shopeefood_price = menu.price + (menu.price * 20) / 100;
     }
@@ -35,7 +35,7 @@ exports.getMenuById = async (req, res) => {
       menuDetail.dine_in_price = menuDetail.price;
       menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
       menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-      menuDetail.gofood_price = menuDetail.price + ((menuDetail.price * 20) / 100) + 1000;
+      menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
       menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
       menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
     }
@@ -48,7 +48,7 @@ exports.getMenuById = async (req, res) => {
       dine_in_price: menu.price,
       take_away_price: menu.price + (menu.price * 3) / 100,
       delivery_service_price: menu.price + (menu.price * 10) / 100,
-      gofood_price: menu.price + ((menu.price * 20) / 100) + 1000,
+      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
       grabfood_price: menu.price + (menu.price * 30) / 100,
       shopeefood_price: menu.price + (menu.price * 20) / 100,
       menu_details: menuDetails,
@@ -109,14 +109,14 @@ exports.updateMenu = async (req, res) => {
     if (req.body.name || req.body.menu_type || req.body.price) {
       const updatedMenu = {};
 
-      if(req.body.name) {
+      if (req.body.name) {
         updatedMenu.name = req.body.name;
       }
-      
+
       if (req.body.menu_type) {
         updatedMenu.menu_type = req.body.menu_type;
       }
-      
+
       if (req.body.price) {
         updatedMenu.price = req.body.price;
       }
@@ -148,7 +148,7 @@ exports.updateMenu = async (req, res) => {
 exports.deleteMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const menu = await Menu.getByMenuId(menuId);
+    const menu = await Menu.getById(menuId);
 
     if (menu.length == 0) {
       return res.status(404).json({
@@ -156,26 +156,35 @@ exports.deleteMenu = async (req, res) => {
       });
     }
 
-    for (const menuDetailId of req.body.menu_detail_id) {
-      const deletedAtNow = {
+    if (menu) {
+      const deleteMenu = {
         deleted_at: new Date(),
       };
 
-      const menuDetailRemainingOne = await checkRemainingOneData(menuId);
-
-      await MenuDetail.delete(menuDetailId, deletedAtNow);
-
-      if (menuDetailRemainingOne) {
-        await Menu.delete(menuId, deletedAtNow);
-      }
+      await Menu.delete(req.params.id, deleteMenu);
+      await MenuDetail.delete(menu.id, deleteMenu);
     }
 
+    // for (const menuDetailId of req.body.menu_detail_id) {
+    //   const deletedAtNow = {
+    //     deleted_at: new Date(),
+    //   };
+
+    //   const menuDetailRemainingOne = await checkRemainingOneData(menuId);
+
+    //   await MenuDetail.delete(menuDetailId, deletedAtNow);
+
+    //   if (menuDetailRemainingOne) {
+    //     await Menu.delete(menuId, deletedAtNow);
+    //   }
+    // }
+
     return res.status(200).json({
-      message: "Berhasil menghapus data Menu Detail",
+      message: "Berhasil menghapus data Menu dan Varian nya",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Error while deleting Menu Detail",
+      message: error.message || "Error while deleting Menu and Varian",
     });
   }
 };
