@@ -109,11 +109,11 @@ exports.createTransaction = async (req, res) => {
 };
 
 exports.getTransactionById = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-
     const transaction = await Transaction.getById(id);
     const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
+    const servingTypes = await ServingType.getAll();
 
     for (const transactionDetail of transactionDetails) {
         let menuDetail, menu
@@ -128,7 +128,7 @@ exports.getTransactionById = async (req, res) => {
           transactionDetail.menu_price = await priceDeterminant(menu.price, transactionDetail.serving_type_id);
         }
 
-        const servingType = await ServingType.getServingTypeById(transactionDetail.serving_type_id);
+        const servingType = servingTypes.find((s) => s.id == transactionDetail.serving_type_id);
         const toppings = await Topping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
         
         transactionDetail.menu_name = menu.name;
@@ -149,6 +149,10 @@ exports.getTransactionById = async (req, res) => {
                   toping_total_item : topping.total_item
                 });
             }
+        }
+
+        if (transactionDetail.menu_varian_id === null) {
+          delete transactionDetail.menu_varian_id;
         }
     }
 
