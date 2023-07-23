@@ -82,14 +82,16 @@ exports.createMenu = async (req, res) => {
       menuId = req.query.menu_id;
     }
 
-    for (const menuDetail of menu_details) {
-      const menuDetailData = {
-        menu_id: menuId,
-        price: menuDetail.price,
-        varian: menuDetail.varian,
-      };
-
-      await MenuDetail.create(menuDetailData);
+    if(menu_details) {
+      for (const menuDetail of menu_details) {
+        const menuDetailData = {
+          menu_id: menuId,
+          price: menuDetail.price,
+          varian: menuDetail.varian,
+        };
+  
+        await MenuDetail.create(menuDetailData);
+      }
     }
 
     return res.status(201).json({
