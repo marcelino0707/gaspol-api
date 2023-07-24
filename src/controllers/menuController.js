@@ -121,7 +121,7 @@ exports.updateMenu = async (req, res) => {
 
     const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
     const oldMenuDetailIds = oldMenuDetails.map(item => item.menu_detail_id);
-    const menuDetailsIds = menu_details.map(item => item.menu_detail_id);
+    const menuDetailsIds = menu_details.filter(item => item.menu_detail_id !== undefined).map(item => item.menu_detail_id);
     const menuDetailIdsToDelete = oldMenuDetailIds.filter(id => !menuDetailsIds.includes(id));
     const invalidMenuDetailIds = menuDetailsIds.filter(id => !oldMenuDetailIds.includes(id));
     if (invalidMenuDetailIds.length > 0) {
@@ -137,6 +137,11 @@ exports.updateMenu = async (req, res) => {
       };
 
       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+
+      if(menuDetail.menu_detail_id == undefined) {
+        updatedMenuDetail.menu_id = menuId;
+        await MenuDetail.create(updatedMenuDetail);
+      }
     }
 
     if(menuDetailIdsToDelete.length > 0) {
