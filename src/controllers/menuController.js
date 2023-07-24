@@ -107,33 +107,41 @@ exports.createMenu = async (req, res) => {
 exports.updateMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
+    const { name, menu_type, price, menu_details } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
 
-    if (req.body.name || req.body.menu_type || req.body.price) {
-      const updatedMenu = {};
+    const updatedMenu = {
+      name: name,
+      menu_type : menu_type,
+      price : price
+    };
+    await Menu.updateMenu(menuId, updatedMenu);
 
-      if (req.body.name) {
-        updatedMenu.name = req.body.name;
-      }
-
-      if (req.body.menu_type) {
-        updatedMenu.menu_type = req.body.menu_type;
-      }
-
-      if (req.body.price) {
-        updatedMenu.price = req.body.price;
-      }
-
-      await Menu.updateMenu(menuId, updatedMenu);
+    const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
+    const oldMenuDetailIds = oldMenuDetails.map(item => item.menu_detail_id);
+    const menuDetailsIds = menu_details.map(item => item.menu_detail_id);
+    const menuDetailIdsToDelete = oldMenuDetailIds.filter(id => !menuDetailsIds.includes(id));
+    const invalidMenuDetailIds = menuDetailsIds.filter(id => !oldMenuDetailIds.includes(id));
+    if (invalidMenuDetailIds.length > 0) {
+      return res.status(400).json({
+        message: "Terdapat varian menu yang tidak terdaftar pada menu!",
+      });
     }
 
-    if (req.body.menu_details) {
-      for (const menuDetail of req.body.menu_details) {
-        const updatedMenuDetail = {
-          varian: menuDetail.varian,
-          price: menuDetail.price,
-        };
+    for (const menuDetail of menu_details) {
+      const updatedMenuDetail = {
+        varian: menuDetail.varian,
+        price: menuDetail.price,
+      };
 
-        await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+      await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+    }
+
+    if(menuDetailIdsToDelete.length > 0) {
+      for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
+        await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
       }
     }
 
@@ -150,26 +158,17 @@ exports.updateMenu = async (req, res) => {
 exports.deleteMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const { menu_details_id } = req.body;
     const deletedAtNow = {
       deleted_at: new Date(),
     };
 
-    if (menu_details_id) {
-      for (const menu_detail_id of menu_details_id) {
-        await MenuDetail.delete(menu_detail_id, deletedAtNow);
-      }
-    } else {
-      const menuDetails = await MenuDetail.getAllByMenuID(menuId);
-
-      if (menuDetails) {
-        for (const menuDetail of menuDetails) {
-          await MenuDetail.delete(menuDetail.menu_detail_id, deletedAtNow);
-        }
-      }
-
-      await Menu.delete(menuId, deletedAtNow);
+    const deletedMenu = await Menu.delete(menuId, deletedAtNow);
+    if(deletedMenu.affectedRows == 0) {
+      return res.status(404).json({
+        message: "Menu yang ingin dihapus tidak terdaftar!",
+      });
     }
+
     return res.status(200).json({
       message: "Berhasil menghapus data menu",
     });
