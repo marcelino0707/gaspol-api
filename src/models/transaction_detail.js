@@ -33,6 +33,22 @@ const TransactionDetail = {
         .catch((error) => reject(error));
     });
   },
+  delete: (id, data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE transaction_details SET ? WHERE id = ?", [data, id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
 };
 
 module.exports = TransactionDetail;

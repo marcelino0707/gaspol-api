@@ -32,5 +32,6 @@ route.get("/serving-type", servingType.getServingType);
 route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
 route.get("/transaction/:id", transaction.getTransactionById);
+route.delete("/transaction/:id", transaction.deleteTransaction);
 
 module.exports = route;
