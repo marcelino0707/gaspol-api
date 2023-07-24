@@ -74,15 +74,10 @@ exports.createMenu = async (req, res) => {
       price: price,
     };
 
-    let menuId;
-    if (!req.query.menu_id) {
-      const createdMenu = await Menu.createMenu(menu);
-      menuId = createdMenu.insertId;
-    } else {
-      menuId = req.query.menu_id;
-    }
-
+    const createdMenu = await Menu.createMenu(menu);
+    
     if(menu_details) {
+      const menuId = createdMenu.insertId;
       for (const menuDetail of menu_details) {
         const menuDetailData = {
           menu_id: menuId,
