@@ -37,7 +37,7 @@ const TransactionTopping = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("UPDATE transaction_toppings SET ? WHERE transaction_id = ?", [data, id], (error, results) => {
+          connection.query("UPDATE transaction_toppings SET ? WHERE transaction_detail_id = ?", [data, id], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

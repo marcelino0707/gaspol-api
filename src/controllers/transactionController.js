@@ -3,6 +3,7 @@ const MenuDetail = require("../models/menu_detail");
 const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
+const TransactionTopping = require("../models/transaction_topping");
 const Topping = require("../models/transaction_topping");
 const { priceDeterminant } = require("../utils/generalFunctions");
 
@@ -206,6 +207,39 @@ exports.getTransactionById = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transaction",
+    });
+  }
+};
+
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const transactionId = req.params.id;
+    const { transaction_details_id } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
+
+    if (transaction_details_id) {
+      for (const transaction_detail_id of transaction_details_id) {
+        await TransactionDetail.delete(transaction_detail_id, deletedAtNow);
+        await TransactionTopping.delete(transaction_detail_id, deletedAtNow);
+      }
+    } else {
+      const transactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
+
+      for (const detail_id of transactionDetails) {
+        await TransactionDetail.delete(detail_id.transaction_id, deletedAtNow);
+        await TransactionTopping.delete(detail_id.transaction_detail_id, deletedAtNow);
+      }
+      await Transaction.delete(transactionId, deletedAtNow);
+    }
+
+    return res.status(200).json({
+      message: "Berhasil menghapus data transaksi",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting menu",
     });
   }
 };
