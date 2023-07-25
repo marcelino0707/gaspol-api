@@ -4,7 +4,6 @@ const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
 const TransactionTopping = require("../models/transaction_topping");
-const Topping = require("../models/transaction_topping");
 const { priceDeterminant } = require("../utils/generalFunctions");
 
 exports.getTransactions = async (req, res) => {
@@ -92,7 +91,7 @@ exports.createTransaction = async (req, res) => {
               total_item: topping.total_item,
             };
 
-            await Topping.create(newTopping);
+            await TransactionTopping.create(newTopping);
           }
         }
       }
@@ -104,41 +103,6 @@ exports.createTransaction = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transaction",
-    });
-  }
-};
-
-exports.deleteTransaction = async (req, res) => {
-  try {
-    const TransactionId = req.params.id;
-    const { transaction_details_id } = req.body;
-    const deletedAtNow = {
-      deleted_at: new Date(),
-    };
-
-    if (transaction_details_id) {
-      for (const transaction_detail_id of transaction_details_id) {
-        await TransactionDetail.delete(transaction_detail_id, deletedAtNow);
-        await Topping.delete(transaction_detail_id, deletedAtNow);
-      }
-    } else {
-      const TransactionDetails = await TransactionDetail.getAllByTransactionID(TransactionId);
-
-      if (TransactionDetails) {
-        for (const transactionDetail of TransactionDetails) {
-          await TransactionDetail.delete(transactionDetail.transaction_detail_id, deletedAtNow);
-          await Topping.delete(transactionDetail.transaction_detail_id, deletedAtNow);
-        }
-      }
-
-      await Transaction.delete(TransactionId, deletedAtNow);
-    }
-    return res.status(200).json({
-      message: "Berhasil menghapus data transaction",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Error while deleting transaction",
     });
   }
 };
@@ -164,7 +128,7 @@ exports.getTransactionById = async (req, res) => {
       }
 
       const servingType = servingTypes.find((s) => s.id == transactionDetail.serving_type_id);
-      const toppings = await Topping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
+      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
 
       transactionDetail.menu_name = menu.name;
       transactionDetail.menu_type = menu.menu_type;
@@ -214,25 +178,18 @@ exports.getTransactionById = async (req, res) => {
 exports.deleteTransaction = async (req, res) => {
   try {
     const transactionId = req.params.id;
-    const { transaction_details_id } = req.body;
     const deletedAtNow = {
       deleted_at: new Date(),
     };
 
-    if (transaction_details_id) {
-      for (const transaction_detail_id of transaction_details_id) {
-        await TransactionDetail.delete(transaction_detail_id, deletedAtNow);
-        await TransactionTopping.delete(transaction_detail_id, deletedAtNow);
-      }
-    } else {
-      const transactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
+    const transactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
 
-      for (const detail_id of transactionDetails) {
-        await TransactionDetail.delete(detail_id.transaction_id, deletedAtNow);
-        await TransactionTopping.delete(detail_id.transaction_detail_id, deletedAtNow);
-      }
-      await Transaction.delete(transactionId, deletedAtNow);
+    for (const transactionDetail of transactionDetails) {
+      await TransactionDetail.delete(transactionDetail.transaction_id, deletedAtNow);
+      await TransactionTopping.delete(transactionDetail.transaction_detail_id, deletedAtNow);
     }
+    
+    await Transaction.delete(transactionId, deletedAtNow);
 
     return res.status(200).json({
       message: "Berhasil menghapus data transaksi",
