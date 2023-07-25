@@ -108,6 +108,41 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const TransactionId = req.params.id;
+    const { transaction_details_id } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
+
+    if (transaction_details_id) {
+      for (const transaction_detail_id of transaction_details_id) {
+        await TransactionDetail.delete(transaction_detail_id, deletedAtNow);
+        await Topping.delete(transaction_detail_id, deletedAtNow);
+      }
+    } else {
+      const TransactionDetails = await TransactionDetail.getAllByTransactionID(TransactionId);
+
+      if (TransactionDetails) {
+        for (const transactionDetail of TransactionDetails) {
+          await TransactionDetail.delete(transactionDetail.transaction_detail_id, deletedAtNow);
+          await Topping.delete(transactionDetail.transaction_detail_id, deletedAtNow);
+        }
+      }
+
+      await Transaction.delete(TransactionId, deletedAtNow);
+    }
+    return res.status(200).json({
+      message: "Berhasil menghapus data transaction",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting transaction",
+    });
+  }
+};
+
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
   try {
