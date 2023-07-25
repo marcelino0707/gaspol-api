@@ -169,6 +169,8 @@ exports.deleteMenu = async (req, res) => {
       });
     }
 
+    await MenuDetail.deleteByMenuID(menuId, deletedAtNow)
+
     return res.status(200).json({
       message: "Berhasil menghapus data menu",
     });

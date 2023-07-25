@@ -81,6 +81,22 @@ const MenuDetail = {
         .catch((error) => reject(error));
     });
   },
+  deleteByMenuID: (menu_id, data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE menu_details SET ? WHERE menu_id = ?", [data, menu_id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
 };
 
 module.exports = MenuDetail;
