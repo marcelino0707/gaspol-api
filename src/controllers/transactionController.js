@@ -5,6 +5,10 @@ const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
 const TransactionTopping = require("../models/transaction_topping");
 const { priceDeterminant } = require("../utils/generalFunctions");
+const deletedAtNow = {
+  deleted_at: new Date(),
+};
+const thisTimeNow = new Date();
 
 exports.getTransactions = async (req, res) => {
   try {
@@ -111,6 +115,118 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
+exports.updateTransaction = async (req, res) => {
+  try {
+    const transactionId = req.params.id;
+    const { customer_name, subtotal, total, transaction_details } = req.body;
+    customer_seat = req.body.customer_seat || 0;
+    const updateTransaction = {
+      customer_name: customer_name,
+      customer_seat: customer_seat,
+      subtotal: subtotal,
+      total: total,
+      updated_at: thisTimeNow,
+      receipt_number: "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow(),
+    }
+    await Transaction.update(transactionId, updateTransaction)
+
+    const oldTransactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
+    const oldTransactionDetailIds = oldTransactionDetails.map(item => item.transaction_detail_id);
+    const transactionDetailIds = transaction_details.filter(item => item.transaction_detail_id !== undefined).map(item => item.transaction_detail_id);
+    const transactionDetailIdsToDelete = oldTransactionDetailIds.filter(id => !transactionDetailIds.includes(id));
+    const invalidTransactionDetailIds = transactionDetailIds.filter(id => !oldTransactionDetailIds.includes(id));
+    if (invalidTransactionDetailIds.length > 0) {
+      return res.status(400).json({
+        message: "Terdapat item menu yang tidak terdaftar pada transaksi sebelumnya!",
+      });
+    }
+
+    for (const transactionDetail of transaction_details) {
+      const updatedTransactionDetail = {
+        menu_id: transactionDetail.menu_id,
+        serving_type_id: transactionDetail.serving_type_id,
+        total_item: transactionDetail.total_item,
+        updated_at: thisTimeNow,
+      }
+
+      if(transactionDetail.note_item) {
+        updatedTransactionDetail.note_item = transactionDetail.note_item
+      }
+
+      if(transactionDetail.menu_detail_id) {
+        updatedTransactionDetail.menu_detail_id =transactionDetail.menu_detail_id
+      }
+
+      await TransactionDetail.update(transactionDetail.transaction_detail_id, updatedTransactionDetail)
+
+      if(transactionDetail.transaction_detail_id == undefined) {
+        updatedTransactionDetail.transaction_id = transactionId;
+        const createdTransactionDetail = await TransactionDetail.create(updatedTransactionDetail);
+        if(transactionDetail.toppings) {
+          for (const topping of transactionDetail.toppings) {
+            const newTopping = {
+              transaction_detail_id: createdTransactionDetail.insertId,
+              menu_detail_id: topping.menu_detail_id,
+              serving_type_id: transactionDetail.serving_type_id,
+              total_item: topping.total_item,
+            }
+            await TransactionTopping.create(newTopping);
+          }
+        }
+      }
+
+      if(transactionDetail.toppings && transactionDetail.transaction_detail_id) {
+        const oldToppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
+        const oldToppingIds = oldToppings.map(item => item.transaction_topping_id);
+        const toppingIds = transactionDetail.toppings.filter(item => item.transaction_topping_id !== undefined).map(item => item.transaction_topping_id);
+        const toppingIdsToDelete = oldToppingIds.filter(id => !toppingIds.includes(id));
+        const invalidToppingIds = toppingIds.filter(id => !oldToppingIds.includes(id));
+        if (invalidToppingIds.length > 0) {
+          return res.status(400).json({
+            message: "Terdapat topping yang tidak terdaftar pada transaksi sebelumnya!",
+          });
+        }
+
+        for (const topping of transactionDetail.toppings) {
+          const updatedTopping = {
+            menu_detail_id: topping.menu_detail_id,
+            total_item: topping.total_item,
+            updated_at: thisTimeNow,
+          }
+
+          await TransactionTopping.update(topping.transaction_topping_id, updatedTopping);
+
+          if(topping.transaction_topping_id == undefined) {
+            updatedTopping.transaction_detail_id = transactionDetail.transaction_detail_id;
+            updatedTopping.serving_type_id = transactionDetail.serving_type_id;
+            await TransactionTopping.create(updatedTopping);
+          }
+        }
+
+        if(toppingIdsToDelete.length > 0) {
+          for (const toppingIdToDelete of toppingIdsToDelete) {
+            await TransactionTopping.delete(toppingIdToDelete, deletedAtNow);
+          }
+        }
+      }
+    }
+
+    if(transactionDetailIdsToDelete.length > 0) {
+      for (const transactionDetailIdToDelete of transactionDetailIdsToDelete) {
+        await TransactionDetail.delete(transactionDetailIdToDelete, deletedAtNow);
+      }
+    }
+
+    return res.status(201).json({
+      message: "Data transaksi berhasil diubah!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Some error occurred while updating the transaction",
+    });
+  }
+};
+
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -146,9 +262,10 @@ exports.getTransactionById = async (req, res) => {
         for(const topping of toppings) {
           const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
           transactionDetail.toppings.push({
+            transaction_topping_id: topping.transaction_topping_id,
             menu_detail_id: topping.menu_detail_id,
             topping_name: menuTopping.varian,
-            topping_price: menuTopping.menu_price,
+            topping_price: menuTopping.price,
             topping_total_item: topping.total_item,
           });
         }

@@ -37,6 +37,7 @@ route.get("/discount", discount.getDiscounts);
 route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
 route.get("/transaction/:id", transaction.getTransactionById);
+route.patch("/transaction/:id", transaction.updateTransaction);
 route.delete("/transaction/:id", transaction.deleteTransaction);
 
 // Refund

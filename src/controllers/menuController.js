@@ -140,6 +140,8 @@ exports.updateMenu = async (req, res) => {
 
       if(menuDetail.is_topping) {
         updatedMenuDetail.is_topping = menuDetail.is_topping;
+      } else {
+        updatedMenuDetail.is_topping = false;
       }
 
       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);

@@ -5,7 +5,7 @@ const TransactionTopping = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT menu_detail_id, serving_type_id, total_item FROM transaction_toppings WHERE transaction_detail_id = ? AND deleted_at IS NULL", transaction_detail_id, (error, results) => {
+          connection.query("SELECT id AS transaction_topping_id, menu_detail_id, serving_type_id, total_item FROM transaction_toppings WHERE transaction_detail_id = ? AND deleted_at IS NULL", transaction_detail_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -33,11 +33,27 @@ const TransactionTopping = {
         .catch((error) => reject(error));
     });
   },
+  update: (id, transaction_topping) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE transaction_toppings SET ? WHERE id = ?", [transaction_topping, id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   delete: (id, data) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("UPDATE transaction_toppings SET ? WHERE transaction_detail_id = ?", [data, id], (error, results) => {
+          connection.query("UPDATE transaction_toppings SET ? WHERE id = ?", [data, id], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
