@@ -7,6 +7,7 @@ const product = require("./controllers/productController");
 const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
 const servingType = require("./controllers/servingTypeController");
+const discount = require("./controllers/discountController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -27,6 +28,9 @@ route.delete("/menu/:id", menu.deleteMenu);
 
 // Serving Type
 route.get("/serving-type", servingType.getServingType);
+
+// Discount
+route.get("/discount", discount.getDiscounts);
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);

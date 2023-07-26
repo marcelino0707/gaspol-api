@@ -6,7 +6,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note, refund_reason FROM transactions WHERE deleted_at IS NULL AND invoice_due_date IS NULL",
+            "SELECT id, receipt_number, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note FROM transactions WHERE deleted_at IS NULL AND invoice_due_date IS NULL",
             (error, results) => {
               disconnectDB();
               if (error) {

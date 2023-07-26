@@ -13,6 +13,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
+      transaction_detail_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       refund_reason_item: {
         allowNull: false,
         type: Sequelize.STRING,

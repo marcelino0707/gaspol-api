@@ -42,6 +42,10 @@ module.exports = {
         allowNull: true,
         defaultValue: 0, 
       },
+      discount_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       payment_type: {
         allowNull: true,
         type: Sequelize.STRING,

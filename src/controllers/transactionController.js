@@ -54,6 +54,10 @@ exports.createTransaction = async (req, res) => {
         (transaction.invoice_due_date = new Date());
     }
 
+    if(req.body.discount_id) {
+      transaction.discount_id = req.body.discount_id
+    }
+
     if (req.body.delivery_type) {
       (transaction.delivery_type = req.body.delivery_type), (transaction.delivery_note = req.body.delivery_note);
     }
