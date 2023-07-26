@@ -8,6 +8,7 @@ const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
 const servingType = require("./controllers/servingTypeController");
 const discount = require("./controllers/discountController");
+const refund = require("./controllers/refundController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -37,5 +38,8 @@ route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
 route.get("/transaction/:id", transaction.getTransactionById);
 route.delete("/transaction/:id", transaction.deleteTransaction);
+
+// Refund
+route.post("/refund/:id", refund.createRefund);
 
 module.exports = route;
