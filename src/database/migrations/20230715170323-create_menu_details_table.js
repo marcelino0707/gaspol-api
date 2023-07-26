@@ -17,6 +17,11 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING,
       },
+      is_topping: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       price: {
         allowNull: false,
         defaultValue: 0,

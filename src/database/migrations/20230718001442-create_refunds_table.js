@@ -13,9 +13,14 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      transaction_detail_id: {
+      is_refund_all: {
         allowNull: true,
-        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
+      refund_reason: {
+        allowNull: false,
+        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,

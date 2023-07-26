@@ -5,7 +5,7 @@ const TransactionTopping = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT menu_id, serving_type_id, total_item FROM transaction_toppings WHERE transaction_detail_id = ? AND deleted_at IS NULL", transaction_detail_id, (error, results) => {
+          connection.query("SELECT menu_detail_id, serving_type_id, total_item FROM transaction_toppings WHERE transaction_detail_id = ? AND deleted_at IS NULL", transaction_detail_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

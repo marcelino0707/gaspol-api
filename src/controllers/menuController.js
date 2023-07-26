@@ -29,7 +29,7 @@ exports.getMenuById = async (req, res) => {
     const { id } = req.params;
 
     const menu = await Menu.getById(id);
-    const menuDetails = await MenuDetail.getAllByMenuID(id);
+    const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
 
     for (const menuDetail of menuDetails) {
       menuDetail.dine_in_price = menuDetail.price;
@@ -39,6 +39,8 @@ exports.getMenuById = async (req, res) => {
       menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
       menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
     }
+
+    const toppings = await MenuDetail.getAllToppingByMenuID(id);
 
     const result = {
       id: menu.id,
@@ -52,6 +54,7 @@ exports.getMenuById = async (req, res) => {
       grabfood_price: menu.price + (menu.price * 30) / 100,
       shopeefood_price: menu.price + (menu.price * 20) / 100,
       menu_details: menuDetails,
+      toppings: toppings,
     };
 
     return res.status(200).json({
@@ -84,6 +87,10 @@ exports.createMenu = async (req, res) => {
           price: menuDetail.price,
           varian: menuDetail.varian,
         };
+
+        if(menuDetail.is_topping) {
+          menuDetailData.is_topping = true;
+        }
   
         await MenuDetail.create(menuDetailData);
       }
@@ -130,6 +137,10 @@ exports.updateMenu = async (req, res) => {
         varian: menuDetail.varian,
         price: menuDetail.price,
       };
+
+      if(menuDetail.is_topping) {
+        updatedMenuDetail.is_topping = menuDetail.is_topping;
+      }
 
       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
 

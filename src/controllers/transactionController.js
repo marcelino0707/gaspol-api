@@ -75,8 +75,8 @@ exports.createTransaction = async (req, res) => {
         newTransactionDetail.total_item = transactionDetail.total_item;
         newTransactionDetail.note_item = transactionDetail.note_item;
 
-        if (transactionDetail.menu_varian_id) {
-          newTransactionDetail.menu_varian_id = transactionDetail.menu_varian_id;
+        if (transactionDetail.menu_detail_id) {
+          newTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
         }
 
         const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
@@ -86,7 +86,7 @@ exports.createTransaction = async (req, res) => {
           for (const topping of toppings) {
             const newTopping = {
               transaction_detail_id: createdTransactionDetail.insertId,
-              menu_id: topping.menu_id,
+              menu_detail_id: topping.menu_detail_id,
               serving_type_id: transactionDetail.serving_type_id,
               total_item: topping.total_item,
             };
@@ -113,45 +113,45 @@ exports.getTransactionById = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
     const servingTypes = await ServingType.getAll();
-
+    
     for (const transactionDetail of transactionDetails) {
-      let menuDetail, menu;
-
-      if (transactionDetail.menu_varian_id) {
-        menuDetail = await MenuDetail.getByID(transactionDetail.menu_varian_id);
-        transactionDetail.menu_varian = menuDetail.varian;
-        transactionDetail.menu_price = await priceDeterminant(menuDetail.price, transactionDetail.serving_type_id);
-        menu = await Menu.getById(menuDetail.menu_id);
-      } else {
-        menu = await Menu.getById(transactionDetail.menu_id);
-        transactionDetail.menu_price = await priceDeterminant(menu.price, transactionDetail.serving_type_id);
+      let menuDetail;
+      const servingType = servingTypes.find(type => type.id == transactionDetail.serving_type_id);
+      const menu = await Menu.getById(transactionDetail.menu_id)
+      
+      if(transactionDetail.menu_detail_id) {
+        menuDetail = await MenuDetail.getByID(transactionDetail.menu_detail_id);
+        transactionDetail.menu_price = priceDeterminant(menuDetail.price, servingType.name, servingType.percent);
       }
 
-      const servingType = servingTypes.find((s) => s.id == transactionDetail.serving_type_id);
-      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
+      if (transactionDetail.menu_detail_id) {
+        transactionDetail.menu_varian = menuDetail.varian;
+      } else {
+        transactionDetail.menu_price = priceDeterminant(menu.price, servingType.name, servingType.percent);
+      }
 
       transactionDetail.menu_name = menu.name;
       transactionDetail.menu_type = menu.menu_type;
-
+      
       transactionDetail.serving_type = servingType.name;
       transactionDetail.serving_type_percent = servingType.percent;
-
+      
+      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id)
       if (toppings.length != 0) {
-        transactionDetail.topping = [];
-        for (const topping of toppings) {
-          const menuTopping = await Menu.getById(topping.menu_id);
-          topping.topping_name = menuTopping.name;
-          topping.topping_price = await priceDeterminant(menuTopping.price, topping.serving_type_id);
-          transactionDetail.topping.push({
-            topping_name: topping.topping_name,
-            topping_price: topping.topping_price,
-            toping_total_item: topping.total_item,
+        transactionDetail.toppings = [];
+        for(const topping of toppings) {
+          const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
+          transactionDetail.toppings.push({
+            menu_detail_id: topping.menu_detail_id,
+            topping_name: menuTopping.varian,
+            topping_price: menuTopping.menu_price,
+            topping_total_item: topping.total_item,
           });
         }
       }
 
-      if (transactionDetail.menu_varian_id === null) {
-        delete transactionDetail.menu_varian_id;
+      if (transactionDetail.menu_detail_id == null) {
+        delete transactionDetail.menu_detail_id;
       }
     }
 

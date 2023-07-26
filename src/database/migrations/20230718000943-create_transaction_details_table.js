@@ -17,7 +17,7 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      menu_varian_id: {
+      menu_detail_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },

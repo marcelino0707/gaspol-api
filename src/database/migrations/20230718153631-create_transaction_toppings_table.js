@@ -13,7 +13,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      menu_id: {
+      menu_detail_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
