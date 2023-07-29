@@ -9,6 +9,7 @@ const transaction = require("./controllers/transactionController");
 const servingType = require("./controllers/servingTypeController");
 const discount = require("./controllers/discountController");
 const refund = require("./controllers/refundController");
+const cart = require("./controllers/cartController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -32,6 +33,10 @@ route.get("/serving-type", servingType.getServingType);
 
 // Discount
 route.get("/discount", discount.getDiscounts);
+
+// Cart
+route.get("/cart", cart.getCarts);
+route.post("/cart", cart.createCart);
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);
