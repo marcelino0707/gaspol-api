@@ -42,6 +42,10 @@ exports.getMenuById = async (req, res) => {
 
     const toppings = await MenuDetail.getAllToppingByMenuID(id);
 
+    if (toppings.is_topping) {
+      menuDetail.is_topping = true;
+    }
+
     const result = {
       id: menu.id,
       name: menu.name,
@@ -53,8 +57,7 @@ exports.getMenuById = async (req, res) => {
       gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
       grabfood_price: menu.price + (menu.price * 30) / 100,
       shopeefood_price: menu.price + (menu.price * 20) / 100,
-      menu_details: menuDetails,
-      toppings: toppings,
+      menu_details: [...menuDetails, ...toppings],
     };
 
     return res.status(200).json({
@@ -78,8 +81,8 @@ exports.createMenu = async (req, res) => {
     };
 
     const createdMenu = await Menu.createMenu(menu);
-    
-    if(menu_details) {
+
+    if (menu_details) {
       const menuId = createdMenu.insertId;
       for (const menuDetail of menu_details) {
         const menuDetailData = {
@@ -88,10 +91,10 @@ exports.createMenu = async (req, res) => {
           varian: menuDetail.varian,
         };
 
-        if(menuDetail.is_topping) {
+        if (menuDetail.is_topping) {
           menuDetailData.is_topping = true;
         }
-  
+
         await MenuDetail.create(menuDetailData);
       }
     }
@@ -116,16 +119,16 @@ exports.updateMenu = async (req, res) => {
 
     const updatedMenu = {
       name: name,
-      menu_type : menu_type,
-      price : price
+      menu_type: menu_type,
+      price: price,
     };
     await Menu.updateMenu(menuId, updatedMenu);
 
     const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
-    const oldMenuDetailIds = oldMenuDetails.map(item => item.menu_detail_id);
-    const menuDetailsIds = menu_details.filter(item => item.menu_detail_id !== undefined).map(item => item.menu_detail_id);
-    const menuDetailIdsToDelete = oldMenuDetailIds.filter(id => !menuDetailsIds.includes(id));
-    const invalidMenuDetailIds = menuDetailsIds.filter(id => !oldMenuDetailIds.includes(id));
+    const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
+    const menuDetailsIds = menu_details.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
+    const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
+    const invalidMenuDetailIds = menuDetailsIds.filter((id) => !oldMenuDetailIds.includes(id));
     if (invalidMenuDetailIds.length > 0) {
       return res.status(400).json({
         message: "Terdapat varian menu yang tidak terdaftar pada menu!",
@@ -138,7 +141,7 @@ exports.updateMenu = async (req, res) => {
         price: menuDetail.price,
       };
 
-      if(menuDetail.is_topping) {
+      if (menuDetail.is_topping) {
         updatedMenuDetail.is_topping = menuDetail.is_topping;
       } else {
         updatedMenuDetail.is_topping = false;
@@ -146,13 +149,13 @@ exports.updateMenu = async (req, res) => {
 
       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
 
-      if(menuDetail.menu_detail_id == undefined) {
+      if (menuDetail.menu_detail_id == undefined) {
         updatedMenuDetail.menu_id = menuId;
         await MenuDetail.create(updatedMenuDetail);
       }
     }
 
-    if(menuDetailIdsToDelete.length > 0) {
+    if (menuDetailIdsToDelete.length > 0) {
       for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
         await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
       }
@@ -176,13 +179,13 @@ exports.deleteMenu = async (req, res) => {
     };
 
     const deletedMenu = await Menu.delete(menuId, deletedAtNow);
-    if(deletedMenu.affectedRows == 0) {
+    if (deletedMenu.affectedRows == 0) {
       return res.status(404).json({
         message: "Menu yang ingin dihapus tidak terdaftar!",
       });
     }
 
-    await MenuDetail.deleteByMenuID(menuId, deletedAtNow)
+    await MenuDetail.deleteByMenuID(menuId, deletedAtNow);
 
     return res.status(200).json({
       message: "Berhasil menghapus data menu",
