@@ -14,14 +14,14 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       subtotal: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        defaultValue: 0, 
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       total: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        defaultValue: 0, 
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       discount_id: {
         allowNull: true,

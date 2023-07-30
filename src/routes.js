@@ -35,7 +35,7 @@ route.get("/serving-type", servingType.getServingType);
 route.get("/discount", discount.getDiscounts);
 
 // Cart
-route.get("/cart", cart.getCarts);
+route.get("/cart", cart.getCart);
 route.post("/cart", cart.createCart);
 
 // Transaction

@@ -28,13 +28,13 @@ module.exports = {
       },
       qty: {  
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
         defaultValue: 0, 
       },
-      is_topping: {
-        allowNull: true,
-        defaultValue: true,
-        type: Sequelize.TINYINT,
+      total_price: {
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       created_at: {
         allowNull: false,
