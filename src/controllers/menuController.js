@@ -153,7 +153,7 @@ exports.updateMenu = async (req, res) => {
         updatedMenuDetail.menu_id = menuId;
         await MenuDetail.create(updatedMenuDetail);
       }
-    }
+    }   
 
     if (menuDetailIdsToDelete.length > 0) {
       for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
