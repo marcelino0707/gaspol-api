@@ -58,8 +58,8 @@ exports.createTransaction = async (req, res) => {
         (transaction.invoice_due_date = new Date());
     }
 
-    if(req.body.discount_id) {
-      transaction.discount_id = req.body.discount_id
+    if (req.body.discount_id) {
+      transaction.discount_id = req.body.discount_id;
     }
 
     if (req.body.delivery_type) {
@@ -127,14 +127,14 @@ exports.updateTransaction = async (req, res) => {
       total: total,
       updated_at: thisTimeNow,
       receipt_number: "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow(),
-    }
-    await Transaction.update(transactionId, updateTransaction)
+    };
+    await Transaction.update(transactionId, updateTransaction);
 
     const oldTransactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
-    const oldTransactionDetailIds = oldTransactionDetails.map(item => item.transaction_detail_id);
-    const transactionDetailIds = transaction_details.filter(item => item.transaction_detail_id !== undefined).map(item => item.transaction_detail_id);
-    const transactionDetailIdsToDelete = oldTransactionDetailIds.filter(id => !transactionDetailIds.includes(id));
-    const invalidTransactionDetailIds = transactionDetailIds.filter(id => !oldTransactionDetailIds.includes(id));
+    const oldTransactionDetailIds = oldTransactionDetails.map((item) => item.transaction_detail_id);
+    const transactionDetailIds = transaction_details.filter((item) => item.transaction_detail_id !== undefined).map((item) => item.transaction_detail_id);
+    const transactionDetailIdsToDelete = oldTransactionDetailIds.filter((id) => !transactionDetailIds.includes(id));
+    const invalidTransactionDetailIds = transactionDetailIds.filter((id) => !oldTransactionDetailIds.includes(id));
     if (invalidTransactionDetailIds.length > 0) {
       return res.status(400).json({
         message: "Terdapat item menu yang tidak terdaftar pada transaksi sebelumnya!",
@@ -147,40 +147,40 @@ exports.updateTransaction = async (req, res) => {
         serving_type_id: transactionDetail.serving_type_id,
         total_item: transactionDetail.total_item,
         updated_at: thisTimeNow,
+      };
+
+      if (transactionDetail.note_item) {
+        updatedTransactionDetail.note_item = transactionDetail.note_item;
       }
 
-      if(transactionDetail.note_item) {
-        updatedTransactionDetail.note_item = transactionDetail.note_item
+      if (transactionDetail.menu_detail_id) {
+        updatedTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
       }
 
-      if(transactionDetail.menu_detail_id) {
-        updatedTransactionDetail.menu_detail_id =transactionDetail.menu_detail_id
-      }
+      await TransactionDetail.update(transactionDetail.transaction_detail_id, updatedTransactionDetail);
 
-      await TransactionDetail.update(transactionDetail.transaction_detail_id, updatedTransactionDetail)
-
-      if(transactionDetail.transaction_detail_id == undefined) {
+      if (transactionDetail.transaction_detail_id == undefined) {
         updatedTransactionDetail.transaction_id = transactionId;
         const createdTransactionDetail = await TransactionDetail.create(updatedTransactionDetail);
-        if(transactionDetail.toppings) {
+        if (transactionDetail.toppings) {
           for (const topping of transactionDetail.toppings) {
             const newTopping = {
               transaction_detail_id: createdTransactionDetail.insertId,
               menu_detail_id: topping.menu_detail_id,
               serving_type_id: transactionDetail.serving_type_id,
               total_item: topping.total_item,
-            }
+            };
             await TransactionTopping.create(newTopping);
           }
         }
       }
 
-      if(transactionDetail.toppings && transactionDetail.transaction_detail_id) {
+      if (transactionDetail.toppings && transactionDetail.transaction_detail_id) {
         const oldToppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
-        const oldToppingIds = oldToppings.map(item => item.transaction_topping_id);
-        const toppingIds = transactionDetail.toppings.filter(item => item.transaction_topping_id !== undefined).map(item => item.transaction_topping_id);
-        const toppingIdsToDelete = oldToppingIds.filter(id => !toppingIds.includes(id));
-        const invalidToppingIds = toppingIds.filter(id => !oldToppingIds.includes(id));
+        const oldToppingIds = oldToppings.map((item) => item.transaction_topping_id);
+        const toppingIds = transactionDetail.toppings.filter((item) => item.transaction_topping_id !== undefined).map((item) => item.transaction_topping_id);
+        const toppingIdsToDelete = oldToppingIds.filter((id) => !toppingIds.includes(id));
+        const invalidToppingIds = toppingIds.filter((id) => !oldToppingIds.includes(id));
         if (invalidToppingIds.length > 0) {
           return res.status(400).json({
             message: "Terdapat topping yang tidak terdaftar pada transaksi sebelumnya!",
@@ -192,18 +192,18 @@ exports.updateTransaction = async (req, res) => {
             menu_detail_id: topping.menu_detail_id,
             total_item: topping.total_item,
             updated_at: thisTimeNow,
-          }
+          };
 
           await TransactionTopping.update(topping.transaction_topping_id, updatedTopping);
 
-          if(topping.transaction_topping_id == undefined) {
+          if (topping.transaction_topping_id == undefined) {
             updatedTopping.transaction_detail_id = transactionDetail.transaction_detail_id;
             updatedTopping.serving_type_id = transactionDetail.serving_type_id;
             await TransactionTopping.create(updatedTopping);
           }
         }
 
-        if(toppingIdsToDelete.length > 0) {
+        if (toppingIdsToDelete.length > 0) {
           for (const toppingIdToDelete of toppingIdsToDelete) {
             await TransactionTopping.delete(toppingIdToDelete, deletedAtNow);
           }
@@ -211,7 +211,7 @@ exports.updateTransaction = async (req, res) => {
       }
     }
 
-    if(transactionDetailIdsToDelete.length > 0) {
+    if (transactionDetailIdsToDelete.length > 0) {
       for (const transactionDetailIdToDelete of transactionDetailIdsToDelete) {
         await TransactionDetail.delete(transactionDetailIdToDelete, deletedAtNow);
       }
@@ -233,13 +233,13 @@ exports.getTransactionById = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
     const servingTypes = await ServingType.getAll();
-    
+
     for (const transactionDetail of transactionDetails) {
       let menuDetail;
-      const servingType = servingTypes.find(type => type.id == transactionDetail.serving_type_id);
-      const menu = await Menu.getById(transactionDetail.menu_id)
-      
-      if(transactionDetail.menu_detail_id) {
+      const servingType = servingTypes.find((type) => type.id == transactionDetail.serving_type_id);
+      const menu = await Menu.getById(transactionDetail.menu_id);
+
+      if (transactionDetail.menu_detail_id) {
         menuDetail = await MenuDetail.getByID(transactionDetail.menu_detail_id);
         transactionDetail.menu_price = priceDeterminant(menuDetail.price, servingType.name, servingType.percent);
       }
@@ -252,14 +252,14 @@ exports.getTransactionById = async (req, res) => {
 
       transactionDetail.menu_name = menu.name;
       transactionDetail.menu_type = menu.menu_type;
-      
+
       transactionDetail.serving_type = servingType.name;
       transactionDetail.serving_type_percent = servingType.percent;
-      
-      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id)
+
+      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
       if (toppings.length != 0) {
         transactionDetail.toppings = [];
-        for(const topping of toppings) {
+        for (const topping of toppings) {
           const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
           transactionDetail.toppings.push({
             transaction_topping_id: topping.transaction_topping_id,
@@ -309,7 +309,7 @@ exports.deleteTransaction = async (req, res) => {
       await TransactionDetail.delete(transactionDetail.transaction_id, deletedAtNow);
       await TransactionTopping.delete(transactionDetail.transaction_detail_id, deletedAtNow);
     }
-    
+
     await Transaction.delete(transactionId, deletedAtNow);
 
     return res.status(200).json({

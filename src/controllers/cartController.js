@@ -153,109 +153,136 @@ exports.createCart = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   try {
-    const outletId = req.params.id;
-    const { discount_id, subtotal, total, cart_details } = req.body;
+    const cartId = req.params.id;
+    const { outlet_id, cart_details } = req.body;
     const updateCart = {
-      discount_id: discount_id,
-      subtotal: subtotal,
-      total: total,
+      outlet_id: outlet_id,
       updated_at: thisTimeNow,
     };
-    await Cart.update(outletId, updateCart);
+    await Cart.update(cartId, updateCart);
 
-    const oldCartDetails = await CartDetail.getByCartId(outletId);
-    const oldTransactionDetailIds = oldTransactionDetails.map((item) => item.transaction_detail_id);
-    const transactionDetailIds = transaction_details.filter((item) => item.transaction_detail_id !== undefined).map((item) => item.transaction_detail_id);
-    const transactionDetailIdsToDelete = oldTransactionDetailIds.filter((id) => !transactionDetailIds.includes(id));
-    const invalidTransactionDetailIds = transactionDetailIds.filter((id) => !oldTransactionDetailIds.includes(id));
-    if (invalidTransactionDetailIds.length > 0) {
+    const oldCartDetails = await CartDetail.getByCartId(cartId);
+    const oldCartDetailIds = oldCartDetails.map((item) => item.cart_detail_id);
+    const cartDetailIds = cart_details.filter((item) => item.cart_detail_id !== undefined).map((item) => item.cart_detail_id);
+    const cartDetailIdsToDelete = oldCartDetailIds.filter((id) => !cartDetailIds.includes(id));
+    const invalidCartDetailIds = cartDetailIds.filter((id) => !oldCartDetailIds.includes(id));
+    if (invalidCartDetailIds.length > 0) {
       return res.status(400).json({
-        message: "Terdapat item menu yang tidak terdaftar pada transaksi sebelumnya!",
+        message: "Terdapat Cart yang tidak terdaftar pada transaksi sebelumnya!",
       });
     }
 
-    for (const transactionDetail of transaction_details) {
-      const updatedTransactionDetail = {
-        menu_id: transactionDetail.menu_id,
-        serving_type_id: transactionDetail.serving_type_id,
-        total_item: transactionDetail.total_item,
+    for (const cartDetail of cart_details) {
+      const updatedCartDetail = {
+        cart_detail_id: cartDetail.cart_detail_id,
+        menu_id: cartDetail.menu_id,
+        menu_detail_id: cartDetail.menu_detail_id,
+        serving_type_id: cartDetail.serving_type_id,
+        discount_id: cartDetail.discount_id,
+        price: cartDetail.price,
+        qyt: cartDetail.qty,
+        note_item: cartDetail.note_item,
         updated_at: thisTimeNow,
       };
 
-      if (transactionDetail.note_item) {
-        updatedTransactionDetail.note_item = transactionDetail.note_item;
-      }
+      await CartDetail.update(cartDetail.cart_detail_id, updatedCartDetail);
 
-      if (transactionDetail.menu_detail_id) {
-        updatedTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
-      }
-
-      await TransactionDetail.update(transactionDetail.transaction_detail_id, updatedTransactionDetail);
-
-      if (transactionDetail.transaction_detail_id == undefined) {
-        updatedTransactionDetail.transaction_id = transactionId;
-        const createdTransactionDetail = await TransactionDetail.create(updatedTransactionDetail);
-        if (transactionDetail.toppings) {
-          for (const topping of transactionDetail.toppings) {
+      if (cartDetail.cart_detail_id == undefined) {
+        updatedCartDetail.cart_id = cartId;
+        const createdCartDetail = await CartDetail.create(updatedCartDetail);
+        if (updatedCartDetail.toppings) {
+          for (const topping of cartDetail.toppings) {
             const newTopping = {
-              transaction_detail_id: createdTransactionDetail.insertId,
+              cart_detail_id: createdCartDetail.insertId,
               menu_detail_id: topping.menu_detail_id,
               serving_type_id: transactionDetail.serving_type_id,
-              total_item: topping.total_item,
+              price: topping.total_item,
+              qty: topping.qty,
             };
-            await TransactionTopping.create(newTopping);
+            await CartTopping.create(newTopping);
           }
         }
       }
 
-      if (transactionDetail.toppings && transactionDetail.transaction_detail_id) {
-        const oldToppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
-        const oldToppingIds = oldToppings.map((item) => item.transaction_topping_id);
-        const toppingIds = transactionDetail.toppings.filter((item) => item.transaction_topping_id !== undefined).map((item) => item.transaction_topping_id);
+      if (cartDetail.toppings && cartDetail.cart_detail_id) {
+        const oldToppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
+        const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
+        const toppingIds = cartDetail.toppings.filter((item) => item.cart_topping_id !== undefined).map((item) => item.cart_topping_id);
         const toppingIdsToDelete = oldToppingIds.filter((id) => !toppingIds.includes(id));
         const invalidToppingIds = toppingIds.filter((id) => !oldToppingIds.includes(id));
         if (invalidToppingIds.length > 0) {
           return res.status(400).json({
-            message: "Terdapat topping yang tidak terdaftar pada transaksi sebelumnya!",
+            message: "Terdapat topping yang tidak terdaftar pada cart sebelumnya!",
           });
         }
 
-        for (const topping of transactionDetail.toppings) {
+        for (const topping of cartDetail.toppings) {
           const updatedTopping = {
             menu_detail_id: topping.menu_detail_id,
-            total_item: topping.total_item,
+            qty: topping.qty,
             updated_at: thisTimeNow,
           };
 
-          await TransactionTopping.update(topping.transaction_topping_id, updatedTopping);
+          await CartTopping.update(topping.cart_topping_id, updatedTopping);
 
-          if (topping.transaction_topping_id == undefined) {
-            updatedTopping.transaction_detail_id = transactionDetail.transaction_detail_id;
-            updatedTopping.serving_type_id = transactionDetail.serving_type_id;
-            await TransactionTopping.create(updatedTopping);
+          if (topping.cart_topping_id == undefined) {
+            updatedTopping.cart_detail_id = cartDetail.cart_detail_id;
+            updatedTopping.serving_type_id = cartDetail.serving_type_id;
+            await CartTopping.create(updatedTopping);
           }
         }
 
         if (toppingIdsToDelete.length > 0) {
           for (const toppingIdToDelete of toppingIdsToDelete) {
-            await TransactionTopping.delete(toppingIdToDelete, deletedAtNow);
+            await CartTopping.delete(toppingIdToDelete, deletedAtNow);
           }
         }
       }
+
+      if (cartDetail.cart_detail_id == undefined) {
+        updatedCartDetail.cart_id = cartId;
+        await CartDetail.create(updatedCartDetail);
+      }
     }
 
-    if (transactionDetailIdsToDelete.length > 0) {
-      for (const transactionDetailIdToDelete of transactionDetailIdsToDelete) {
-        await TransactionDetail.delete(transactionDetailIdToDelete, deletedAtNow);
+    if (cartDetailIdsToDelete.length > 0) {
+      for (const cartDetailIdToDelete of cartDetailIdsToDelete) {
+        await CartDetail.delete(cartDetailIdToDelete, deletedAtNow);
       }
     }
 
     return res.status(201).json({
-      message: "Data transaksi berhasil diubah!",
+      message: "Data cart berhasil diubah!",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Some error occurred while updating the transaction",
+      message: error.message || "Some error occurred while updating the cart",
+    });
+  }
+};
+
+exports.deleteCart = async (req, res) => {
+  try {
+    const cartId = req.params.id;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
+
+    const cartDetails = await CartDetail.getByCartId(cartId);
+
+    for (const cartDetail of cartDetails) {
+      await CartDetail.delete(cartDetail.cart_id, deletedAtNow);
+      await CartTopping.delete(cartDetail.cart_detail_id, deletedAtNow);
+    }
+
+    await Cart.delete(cartId, deletedAtNow);
+
+    return res.status(200).json({
+      message: "Berhasil menghapus data cart",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting cart",
     });
   }
 };

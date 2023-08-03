@@ -25,18 +25,14 @@ const CartDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query(
-            "INSERT INTO cart_details SET ?",
-            cart_detail,
-            (error, results) => {
-              disconnectDB();
-              if (error) {
-                reject(error);
-              } else {
-                resolve(results);
-              }
+          connection.query("INSERT INTO cart_details SET ?", cart_detail, (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
             }
-          );
+          });
         })
         .catch((error) => reject(error));
     });
@@ -45,18 +41,30 @@ const CartDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query(
-            "UPDATE cart_details SET ? WHERE id = ?",
-            [cart_detail, id],
-            (error, results) => {
-              disconnectDB();
-              if (error) {
-                reject(error);
-              } else {
-                resolve(results);
-              }
+          connection.query("UPDATE cart_details SET ? WHERE id = ?", [cart_detail, id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
             }
-          );
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  delete: (id, data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE cart_details SET ? WHERE id = ?", [data, id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
         })
         .catch((error) => reject(error));
     });
