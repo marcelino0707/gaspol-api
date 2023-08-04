@@ -28,6 +28,9 @@ route.get("/menu/:id", menu.getMenuById);
 route.patch("/menu/:id", menu.updateMenu);
 route.delete("/menu/:id", menu.deleteMenu);
 
+// Menu Detail For Cart
+route.get("/menu-detail/:id", menu.getMenuDetailByMenuId);
+
 // Serving Type
 route.get("/serving-type", servingType.getServingType);
 
@@ -37,7 +40,7 @@ route.get("/discount", discount.getDiscounts);
 // Cart
 route.get("/cart", cart.getCart);
 route.post("/cart", cart.createCart);
-route.patch("/cart/:id", cart.updateCart);
+route.patch("/cart", cart.updateCart);
 route.delete("/cart/:id", cart.deleteCart);
 
 // Transaction

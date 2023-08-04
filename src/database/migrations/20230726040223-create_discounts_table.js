@@ -18,9 +18,9 @@ module.exports = {
         type: Sequelize.STRING,
       },
       value: {
-        type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0, 
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       start_date: {
         allowNull: false,
@@ -31,14 +31,14 @@ module.exports = {
         type: Sequelize.DATE,
       },
       min_purchase: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        defaultValue: 0, 
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       max_discount: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        defaultValue: 0, 
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       created_at: {
         allowNull: false,

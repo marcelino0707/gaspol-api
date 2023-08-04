@@ -37,6 +37,22 @@ const CartTopping = {
         .catch((error) => reject(error));
     });
   },
+  update: (cart_topping_id, cart_topping) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE cart_toppings SET ? WHERE id = ?", [cart_topping, cart_topping_id], (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   delete: (id, data) => {
     return new Promise((resolve, reject) => {
       connectDB()

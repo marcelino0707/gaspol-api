@@ -14,9 +14,9 @@ module.exports = {
         type: Sequelize.STRING,
       },
       percent: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        defaultValue: 0, 
+        allowNull: false,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
       },
       created_at: {
         allowNull: false,
