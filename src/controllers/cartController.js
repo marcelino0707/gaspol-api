@@ -154,14 +154,20 @@ exports.createCart = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   try {
-    // const  { outlet_id } = req.query;
-    const { cart_id, cart_details } = req.body;
+    const cartId = req.params.id;
+    const { outlet_id, cart_details } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
 
-    const oldCartDetails = await CartDetail.getByCartId(cart_id);
+    const updatedCart = {
+      outlet_id: outlet_id,
+    };
+    await Cart.update(cartId, updatedCart);
+
+    const oldCartDetails = await CartDetail.getByCartId(cartId);
     const oldCartDetailIds = oldCartDetails.map((item) => item.cart_detail_id);
-    console.log(oldCartDetailIds);
     const cartDetailIds = cart_details.filter((item) => item.cart_detail_id !== undefined).map((item) => item.cart_detail_id);
-    console.log(cartDetailIds);
     const cartDetailIdsToDelete = oldCartDetailIds.filter((id) => !cartDetailIds.includes(id));
     const invalidCartDetailIds = cartDetailIds.filter((id) => !oldCartDetailIds.includes(id));
     if (invalidCartDetailIds.length > 0) {
@@ -180,16 +186,16 @@ exports.updateCart = async (req, res) => {
         updated_at: thisTimeNow,
       };
 
-      if(cartDetail.menu_detail_id) {
+      if (cartDetail.menu_detail_id) {
         updatedCartDetail.menu_detail_id = cartDetail.menu_detail_id;
       }
 
-      if(cartDetail.discount_id) {
+      if (cartDetail.discount_id) {
         updatedCartDetail.discount_id = cartDetail.discount_id;
       }
 
       if (cartDetail.cart_detail_id == undefined) {
-        updatedCartDetail.cart_id = cart_id;
+        updatedCartDetail.cart_id = cartId;
         const createdCartDetail = await CartDetail.create(updatedCartDetail);
         if (cartDetail.toppings.length > 0) {
           for (const topping of cartDetail.toppings) {
@@ -203,9 +209,9 @@ exports.updateCart = async (req, res) => {
             await CartTopping.create(newTopping);
           }
         }
-      } 
+      }
 
-      if(cartDetail.cart_detail_id) {
+      if (cartDetail.cart_detail_id) {
         await CartDetail.update(cartDetail.cart_detail_id, updatedCartDetail);
       }
 
@@ -223,13 +229,13 @@ exports.updateCart = async (req, res) => {
 
         for (const topping of cartDetail.toppings) {
           const updatedTopping = {
+            menu_detail_id: topping.menu_detail_id,
             qty: topping.qty,
             price: topping.price,
           };
 
           if (topping.cart_topping_id == undefined) {
-            updatedTopping.menu_detail_id = topping.menu_detail_id,
-            updatedTopping.cart_detail_id = cartDetail.cart_detail_id;
+            (updatedTopping.menu_detail_id = topping.menu_detail_id), (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
             updatedTopping.serving_type_id = cartDetail.serving_type_id;
             await CartTopping.create(updatedTopping);
           }
@@ -248,7 +254,7 @@ exports.updateCart = async (req, res) => {
       }
 
       if (cartDetail.cart_detail_id == undefined) {
-        updatedCartDetail.cart_id = cart_id;
+        updatedCartDetail.cart_id = cartId;
         await CartDetail.create(updatedCartDetail);
       }
     }
@@ -259,7 +265,7 @@ exports.updateCart = async (req, res) => {
       }
     }
 
-    await Cart.update(cart_id, {
+    await Cart.update(cartId, {
       updated_at: thisTimeNow,
     });
 
