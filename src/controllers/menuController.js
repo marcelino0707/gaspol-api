@@ -56,9 +56,7 @@ exports.getMenuById = async (req, res) => {
       }
     }
     
-    if(menuDetails.length > 0 || toppings.length > 0) {
-      result.menu_details = [...menuDetails, ...toppings];
-    }
+    result.menu_details = [...menuDetails, ...toppings];
 
     return res.status(200).json({
       data: result,

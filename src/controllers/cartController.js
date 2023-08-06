@@ -1,8 +1,9 @@
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
-const thisTimeNow = new Date();
 const CartTopping = require("../models/cart_topping");
+const ServingType = require("../models/serving_type");
 // const Discount = require("../models/discount");
+const thisTimeNow = new Date();
 const deletedAtNow = {
   deleted_at: new Date(),
 };
@@ -17,14 +18,18 @@ exports.getCart = async (req, res) => {
     }
 
     // let discounts;
+    const servingTypes = await ServingType.getAll();
     const cartDetails = await CartDetail.getByCartId(cart.id);
 
     for (const cartDetail of cartDetails) {
       // if(cartDetail.discount_id !== null ) {
-      // if(discounts === undefined) {
-      //     discounts = await Discount.getAll();
+        // if(discounts === undefined) {
+        //     discounts = await Discount.getAll();
+        // }
       // }
-      // }
+      const servingType = servingTypes.find((type) => type.id == cartDetail.serving_type_id);
+      cartDetail.serving_type_name = servingType.name;
+      cartDetail.serving_type_percent = servingType.percent;
       delete cartDetail.discount_id;
 
       // if(cartDetail.menu_detail_id == null) {
@@ -37,17 +42,17 @@ exports.getCart = async (req, res) => {
         delete cartDetail.note_item;
       }
 
-      const toppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
-      if (toppings.length > 0) {
-        cartDetail.toppings = toppings;
-      }
+      const toppings = await CartTopping.getByCartDetailId(
+        cartDetail.cart_detail_id
+      );
+      cartDetail.toppings = toppings;
     }
 
     const result = {
       cart_id: cart.id,
       subtotal: cart.subtotal,
       total: cart.total,
-      cartDetails: cartDetails,
+      cart_details: cartDetails,
     };
 
     // if(cart.discount_id !== null) {
@@ -129,7 +134,8 @@ exports.createCart = async (req, res) => {
           };
           await CartTopping.create(newTopping);
         }
-        cartDetailTotalPrice = cartDetailTotalPrice + toppingsTotalPrice * cartDetail.qty;
+        cartDetailTotalPrice =
+          cartDetailTotalPrice + toppingsTotalPrice * cartDetail.qty;
         await CartDetail.update(createdCartDetail.insertId, {
           total_price: cartDetailTotalPrice,
         });
@@ -152,16 +158,22 @@ exports.createCart = async (req, res) => {
   }
 };
 
-exports.updateCart = async (req, res) => {
+exports.oldUpdateCart = async (req, res) => {
   try {
     // const  { outlet_id } = req.query;
     const { cart_id, cart_details } = req.body;
 
     const oldCartDetails = await CartDetail.getByCartId(cart_id);
     const oldCartDetailIds = oldCartDetails.map((item) => item.cart_detail_id);
-    const cartDetailIds = cart_details.filter((item) => item.cart_detail_id !== undefined).map((item) => item.cart_detail_id);
-    const cartDetailIdsToDelete = oldCartDetailIds.filter((id) => !cartDetailIds.includes(id));
-    const invalidCartDetailIds = cartDetailIds.filter((id) => !oldCartDetailIds.includes(id));
+    const cartDetailIds = cart_details
+      .filter((item) => item.cart_detail_id !== undefined)
+      .map((item) => item.cart_detail_id);
+    const cartDetailIdsToDelete = oldCartDetailIds.filter(
+      (id) => !cartDetailIds.includes(id)
+    );
+    const invalidCartDetailIds = cartDetailIds.filter(
+      (id) => !oldCartDetailIds.includes(id)
+    );
     if (invalidCartDetailIds.length > 0) {
       return res.status(400).json({
         message: "Terdapat menu yang tidak terdaftar pada cart!",
@@ -178,11 +190,11 @@ exports.updateCart = async (req, res) => {
         updated_at: thisTimeNow,
       };
 
-      if(cartDetail.menu_detail_id) {
+      if (cartDetail.menu_detail_id) {
         updatedCartDetail.menu_detail_id = cartDetail.menu_detail_id;
       }
 
-      if(cartDetail.discount_id) {
+      if (cartDetail.discount_id) {
         updatedCartDetail.discount_id = cartDetail.discount_id;
       }
 
@@ -201,18 +213,26 @@ exports.updateCart = async (req, res) => {
             await CartTopping.create(newTopping);
           }
         }
-      } 
+      }
 
-      if(cartDetail.cart_detail_id) {
+      if (cartDetail.cart_detail_id) {
         await CartDetail.update(cartDetail.cart_detail_id, updatedCartDetail);
       }
 
       if (cartDetail.cart_detail_id && cartDetail.toppings) {
-        const oldToppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
+        const oldToppings = await CartTopping.getByCartDetailId(
+          cartDetail.cart_detail_id
+        );
         const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
-        const toppingIds = cartDetail.toppings.filter((item) => item.cart_topping_id !== undefined).map((item) => item.cart_topping_id);
-        const toppingIdsToDelete = oldToppingIds.filter((id) => !toppingIds.includes(id));
-        const invalidToppingIds = toppingIds.filter((id) => !oldToppingIds.includes(id));
+        const toppingIds = cartDetail.toppings
+          .filter((item) => item.cart_topping_id !== undefined)
+          .map((item) => item.cart_topping_id);
+        const toppingIdsToDelete = oldToppingIds.filter(
+          (id) => !toppingIds.includes(id)
+        );
+        const invalidToppingIds = toppingIds.filter(
+          (id) => !oldToppingIds.includes(id)
+        );
         if (invalidToppingIds.length > 0) {
           return res.status(400).json({
             message: "Terdapat topping yang tidak terdaftar pada menu!",
@@ -227,8 +247,8 @@ exports.updateCart = async (req, res) => {
           };
 
           if (topping.cart_topping_id == undefined) {
-            updatedTopping.menu_detail_id = topping.menu_detail_id,
-            updatedTopping.cart_detail_id = cartDetail.cart_detail_id;
+            (updatedTopping.menu_detail_id = topping.menu_detail_id),
+              (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
             updatedTopping.serving_type_id = cartDetail.serving_type_id;
             await CartTopping.create(updatedTopping);
           }
@@ -267,9 +287,115 @@ exports.updateCart = async (req, res) => {
   }
 };
 
+exports.getCartItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cartDetails = await CartDetail.getByCartDetailId(id);
+    return res.status(200).json({
+      data: cartDetails,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to fetch carts",
+    });
+  }
+};
+
+exports.updateCart = async (req, res) => {
+  try {
+    // const  { outlet_id } = req.query;
+    const cart_detail_id = req.params.id;
+    const {
+      menu_id,
+      menu_detail_id,
+      serving_type_id,
+      discount_id,
+      price,
+      qty,
+      note_item,
+      toppings,
+    } = req.body;
+
+    const updatedCartItems = {
+      menu_id,
+      menu_type,
+      serving_type_id,
+      price,
+      qty,
+      note_item,
+      updated_at: thisTimeNow,
+    };
+
+    if(menu_detail_id) {
+      updatedCartItems.menu_detail_id = menu_detail_id;
+    }
+
+    if(discount_id) {
+      updatedCartItems.discount_id = discount_id;
+    }
+
+    await CartDetail.update(cart_detail_id, updatedCartItems);
+
+    if(toppings) {
+      const oldToppings = await CartTopping.getByCartDetailId(
+        cart_detail_id
+      );
+      const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
+      const toppingIds = toppings
+        .filter((item) => item.cart_topping_id !== undefined)
+        .map((item) => item.cart_topping_id);
+      const toppingIdsToDelete = oldToppingIds.filter(
+        (id) => !toppingIds.includes(id)
+      );
+      const invalidToppingIds = toppingIds.filter(
+        (id) => !oldToppingIds.includes(id)
+      );
+      if (invalidToppingIds.length > 0) {
+        return res.status(400).json({
+          message: "Terdapat topping yang tidak terdaftar pada menu!",
+        });
+      }
+
+      for (const topping of toppings) {
+        const updatedTopping = {
+          menu_detail_id: topping.menu_detail_id,
+          qty: topping.qty,
+          price: topping.price,
+        };
+
+        if (topping.cart_topping_id == undefined) {
+          (updatedTopping.menu_detail_id = topping.menu_detail_id),
+            (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
+          updatedTopping.serving_type_id = cartDetail.serving_type_id;
+          await CartTopping.create(updatedTopping);
+        }
+
+        if (topping.cart_topping_id) {
+          updatedTopping.updated_at = thisTimeNow;
+          await CartTopping.update(topping.cart_topping_id, updatedTopping);
+        }
+      }
+
+      if (toppingIdsToDelete.length > 0) {
+        for (const toppingIdToDelete of toppingIdsToDelete) {
+          await CartTopping.delete(toppingIdToDelete, deletedAtNow);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: "Data cart berhasil diubah!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Some error occurred while updating the cart",
+    });
+  }
+};
+
 exports.deleteCart = async (req, res) => {
   try {
-    const {cartId} = req.body;
+    const { cartId } = req.body;
 
     const cartDetails = await CartDetail.getByCartId(cartId);
 
