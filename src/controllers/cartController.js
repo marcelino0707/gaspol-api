@@ -23,11 +23,13 @@ exports.getCart = async (req, res) => {
 
     for (const cartDetail of cartDetails) {
       // if(cartDetail.discount_id !== null ) {
-        // if(discounts === undefined) {
-        //     discounts = await Discount.getAll();
-        // }
+      // if(discounts === undefined) {
+      //     discounts = await Discount.getAll();
       // }
-      const servingType = servingTypes.find((type) => type.id == cartDetail.serving_type_id);
+      // }
+      const servingType = servingTypes.find(
+        (type) => type.id == cartDetail.serving_type_id
+      );
       cartDetail.serving_type_name = servingType.name;
       cartDetail.serving_type_percent = servingType.percent;
       delete cartDetail.discount_id;
@@ -290,9 +292,11 @@ exports.oldUpdateCart = async (req, res) => {
 exports.getCartItems = async (req, res) => {
   try {
     const { id } = req.params;
-    const cartDetails = await CartDetail.getByCartDetailId(id);
+    const cartDetail = await CartDetail.getByCartDetailId(id);
+    const toppings = await CartTopping.getByCartDetailId(id);
+    cartDetail.toppings = toppings;
     return res.status(200).json({
-      data: cartDetails,
+      data: cartDetail,
     });
   } catch (error) {
     return res.status(500).json({
@@ -326,20 +330,18 @@ exports.updateCart = async (req, res) => {
       updated_at: thisTimeNow,
     };
 
-    if(menu_detail_id) {
+    if (menu_detail_id) {
       updatedCartItems.menu_detail_id = menu_detail_id;
     }
 
-    if(discount_id) {
+    if (discount_id) {
       updatedCartItems.discount_id = discount_id;
     }
 
     await CartDetail.update(cart_detail_id, updatedCartItems);
 
-    if(toppings) {
-      const oldToppings = await CartTopping.getByCartDetailId(
-        cart_detail_id
-      );
+    if (toppings) {
+      const oldToppings = await CartTopping.getByCartDetailId(cart_detail_id);
       const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
       const toppingIds = toppings
         .filter((item) => item.cart_topping_id !== undefined)
@@ -359,6 +361,7 @@ exports.updateCart = async (req, res) => {
       for (const topping of toppings) {
         const updatedTopping = {
           menu_detail_id: topping.menu_detail_id,
+          serving_type_id: serving_type_id,
           qty: topping.qty,
           price: topping.price,
         };
@@ -366,7 +369,6 @@ exports.updateCart = async (req, res) => {
         if (topping.cart_topping_id == undefined) {
           (updatedTopping.menu_detail_id = topping.menu_detail_id),
             (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
-          updatedTopping.serving_type_id = cartDetail.serving_type_id;
           await CartTopping.create(updatedTopping);
         }
 
