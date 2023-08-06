@@ -41,7 +41,7 @@ route.get("/discount", discount.getDiscounts);
 route.get("/cart", cart.getCart);
 route.post("/cart", cart.createCart);
 route.patch("/cart", cart.updateCart);
-route.delete("/cart/:id", cart.deleteCart);
+route.delete("/cart", cart.deleteCart);
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);

@@ -269,10 +269,7 @@ exports.updateCart = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
   try {
-    const cartId = req.params.id;
-    const deletedAtNow = {
-      deleted_at: new Date(),
-    };
+    const {cartId} = req.body;
 
     const cartDetails = await CartDetail.getByCartId(cartId);
 
