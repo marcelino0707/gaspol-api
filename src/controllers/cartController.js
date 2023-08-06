@@ -159,9 +159,7 @@ exports.updateCart = async (req, res) => {
 
     const oldCartDetails = await CartDetail.getByCartId(cart_id);
     const oldCartDetailIds = oldCartDetails.map((item) => item.cart_detail_id);
-    console.log(oldCartDetailIds);
     const cartDetailIds = cart_details.filter((item) => item.cart_detail_id !== undefined).map((item) => item.cart_detail_id);
-    console.log(cartDetailIds);
     const cartDetailIdsToDelete = oldCartDetailIds.filter((id) => !cartDetailIds.includes(id));
     const invalidCartDetailIds = cartDetailIds.filter((id) => !oldCartDetailIds.includes(id));
     if (invalidCartDetailIds.length > 0) {
@@ -191,7 +189,7 @@ exports.updateCart = async (req, res) => {
       if (cartDetail.cart_detail_id == undefined) {
         updatedCartDetail.cart_id = cart_id;
         const createdCartDetail = await CartDetail.create(updatedCartDetail);
-        if (cartDetail.toppings.length > 0) {
+        if (cartDetail.toppings) {
           for (const topping of cartDetail.toppings) {
             const newTopping = {
               cart_detail_id: createdCartDetail.insertId,
@@ -223,6 +221,7 @@ exports.updateCart = async (req, res) => {
 
         for (const topping of cartDetail.toppings) {
           const updatedTopping = {
+            menu_detail_id: topping.menu_detail_id,
             qty: topping.qty,
             price: topping.price,
           };
@@ -245,11 +244,6 @@ exports.updateCart = async (req, res) => {
             await CartTopping.delete(toppingIdToDelete, deletedAtNow);
           }
         }
-      }
-
-      if (cartDetail.cart_detail_id == undefined) {
-        updatedCartDetail.cart_id = cart_id;
-        await CartDetail.create(updatedCartDetail);
       }
     }
 
