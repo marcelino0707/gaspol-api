@@ -138,9 +138,9 @@ exports.createCart = async (req, res) => {
         }
         cartDetailTotalPrice =
           cartDetailTotalPrice + toppingsTotalPrice * cartDetail.qty;
-        await CartDetail.update(createdCartDetail.insertId, {
-          total_price: cartDetailTotalPrice,
-        });
+        // await CartDetail.update(createdCartDetail.insertId, {
+        //   total_price: cartDetailTotalPrice,
+        // });
       }
       subTotalPrice = subTotalPrice + cartDetailTotalPrice;
     }
@@ -307,7 +307,7 @@ exports.getCartItems = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   try {
-    // const  { outlet_id } = req.query;
+    const  { outlet_id } = req.body;
     const cart_detail_id = req.params.id;
     const {
       menu_id,
@@ -322,8 +322,8 @@ exports.updateCart = async (req, res) => {
 
     const updatedCartItems = {
       menu_id,
-      menu_type,
       serving_type_id,
+      discount_id,
       price,
       qty,
       note_item,
@@ -332,13 +332,18 @@ exports.updateCart = async (req, res) => {
 
     if (menu_detail_id) {
       updatedCartItems.menu_detail_id = menu_detail_id;
+    } else {
+      updatedCartItems.menu_detail_id = null;
     }
 
     if (discount_id) {
       updatedCartItems.discount_id = discount_id;
     }
-
+    const oldCartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
     await CartDetail.update(cart_detail_id, updatedCartItems);
+    const cart = await Cart.getByOutletId(outlet_id);
+    let cartDetailTotalPrice = price * qty;
+    let subTotalPrice = (cart.subtotal - oldCartDetail.total_price) + cartDetailTotalPrice;
 
     if (toppings) {
       const oldToppings = await CartTopping.getByCartDetailId(cart_detail_id);
@@ -359,16 +364,17 @@ exports.updateCart = async (req, res) => {
       }
 
       for (const topping of toppings) {
+        let toppingTotalPrice = topping.price * topping.qty;
         const updatedTopping = {
           menu_detail_id: topping.menu_detail_id,
           serving_type_id: serving_type_id,
           qty: topping.qty,
           price: topping.price,
+          total_price: toppingTotalPrice,
         };
 
         if (topping.cart_topping_id == undefined) {
-          (updatedTopping.menu_detail_id = topping.menu_detail_id),
-            (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
+          updatedTopping.cart_detail_id = cart_detail_id;
           await CartTopping.create(updatedTopping);
         }
 
@@ -380,7 +386,7 @@ exports.updateCart = async (req, res) => {
 
       if (toppingIdsToDelete.length > 0) {
         for (const toppingIdToDelete of toppingIdsToDelete) {
-          await CartTopping.delete(toppingIdToDelete, deletedAtNow);
+          await CartTopping.update(toppingIdToDelete, deletedAtNow);
         }
       }
     }

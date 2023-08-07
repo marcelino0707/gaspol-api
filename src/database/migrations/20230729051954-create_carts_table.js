@@ -27,6 +27,11 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      is_stored_bill: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

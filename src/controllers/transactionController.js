@@ -1,5 +1,7 @@
-const Menu = require("../models/menu");
-const MenuDetail = require("../models/menu_detail");
+// const Menu = require("../models/menu");
+// const MenuDetail = require("../models/menu_detail");
+const Cart = require("../models/cart");
+const CartDetail = require("../models/cart_detail");
 const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
@@ -44,8 +46,8 @@ exports.createTransaction = async (req, res) => {
       transaction = {
         customer_name: req.body.customer_name,
         customer_seat: customer_seat,
-        subtotal: req.body.subtotal,
-        total: req.body.total,
+        subtotal: req.body.total_cart,
+        total: req.body.total_cart,
         receipt_number: "AT-" + req.body.customer_name + "-" + customer_seat + "-" + generateTimeNow(),
       };
     }
@@ -66,47 +68,54 @@ exports.createTransaction = async (req, res) => {
       (transaction.delivery_type = req.body.delivery_type), (transaction.delivery_note = req.body.delivery_note);
     }
 
-    let createdTransaction;
+    // let createdTransaction;
     if (!req.body.transaction_id) {
-      createdTransaction = await Transaction.create(transaction);
+      // createdTransaction = await Transaction.create(transaction);
+      transaction.outlet_id= req.body.outlet_id;
+      transaction.cart_id= req.body.cart_id;
+      await Transaction.create(transaction);
+      await Cart.update(req.body.cart_id, {
+        is_stored_bill: true
+      })
     } else {
-      createdTransaction = await Transaction.update(req.body.transaction_id, transaction);
+      // createdTransaction = await Transaction.update(req.body.transaction_id, transaction);
+      await Transaction.update(req.body.transaction_id, transaction);
     }
 
-    if (req.body.transaction_details) {
-      const transactionDetails = req.body.transaction_details;
-      for (const transactionDetail of transactionDetails) {
-        let newTransactionDetail = {};
-        newTransactionDetail.transaction_id = createdTransaction.insertId;
-        newTransactionDetail.menu_id = transactionDetail.menu_id;
-        newTransactionDetail.serving_type_id = transactionDetail.serving_type_id;
-        newTransactionDetail.total_item = transactionDetail.total_item;
-        newTransactionDetail.note_item = transactionDetail.note_item;
+    // if (req.body.transaction_details) {
+    //   const transactionDetails = req.body.transaction_details;
+    //   for (const transactionDetail of transactionDetails) {
+    //     let newTransactionDetail = {};
+    //     newTransactionDetail.transaction_id = createdTransaction.insertId;
+    //     newTransactionDetail.menu_id = transactionDetail.menu_id;
+    //     newTransactionDetail.serving_type_id = transactionDetail.serving_type_id;
+    //     newTransactionDetail.total_item = transactionDetail.total_item;
+    //     newTransactionDetail.note_item = transactionDetail.note_item;
 
-        if (transactionDetail.menu_detail_id) {
-          newTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
-        }
+    //     if (transactionDetail.menu_detail_id) {
+    //       newTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
+    //     }
 
-        const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
+    //     const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
 
-        if (transactionDetail.toppings) {
-          const toppings = transactionDetail.toppings;
-          for (const topping of toppings) {
-            const newTopping = {
-              transaction_detail_id: createdTransactionDetail.insertId,
-              menu_detail_id: topping.menu_detail_id,
-              serving_type_id: transactionDetail.serving_type_id,
-              total_item: topping.total_item,
-            };
+    //     if (transactionDetail.toppings) {
+    //       const toppings = transactionDetail.toppings;
+    //       for (const topping of toppings) {
+    //         const newTopping = {
+    //           transaction_detail_id: createdTransactionDetail.insertId,
+    //           menu_detail_id: topping.menu_detail_id,
+    //           serving_type_id: transactionDetail.serving_type_id,
+    //           total_item: topping.total_item,
+    //         };
 
-            await TransactionTopping.create(newTopping);
-          }
-        }
-      }
-    }
+    //         await TransactionTopping.create(newTopping);
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(201).json({
-      message: "Data transaksi berhasil ditambahkan!",
+      message: "Transaksi Sukses!",
     });
   } catch (error) {
     return res.status(500).json({
@@ -229,52 +238,57 @@ exports.updateTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
+  const { outlet_id } = req.query;
   try {
     const transaction = await Transaction.getById(id);
-    const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
+    console.log(transaction);
+    const cartDetails = await CartDetail.getByCartId(transaction.cart_id)
     const servingTypes = await ServingType.getAll();
 
-    for (const transactionDetail of transactionDetails) {
-      let menuDetail;
-      const servingType = servingTypes.find((type) => type.id == transactionDetail.serving_type_id);
-      const menu = await Menu.getById(transactionDetail.menu_id);
+    console.log(cartDetails);
 
-      if (transactionDetail.menu_detail_id) {
-        menuDetail = await MenuDetail.getByID(transactionDetail.menu_detail_id);
-        transactionDetail.menu_price = priceDeterminant(menuDetail.price, servingType.name, servingType.percent);
-      }
+    // const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
+    // for (const transactionDetail of transactionDetails) {
+    //   let menuDetail;
+    //   const servingType = servingTypes.find((type) => type.id == transactionDetail.serving_type_id);
+    //   const menu = await Menu.getById(transactionDetail.menu_id);
 
-      if (transactionDetail.menu_detail_id) {
-        transactionDetail.menu_varian = menuDetail.varian;
-      } else {
-        transactionDetail.menu_price = priceDeterminant(menu.price, servingType.name, servingType.percent);
-      }
+    //   if (transactionDetail.menu_detail_id) {
+    //     menuDetail = await MenuDetail.getByID(transactionDetail.menu_detail_id);
+    //     transactionDetail.menu_price = priceDeterminant(menuDetail.price, servingType.name, servingType.percent);
+    //   }
 
-      transactionDetail.menu_name = menu.name;
-      transactionDetail.menu_type = menu.menu_type;
+    //   if (transactionDetail.menu_detail_id) {
+    //     transactionDetail.menu_varian = menuDetail.varian;
+    //   } else {
+    //     transactionDetail.menu_price = priceDeterminant(menu.price, servingType.name, servingType.percent);
+    //   }
 
-      transactionDetail.serving_type = servingType.name;
-      transactionDetail.serving_type_percent = servingType.percent;
+    //   transactionDetail.menu_name = menu.name;
+    //   transactionDetail.menu_type = menu.menu_type;
 
-      const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
-      if (toppings.length != 0) {
-        transactionDetail.toppings = [];
-        for (const topping of toppings) {
-          const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
-          transactionDetail.toppings.push({
-            transaction_topping_id: topping.transaction_topping_id,
-            menu_detail_id: topping.menu_detail_id,
-            topping_name: menuTopping.varian,
-            topping_price: menuTopping.price,
-            topping_total_item: topping.total_item,
-          });
-        }
-      }
+    //   transactionDetail.serving_type = servingType.name;
+    //   transactionDetail.serving_type_percent = servingType.percent;
 
-      if (transactionDetail.menu_detail_id == null) {
-        delete transactionDetail.menu_detail_id;
-      }
-    }
+    //   const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
+    //   if (toppings.length != 0) {
+    //     transactionDetail.toppings = [];
+    //     for (const topping of toppings) {
+    //       const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
+    //       transactionDetail.toppings.push({
+    //         transaction_topping_id: topping.transaction_topping_id,
+    //         menu_detail_id: topping.menu_detail_id,
+    //         topping_name: menuTopping.varian,
+    //         topping_price: menuTopping.price,
+    //         topping_total_item: topping.total_item,
+    //       });
+    //     }
+    //   }
+
+    //   if (transactionDetail.menu_detail_id == null) {
+    //     delete transactionDetail.menu_detail_id;
+    //   }
+    // }
 
     const result = {
       id: transaction.id,

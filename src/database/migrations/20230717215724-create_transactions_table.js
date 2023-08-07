@@ -9,6 +9,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      outlet_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
+      cart_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       receipt_number: {
         allowNull: true,
         type: Sequelize.STRING,
