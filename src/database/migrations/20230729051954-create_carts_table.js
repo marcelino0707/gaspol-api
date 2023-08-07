@@ -29,7 +29,7 @@ module.exports = {
       },
       is_active: {
         allowNull: true,
-        defaultValue: 0,
+        defaultValue: 1,
         type: Sequelize.TINYINT,
       },
       created_at: {
