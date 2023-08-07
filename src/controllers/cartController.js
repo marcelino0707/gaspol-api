@@ -12,7 +12,7 @@ exports.getCart = async (req, res) => {
   try {
     const cart = await Cart.getByOutletId(req.query.outlet_id);
     if (!cart) {
-      return res.status(200).json({
+      return res.status(404).json({
         message: "Keranjang di Outlet ini sedang kosong",
       });
     }
@@ -38,9 +38,9 @@ exports.getCart = async (req, res) => {
       //     delete cartDetail.menu_detail_price;
       // }
 
-      if (cartDetail.note_item == null) {
-        delete cartDetail.note_item;
-      }
+      // if (cartDetail.note_item == null) {
+      //   delete cartDetail.note_item;
+      // }
 
       const toppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
       cartDetail.toppings = toppings;

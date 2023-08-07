@@ -1,12 +1,12 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const Transaction = {
-  getAll: () => {
+  getAllByOutletID: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note FROM transactions WHERE deleted_at IS NULL AND invoice_due_date IS NULL",
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, subtotal, total, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL AND invoice_due_date IS NULL", outlet_id,
             (error, results) => {
               disconnectDB();
               if (error) {

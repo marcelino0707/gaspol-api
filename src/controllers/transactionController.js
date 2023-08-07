@@ -2,6 +2,7 @@
 // const MenuDetail = require("../models/menu_detail");
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
+const CartTopping = require("../models/cart_topping");
 const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
@@ -14,7 +15,8 @@ const thisTimeNow = new Date();
 
 exports.getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.getAll();
+    const { outlet_id } = req.query;
+    const transactions = await Transaction.getAllByOutletID(outlet_id);
 
     const filteredTransactions = transactions.map((transaction) => {
       const filteredTransaction = {};
@@ -74,14 +76,15 @@ exports.createTransaction = async (req, res) => {
       transaction.outlet_id= req.body.outlet_id;
       transaction.cart_id= req.body.cart_id;
       await Transaction.create(transaction);
-      await Cart.update(req.body.cart_id, {
-        is_active: true
-      })
     } else {
       // createdTransaction = await Transaction.update(req.body.transaction_id, transaction);
       await Transaction.update(req.body.transaction_id, transaction);
     }
-
+    
+    await Cart.update(req.body.cart_id, {
+      is_active: false
+    })
+  
     // if (req.body.transaction_details) {
     //   const transactionDetails = req.body.transaction_details;
     //   for (const transactionDetail of transactionDetails) {
@@ -238,14 +241,20 @@ exports.updateTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
-  const { outlet_id } = req.query;
+  // const { outlet_id } = req.query;
   try {
     const transaction = await Transaction.getById(id);
-    console.log(transaction);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id)
     const servingTypes = await ServingType.getAll();
 
-    console.log(cartDetails);
+    for (const cartDetail of cartDetails) {
+      const servingType = servingTypes.find((type) => type.id == cartDetail.serving_type_id);
+      cartDetail.serving_type_name = servingType.name;
+      cartDetail.serving_type_percent = servingType.percent;
+      delete cartDetail.discount_id;
+      const toppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
+      cartDetail.toppings = toppings;
+    }
 
     // const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
     // for (const transactionDetail of transactionDetails) {
@@ -291,14 +300,21 @@ exports.getTransactionById = async (req, res) => {
     // }
 
     const result = {
-      id: transaction.id,
+      transaction_id: transaction.id,
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
       subtotal: transaction.subtotal,
       total: transaction.total,
-      transaction_detail: transactionDetails,
+      cart_id: transaction.cart_id,
+      cartDetails: cartDetails
+      // transaction_detail: transactionDetails,
     };
+
+    // Activate this cart
+    await Cart.update(transaction.cart_id, {
+      is_active : true,
+    })
 
     return res.status(200).json({
       data: result,
@@ -313,16 +329,6 @@ exports.getTransactionById = async (req, res) => {
 exports.deleteTransaction = async (req, res) => {
   try {
     const transactionId = req.params.id;
-    const deletedAtNow = {
-      deleted_at: new Date(),
-    };
-
-    const transactionDetails = await TransactionDetail.getAllByTransactionID(transactionId);
-
-    for (const transactionDetail of transactionDetails) {
-      await TransactionDetail.delete(transactionDetail.transaction_id, deletedAtNow);
-      await TransactionTopping.delete(transactionDetail.transaction_detail_id, deletedAtNow);
-    }
 
     await Transaction.delete(transactionId, deletedAtNow);
 
