@@ -27,9 +27,7 @@ exports.getCart = async (req, res) => {
       //     discounts = await Discount.getAll();
       // }
       // }
-      const servingType = servingTypes.find(
-        (type) => type.id == cartDetail.serving_type_id
-      );
+      const servingType = servingTypes.find((type) => type.id == cartDetail.serving_type_id);
       cartDetail.serving_type_name = servingType.name;
       cartDetail.serving_type_percent = servingType.percent;
       delete cartDetail.discount_id;
@@ -44,9 +42,7 @@ exports.getCart = async (req, res) => {
         delete cartDetail.note_item;
       }
 
-      const toppings = await CartTopping.getByCartDetailId(
-        cartDetail.cart_detail_id
-      );
+      const toppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
       cartDetail.toppings = toppings;
     }
 
@@ -136,8 +132,7 @@ exports.createCart = async (req, res) => {
           };
           await CartTopping.create(newTopping);
         }
-        cartDetailTotalPrice =
-          cartDetailTotalPrice + toppingsTotalPrice * cartDetail.qty;
+        cartDetailTotalPrice = cartDetailTotalPrice + toppingsTotalPrice * cartDetail.qty;
         // await CartDetail.update(createdCartDetail.insertId, {
         //   total_price: cartDetailTotalPrice,
         // });
@@ -167,15 +162,9 @@ exports.oldUpdateCart = async (req, res) => {
 
     const oldCartDetails = await CartDetail.getByCartId(cart_id);
     const oldCartDetailIds = oldCartDetails.map((item) => item.cart_detail_id);
-    const cartDetailIds = cart_details
-      .filter((item) => item.cart_detail_id !== undefined)
-      .map((item) => item.cart_detail_id);
-    const cartDetailIdsToDelete = oldCartDetailIds.filter(
-      (id) => !cartDetailIds.includes(id)
-    );
-    const invalidCartDetailIds = cartDetailIds.filter(
-      (id) => !oldCartDetailIds.includes(id)
-    );
+    const cartDetailIds = cart_details.filter((item) => item.cart_detail_id !== undefined).map((item) => item.cart_detail_id);
+    const cartDetailIdsToDelete = oldCartDetailIds.filter((id) => !cartDetailIds.includes(id));
+    const invalidCartDetailIds = cartDetailIds.filter((id) => !oldCartDetailIds.includes(id));
     if (invalidCartDetailIds.length > 0) {
       return res.status(400).json({
         message: "Terdapat menu yang tidak terdaftar pada cart!",
@@ -222,19 +211,11 @@ exports.oldUpdateCart = async (req, res) => {
       }
 
       if (cartDetail.cart_detail_id && cartDetail.toppings) {
-        const oldToppings = await CartTopping.getByCartDetailId(
-          cartDetail.cart_detail_id
-        );
+        const oldToppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
         const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
-        const toppingIds = cartDetail.toppings
-          .filter((item) => item.cart_topping_id !== undefined)
-          .map((item) => item.cart_topping_id);
-        const toppingIdsToDelete = oldToppingIds.filter(
-          (id) => !toppingIds.includes(id)
-        );
-        const invalidToppingIds = toppingIds.filter(
-          (id) => !oldToppingIds.includes(id)
-        );
+        const toppingIds = cartDetail.toppings.filter((item) => item.cart_topping_id !== undefined).map((item) => item.cart_topping_id);
+        const toppingIdsToDelete = oldToppingIds.filter((id) => !toppingIds.includes(id));
+        const invalidToppingIds = toppingIds.filter((id) => !oldToppingIds.includes(id));
         if (invalidToppingIds.length > 0) {
           return res.status(400).json({
             message: "Terdapat topping yang tidak terdaftar pada menu!",
@@ -249,8 +230,7 @@ exports.oldUpdateCart = async (req, res) => {
           };
 
           if (topping.cart_topping_id == undefined) {
-            (updatedTopping.menu_detail_id = topping.menu_detail_id),
-              (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
+            (updatedTopping.menu_detail_id = topping.menu_detail_id), (updatedTopping.cart_detail_id = cartDetail.cart_detail_id);
             updatedTopping.serving_type_id = cartDetail.serving_type_id;
             await CartTopping.create(updatedTopping);
           }
@@ -307,18 +287,9 @@ exports.getCartItems = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   try {
-    const  { outlet_id } = req.body;
+    const { outlet_id } = req.body;
     const cart_detail_id = req.params.id;
-    const {
-      menu_id,
-      menu_detail_id,
-      serving_type_id,
-      discount_id,
-      price,
-      qty,
-      note_item,
-      toppings,
-    } = req.body;
+    const { menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item, toppings } = req.body;
 
     const updatedCartItems = {
       menu_id,
@@ -343,20 +314,14 @@ exports.updateCart = async (req, res) => {
     await CartDetail.update(cart_detail_id, updatedCartItems);
     const cart = await Cart.getByOutletId(outlet_id);
     let cartDetailTotalPrice = price * qty;
-    let subTotalPrice = (cart.subtotal - oldCartDetail.total_price) + cartDetailTotalPrice;
+    let subTotalPrice = cart.subtotal - oldCartDetail.total_price + cartDetailTotalPrice;
 
     if (toppings) {
       const oldToppings = await CartTopping.getByCartDetailId(cart_detail_id);
       const oldToppingIds = oldToppings.map((item) => item.cart_topping_id);
-      const toppingIds = toppings
-        .filter((item) => item.cart_topping_id !== undefined)
-        .map((item) => item.cart_topping_id);
-      const toppingIdsToDelete = oldToppingIds.filter(
-        (id) => !toppingIds.includes(id)
-      );
-      const invalidToppingIds = toppingIds.filter(
-        (id) => !oldToppingIds.includes(id)
-      );
+      const toppingIds = toppings.filter((item) => item.cart_topping_id !== undefined).map((item) => item.cart_topping_id);
+      const toppingIdsToDelete = oldToppingIds.filter((id) => !toppingIds.includes(id));
+      const invalidToppingIds = toppingIds.filter((id) => !oldToppingIds.includes(id));
       if (invalidToppingIds.length > 0) {
         return res.status(400).json({
           message: "Terdapat topping yang tidak terdaftar pada menu!",
@@ -403,16 +368,14 @@ exports.updateCart = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
   try {
-    const { cartId } = req.body;
-
-    const cartDetails = await CartDetail.getByCartId(cartId);
+    const { outlet_id } = req.query;
+    const cart = await Cart.getByOutletId(outlet_id);
+    const cartDetails = await CartDetail.getByCartId(cart.id);
 
     for (const cartDetail of cartDetails) {
-      await CartDetail.delete(cartDetail.cart_id, deletedAtNow);
-      await CartTopping.delete(cartDetail.cart_detail_id, deletedAtNow);
+      await CartTopping.update(cartDetail.cart_detail_id, deletedAtNow);
     }
-
-    await Cart.delete(cartId, deletedAtNow);
+    await CartDetail.deleteAllByCartId(cart.id, deletedAtNow);
 
     return res.status(200).json({
       message: "Berhasil menghapus data cart",
@@ -420,6 +383,28 @@ exports.deleteCart = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting cart",
+    });
+  }
+};
+
+exports.deleteCartItems = async (req, res) => {
+  try {
+    const cart_detail_id = req.params.id;
+    // const { outlet_id } = req.query;
+    const cartDetails = await CartDetail.getByCartDetailId(cart_detail_id);
+    await CartDetail.update(cartDetails.cart_detail_id, deletedAtNow);
+
+    const toppings = await CartTopping.getByCartDetailId(cart_detail_id);
+    for (const topping of toppings) {
+      await CartTopping.update(topping.cart_topping_id, deletedAtNow);
+    }
+
+    return res.status(200).json({
+      message: "Berhasil menghapus data item cart",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting item cart",
     });
   }
 };

@@ -44,8 +44,7 @@ route.post("/cart", cart.createCart);
 route.delete("/cart", cart.deleteCart);
 route.get("/cart/:id", cart.getCartItems);
 route.patch("/cart/:id", cart.updateCart);
-// route.delete("/cart/:id", cart.deleteCartItems);
-
+route.delete("/cart/:id", cart.deleteCartItems);
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);
