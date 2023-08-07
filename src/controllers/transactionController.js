@@ -75,7 +75,7 @@ exports.createTransaction = async (req, res) => {
       transaction.cart_id= req.body.cart_id;
       await Transaction.create(transaction);
       await Cart.update(req.body.cart_id, {
-        is_stored_bill: true
+        is_active: true
       })
     } else {
       // createdTransaction = await Transaction.update(req.body.transaction_id, transaction);

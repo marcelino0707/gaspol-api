@@ -27,7 +27,7 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      is_stored_bill: {
+      is_active: {
         allowNull: true,
         defaultValue: 0,
         type: Sequelize.TINYINT,
