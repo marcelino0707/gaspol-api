@@ -73,11 +73,11 @@ const CartDetail = {
         .catch((error) => reject(error));
     });
   },
-  delete: (id, data) => {
+  deleteAllByCartId: (id, data) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("UPDATE cart_details SET ? WHERE id = ?", [data, id], (error, results) => {
+          connection.query("UPDATE cart_details SET ? WHERE cart_id = ?", [data, id], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
