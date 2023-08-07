@@ -377,6 +377,13 @@ exports.deleteCart = async (req, res) => {
     }
     await CartDetail.deleteAllByCartId(cart.id, deletedAtNow);
 
+    const deleteCost = {
+      subtotal: 0,
+      total: 0,
+    };
+
+    await Cart.update(cart.id, deleteCost);
+
     return res.status(200).json({
       message: "Berhasil menghapus data cart",
     });
@@ -390,14 +397,28 @@ exports.deleteCart = async (req, res) => {
 exports.deleteCartItems = async (req, res) => {
   try {
     const cart_detail_id = req.params.id;
-    // const { outlet_id } = req.query;
+    const { outlet_id } = req.query;
+    const cart = await Cart.getByOutletId(outlet_id);
     const cartDetails = await CartDetail.getByCartDetailId(cart_detail_id);
-    await CartDetail.update(cartDetails.cart_detail_id, deletedAtNow);
-
     const toppings = await CartTopping.getByCartDetailId(cart_detail_id);
+
+    let toppingsTotalPrice = 0;
+    for (const topping of toppings) {
+      toppingsTotalPrice = toppingsTotalPrice + topping.total_price;
+    }
+    cartDetailTotalPrice = cartDetails.total_price + toppingsTotalPrice * cartDetails.qty;
+    totalCart = cart.subtotal - cartDetailTotalPrice;
+
+    const updateCost = {
+      subtotal: totalCart,
+    };
+
+    await Cart.update(cart.id, updateCost);
+
     for (const topping of toppings) {
       await CartTopping.update(topping.cart_topping_id, deletedAtNow);
     }
+    await CartDetail.update(cartDetails.cart_detail_id, deletedAtNow);
 
     return res.status(200).json({
       message: "Berhasil menghapus data item cart",
