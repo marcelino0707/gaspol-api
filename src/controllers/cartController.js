@@ -274,7 +274,9 @@ exports.getCartItems = async (req, res) => {
     const { id } = req.params;
     const cartDetail = await CartDetail.getByCartDetailId(id);
     const toppings = await CartTopping.getByCartDetailId(id);
-    cartDetail.toppings = toppings;
+    if(toppings) {
+      cartDetail.toppings = toppings;
+    }
     return res.status(200).json({
       data: cartDetail,
     });
