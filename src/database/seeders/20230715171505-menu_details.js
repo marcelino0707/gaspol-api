@@ -22,7 +22,6 @@ module.exports = {
         menu_id: 1,
         varian: "Bakso Bakar",
         price: 2000,
-        is_topping: true,
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -30,7 +29,6 @@ module.exports = {
         menu_id: 1,
         varian: "Sosis Goreng",
         price: 5000,
-        is_topping: true,
         created_at: new Date(),
         updated_at: new Date()
       },
