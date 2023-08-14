@@ -13,30 +13,35 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      type: {
-        allowNull: false,
-        type: Sequelize.STRING,
+      is_percent: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
+      is_discount_cart: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
       },
       value: {
         allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
       start_date: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE,
       },
       end_date: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE,
       },
       min_purchase: {
-        allowNull: false,
+        allowNull: true,
         defaultValue: 0,
         type: Sequelize.FLOAT,
       },
       max_discount: {
-        allowNull: false,
+        allowNull: true,
         defaultValue: 0,
         type: Sequelize.FLOAT,
       },

@@ -21,7 +21,7 @@ const MenuDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id AS menu_detail_id, varian, price FROM menu_details WHERE menu_id = ? AND (is_topping IS NULL OR is_topping = 0) AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT id AS menu_detail_id, varian, price FROM menu_details WHERE menu_id = ? AND deleted_at IS NULL", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

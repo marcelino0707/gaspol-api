@@ -49,14 +49,28 @@ module.exports = {
       {
         name: "Sambal Bawang",
         price: 2000,
-        menu_type: "Sambal",
+        menu_type: "Additions",
         created_at: new Date(),
         updated_at: new Date()
       },
       {
         name: "Sambal Matahmu",
         price: 4000,
-        menu_type: "Sambal",
+        menu_type: "Additions",
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: "Sosis Sapi Goreng",
+        price: 2000,
+        menu_type: "Additions",
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: "Nugget",
+        price: 4000,
+        menu_type: "Additions",
         created_at: new Date(),
         updated_at: new Date()
       },
