@@ -94,6 +94,8 @@ exports.getMenuDetailByMenuId = async (req, res) => {
       }
 
       const originalVarian = {
+        menu_detail_id: 0,
+        varian: null,
         name : menu.name,
         price: menu.price,
         dine_in_price: menu.price,
