@@ -72,46 +72,35 @@ exports.getMenuDetailByMenuId = async (req, res) => {
       menu_type: menu.menu_type,
     };
 
-    if(menuDetails.length == 0) {
-      result.name = menu.name;
-      result.price = menu.price;
-      result.dine_in_price = menu.price;
-      result.take_away_price = menu.price + (menu.price * 3) / 100;
-      result.delivery_service_price = menu.price + (menu.price * 10) / 100;
-      result.gofood_price = menu.price + (menu.price * 20) / 100 + 1000;
-      result.grabfood_price = menu.price + (menu.price * 30) / 100;
-      result.shopeefood_price = menu.price + (menu.price * 20) / 100;
+    const originalVarian = {
+      index: 0,
+      menu_detail_id: 0,
+      varian: null,
+      name : menu.name,
+      price: menu.price,
+      dine_in_price: menu.price,
+      take_away_price: menu.price + (menu.price * 3) / 100,
+      delivery_service_price: menu.price + (menu.price * 10) / 100,
+      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
+      grabfood_price: menu.price + (menu.price * 30) / 100,
+      shopeefood_price: menu.price + (menu.price * 20) / 100,
     }
 
-    if(menuDetails.length > 0) {
-      for (const menuDetail of menuDetails) {
-        menuDetail.dine_in_price = menuDetail.price;
-        menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
-        menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-        menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
-        menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
-        menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
-      }
+    const menuVariants = menuDetails.map((menuDetail, index) => ({
+      index: index + 1,
+      menu_detail_id: menuDetail.menu_detail_id,
+      varian: menuDetail.varian,
+      name: menu.name,
+      price: menuDetail.price,
+      dine_in_price: menuDetail.price,
+      take_away_price: menuDetail.price + (menuDetail.price * 3) / 100,
+      delivery_service_price: menuDetail.price + (menuDetail.price * 10) / 100,
+      gofood_price: menuDetail.price + (menuDetail.price * 20) / 100 + 1000,
+      grabfood_price: menuDetail.price + (menuDetail.price * 30) / 100,
+      shopeefood_price: menuDetail.price + (menuDetail.price * 20) / 100,
+    }));
 
-      const originalVarian = {
-        menu_detail_id: 0,
-        varian: null,
-        name : menu.name,
-        price: menu.price,
-        dine_in_price: menu.price,
-        take_away_price: menu.price + (menu.price * 3) / 100,
-        delivery_service_price: menu.price + (menu.price * 10) / 100,
-        gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-        grabfood_price: menu.price + (menu.price * 30) / 100,
-        shopeefood_price: menu.price + (menu.price * 20) / 100,
-      }
-
-      menuDetails.unshift(originalVarian);
-    }
-    
-    if(menuDetails.length > 0) {
-      result.menu_details = [...menuDetails];
-    }
+    result.menu_details = [originalVarian, ...menuVariants];
 
     return res.status(200).json({
       data: result,
