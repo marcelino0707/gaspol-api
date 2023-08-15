@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('refund_details', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable("refund_details", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -13,7 +13,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      transaction_detail_id: {
+      cart_detail_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
@@ -25,20 +25,24 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      total_refund_price: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      }
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
     });
   },
 
-  async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('refund_details');
-  }
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable("refund_details");
+  },
 };

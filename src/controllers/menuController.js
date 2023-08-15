@@ -35,7 +35,7 @@ exports.getMenuById = async (req, res) => {
       shopeefood_price: menu.price + (menu.price * 20) / 100,
     };
 
-    if(menuDetails.length > 0) {
+    if (menuDetails.length > 0) {
       for (const menuDetail of menuDetails) {
         menuDetail.dine_in_price = menuDetail.price;
         menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
@@ -45,9 +45,8 @@ exports.getMenuById = async (req, res) => {
         menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
       }
     }
-    
-    result.menu_details = [...menuDetails];
 
+    result.menu_details = [...menuDetails];
 
     return res.status(200).json({
       data: result,
@@ -58,7 +57,6 @@ exports.getMenuById = async (req, res) => {
     });
   }
 };
-
 
 exports.getMenuDetailByMenuId = async (req, res) => {
   try {
@@ -72,6 +70,7 @@ exports.getMenuDetailByMenuId = async (req, res) => {
       menu_type: menu.menu_type,
     };
 
+<<<<<<< Updated upstream
     const originalVarian = {
       index: 0,
       menu_detail_id: 0,
@@ -101,6 +100,48 @@ exports.getMenuDetailByMenuId = async (req, res) => {
     }));
 
     result.menu_details = [originalVarian, ...menuVariants];
+=======
+    if (menuDetails.length == 0) {
+      result.name = menu.name;
+      result.price = menu.price;
+      result.dine_in_price = menu.price;
+      result.take_away_price = menu.price + (menu.price * 3) / 100;
+      result.delivery_service_price = menu.price + (menu.price * 10) / 100;
+      result.gofood_price = menu.price + (menu.price * 20) / 100 + 1000;
+      result.grabfood_price = menu.price + (menu.price * 30) / 100;
+      result.shopeefood_price = menu.price + (menu.price * 20) / 100;
+    }
+
+    if (menuDetails.length > 0) {
+      for (const menuDetail of menuDetails) {
+        menuDetail.dine_in_price = menuDetail.price;
+        menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
+        menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
+        menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
+        menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
+        menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
+      }
+
+      const originalVarian = {
+        menu_detail_id: 0,
+        varian: null,
+        name: menu.name,
+        price: menu.price,
+        dine_in_price: menu.price,
+        take_away_price: menu.price + (menu.price * 3) / 100,
+        delivery_service_price: menu.price + (menu.price * 10) / 100,
+        gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
+        grabfood_price: menu.price + (menu.price * 30) / 100,
+        shopeefood_price: menu.price + (menu.price * 20) / 100,
+      };
+
+      menuDetails.unshift(originalVarian);
+    }
+
+    if (menuDetails.length > 0) {
+      result.menu_details = [...menuDetails];
+    }
+>>>>>>> Stashed changes
 
     return res.status(200).json({
       data: result,
@@ -110,7 +151,7 @@ exports.getMenuDetailByMenuId = async (req, res) => {
       message: error.message || "Error to get menu",
     });
   }
-}
+};
 
 exports.createMenu = async (req, res) => {
   try {
@@ -195,7 +236,7 @@ exports.updateMenu = async (req, res) => {
         updatedMenuDetail.menu_id = menuId;
         await MenuDetail.create(updatedMenuDetail);
       }
-    }   
+    }
 
     if (menuDetailIdsToDelete.length > 0) {
       for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
