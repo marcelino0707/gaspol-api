@@ -107,7 +107,7 @@ exports.getMenuDetailByMenuId = async (req, res) => {
       menuDetails.unshift(originalVarian);
     }
     
-    if(menuDetails.length > 0 || toppings.length > 0) {
+    if(menuDetails.length > 0) {
       result.menu_details = [...menuDetails];
     }
 
