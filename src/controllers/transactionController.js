@@ -1,17 +1,14 @@
-// const Menu = require("../models/menu");
-// const MenuDetail = require("../models/menu_detail");
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
-const CartTopping = require("../models/cart_topping");
 const ServingType = require("../models/serving_type");
 const Transaction = require("../models/transaction");
 const TransactionDetail = require("../models/transaction_detail");
 const TransactionTopping = require("../models/transaction_topping");
 const { priceDeterminant } = require("../utils/generalFunctions");
-const deletedAtNow = {
-  deleted_at: new Date(),
-};
 const thisTimeNow = new Date();
+const deletedAtNow = {
+  deleted_at: thisTimeNow,
+};
 
 exports.getTransactions = async (req, res) => {
   try {
@@ -84,38 +81,6 @@ exports.createTransaction = async (req, res) => {
     await Cart.update(req.body.cart_id, {
       is_active: false
     })
-  
-    // if (req.body.transaction_details) {
-    //   const transactionDetails = req.body.transaction_details;
-    //   for (const transactionDetail of transactionDetails) {
-    //     let newTransactionDetail = {};
-    //     newTransactionDetail.transaction_id = createdTransaction.insertId;
-    //     newTransactionDetail.menu_id = transactionDetail.menu_id;
-    //     newTransactionDetail.serving_type_id = transactionDetail.serving_type_id;
-    //     newTransactionDetail.total_item = transactionDetail.total_item;
-    //     newTransactionDetail.note_item = transactionDetail.note_item;
-
-    //     if (transactionDetail.menu_detail_id) {
-    //       newTransactionDetail.menu_detail_id = transactionDetail.menu_detail_id;
-    //     }
-
-    //     const createdTransactionDetail = await TransactionDetail.create(newTransactionDetail);
-
-    //     if (transactionDetail.toppings) {
-    //       const toppings = transactionDetail.toppings;
-    //       for (const topping of toppings) {
-    //         const newTopping = {
-    //           transaction_detail_id: createdTransactionDetail.insertId,
-    //           menu_detail_id: topping.menu_detail_id,
-    //           serving_type_id: transactionDetail.serving_type_id,
-    //           total_item: topping.total_item,
-    //         };
-
-    //         await TransactionTopping.create(newTopping);
-    //       }
-    //     }
-    //   }
-    // }
 
     return res.status(201).json({
       message: "Transaksi Sukses!",
@@ -252,52 +217,7 @@ exports.getTransactionById = async (req, res) => {
       cartDetail.serving_type_name = servingType.name;
       cartDetail.serving_type_percent = servingType.percent;
       delete cartDetail.discount_id;
-      const toppings = await CartTopping.getByCartDetailId(cartDetail.cart_detail_id);
-      cartDetail.toppings = toppings;
     }
-
-    // const transactionDetails = await TransactionDetail.getAllByTransactionID(id);
-    // for (const transactionDetail of transactionDetails) {
-    //   let menuDetail;
-    //   const servingType = servingTypes.find((type) => type.id == transactionDetail.serving_type_id);
-    //   const menu = await Menu.getById(transactionDetail.menu_id);
-
-    //   if (transactionDetail.menu_detail_id) {
-    //     menuDetail = await MenuDetail.getByID(transactionDetail.menu_detail_id);
-    //     transactionDetail.menu_price = priceDeterminant(menuDetail.price, servingType.name, servingType.percent);
-    //   }
-
-    //   if (transactionDetail.menu_detail_id) {
-    //     transactionDetail.menu_varian = menuDetail.varian;
-    //   } else {
-    //     transactionDetail.menu_price = priceDeterminant(menu.price, servingType.name, servingType.percent);
-    //   }
-
-    //   transactionDetail.menu_name = menu.name;
-    //   transactionDetail.menu_type = menu.menu_type;
-
-    //   transactionDetail.serving_type = servingType.name;
-    //   transactionDetail.serving_type_percent = servingType.percent;
-
-    //   const toppings = await TransactionTopping.getAllByTransactionDetailID(transactionDetail.transaction_detail_id);
-    //   if (toppings.length != 0) {
-    //     transactionDetail.toppings = [];
-    //     for (const topping of toppings) {
-    //       const menuTopping = await MenuDetail.getByID(topping.menu_detail_id);
-    //       transactionDetail.toppings.push({
-    //         transaction_topping_id: topping.transaction_topping_id,
-    //         menu_detail_id: topping.menu_detail_id,
-    //         topping_name: menuTopping.varian,
-    //         topping_price: menuTopping.price,
-    //         topping_total_item: topping.total_item,
-    //       });
-    //     }
-    //   }
-
-    //   if (transactionDetail.menu_detail_id == null) {
-    //     delete transactionDetail.menu_detail_id;
-    //   }
-    // }
 
     const result = {
       transaction_id: transaction.id,
@@ -308,10 +228,9 @@ exports.getTransactionById = async (req, res) => {
       total: transaction.total,
       cart_id: transaction.cart_id,
       cartDetails: cartDetails
-      // transaction_detail: transactionDetails,
     };
 
-    // Activate this cart
+    // Activate cart
     await Cart.update(transaction.cart_id, {
       is_active : true,
     })

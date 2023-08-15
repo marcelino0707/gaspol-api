@@ -19,20 +19,6 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        menu_id: 1,
-        varian: "Bakso Bakar",
-        price: 2000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        menu_id: 1,
-        varian: "Sosis Goreng",
-        price: 5000,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
         menu_id: 2,
         varian: "Pedas Banget",
         price: 25000,
