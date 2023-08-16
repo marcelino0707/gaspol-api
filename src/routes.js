@@ -54,6 +54,6 @@ route.patch("/transaction/:id", transaction.updateTransaction);
 route.delete("/transaction/:id", transaction.deleteTransaction);
 
 // Refund
-route.post("/refund/:id", refund.createRefund);
+route.post("/refund", refund.createRefund);
 
 module.exports = route;
