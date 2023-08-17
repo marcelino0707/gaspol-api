@@ -1,7 +1,6 @@
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
 const ServingType = require("../models/serving_type");
-const Discount = require("../models/discount")
 const thisTimeNow = new Date();
 const deletedAtNow = {
   deleted_at: thisTimeNow,
@@ -46,26 +45,7 @@ exports.createCart = async (req, res) => {
   const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
   try {
     const cart = await Cart.getByOutletId(outlet_id);
-    let cartDetailTotalPrice = price * qty;
-    
     let cartId, subTotalPrice = 0;
-    
-    if(discount_id != 0) {
-      const discounts = await Discount.getAll();
-      const discount = discounts.find((type) => type.id == discount_id);
-      if(cartDetailTotalPrice < discount.min_purchase) {
-        return res.status(400).json({
-          message: "Minimal pembelian belum cukup untuk menggunakan diskon",
-        });
-      } else {
-        if(discount.is_percent == true) {
-          cartDetailTotalPrice = (cartDetailTotalPrice * (100 - discount.value)) / 100;
-        } else {
-          cartDetailTotalPrice = cartDetailTotalPrice - discount.value
-        }
-      }
-    }
-
     if (cart) {
       cartId = cart.id;
       subTotalPrice = cart.subtotal;
@@ -76,6 +56,7 @@ exports.createCart = async (req, res) => {
       cartId = createdCart.insertId;
     }
 
+    let cartDetailTotalPrice = price * qty;
     const newCartDetail = {
       cart_id: cartId,
       menu_id: menu_id,
@@ -85,7 +66,7 @@ exports.createCart = async (req, res) => {
       total_price: cartDetailTotalPrice,
     };
 
-    if (discount_id != 0) {
+    if (discount_id) {
       newCartDetail.discount_id = discount_id;
     }
 
@@ -131,49 +112,49 @@ exports.getCartItems = async (req, res) => {
 };
 
 exports.updateCart = async (req, res) => {
-  const { outlet_id } = req.body;
-  const cart_detail_id = req.params.id;
-  const { menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
+  try {
+    const { outlet_id } = req.body;
+    const cart_detail_id = req.params.id;
+    const { menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item, total_price } = req.body;
 
-  const updatedCartItems = {
-    menu_id,
-    serving_type_id,
-    price,
-    qty,
-    note_item,
-    updated_at: thisTimeNow,
-  };
+    const updatedCartItems = {
+      menu_id,
+      serving_type_id,
+      discount_id,
+      price,
+      qty,
+      total_price,
+      note_item,
+      updated_at: thisTimeNow,
+    };
 
-  if (menu_detail_id) {
-    updatedCartItems.menu_detail_id = menu_detail_id;
-  } else {
-    updatedCartItems.menu_detail_id = null;
-  }
-
-  if (discount_id) {
-    updatedCartItems.discount_id = discount_id;
-  }
-
-  try {  
-    const cart = await Cart.getByOutletId(outlet_id);
-    const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
-    const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
-    const cartDetailTotalPrice = price * qty;
-
-    if (qty == 0) {
-      updatedCartItems.deleted_at = thisTimeNow;
+    if (menu_detail_id) {
+      updatedCartItems.menu_detail_id = menu_detail_id;
+    } else {
+      updatedCartItems.menu_detail_id = null;
     }
 
-    updatedCartItems.total_price = cartDetailTotalPrice;
-    await CartDetail.update(cart_detail_id, updatedCartItems);
+    if (discount_id) {
+      updatedCartItems.discount_id = discount_id;
+    }
 
-    const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
+    const cart = await Cart.getByOutletId(outlet_id);
+    const oldSubtotalReduce = cart.subtotal - total_price;
+    let cartDetailTotalPrice = price * qty;
+    if (qty == 0) {
+      await CartDetail.update(cart_detail_id, deletedAtNow);
+    } else {
+      updatedCartItems.total_price = cartDetailTotalPrice;
+      await CartDetail.update(cart_detail_id, updatedCartItems);
+    }
+
+    let subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
     const updateSubtotal = {
       subtotal: subTotalPrice,
       total: subTotalPrice,
     };
-    await Cart.update(cart.id, updateSubtotal);
-
+    await Cart.update(oldCart.id, updateSubtotal);
+    
     return res.status(200).json({
       message: "Keranjang berhasil diubah!",
     });

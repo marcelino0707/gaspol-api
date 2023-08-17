@@ -12,8 +12,13 @@ const deletedAtNow = {
 
 exports.getTransactions = async (req, res) => {
   try {
-    const { outlet_id } = req.query;
-    const transactions = await Transaction.getAllByOutletID(outlet_id);
+    const { outlet_id, is_success } = req.query;
+    let transactions = {};
+    if (is_success === "true") {
+      transactions = await Transaction.getAllByIsSuccess(outlet_id);
+    } else {
+      transactions = await Transaction.getAllByOutletID(outlet_id);
+    }
 
     const filteredTransactions = transactions.map((transaction) => {
       const filteredTransaction = {};
@@ -70,17 +75,17 @@ exports.createTransaction = async (req, res) => {
     // let createdTransaction;
     if (!req.body.transaction_id) {
       // createdTransaction = await Transaction.create(transaction);
-      transaction.outlet_id= req.body.outlet_id;
-      transaction.cart_id= req.body.cart_id;
+      transaction.outlet_id = req.body.outlet_id;
+      transaction.cart_id = req.body.cart_id;
       await Transaction.create(transaction);
     } else {
       // createdTransaction = await Transaction.update(req.body.transaction_id, transaction);
       await Transaction.update(req.body.transaction_id, transaction);
     }
-    
+
     await Cart.update(req.body.cart_id, {
-      is_active: false
-    })
+      is_active: false,
+    });
 
     return res.status(201).json({
       message: "Transaksi Sukses!",
@@ -209,7 +214,7 @@ exports.getTransactionById = async (req, res) => {
   // const { outlet_id } = req.query;
   try {
     const transaction = await Transaction.getById(id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id)
+    const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const servingTypes = await ServingType.getAll();
 
     for (const cartDetail of cartDetails) {
@@ -227,13 +232,13 @@ exports.getTransactionById = async (req, res) => {
       subtotal: transaction.subtotal,
       total: transaction.total,
       cart_id: transaction.cart_id,
-      cartDetails: cartDetails
+      cartDetails: cartDetails,
     };
 
     // Activate cart
     await Cart.update(transaction.cart_id, {
-      is_active : true,
-    })
+      is_active: true,
+    });
 
     return res.status(200).json({
       data: result,
