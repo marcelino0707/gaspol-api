@@ -20,8 +20,6 @@ exports.createRefund = async (req, res) => {
         is_refund_all: is_refund_all,
         refund_reason: refund_reason,
       };
-      // const cart = await Cart.getByTransationId(transaction_id);
-      // refund.total_refund_price = cart.total;
       const createdRefund = await Refund.create(newRefund);
       refundId = createdRefund.insertId;
     }
@@ -30,14 +28,12 @@ exports.createRefund = async (req, res) => {
       for (const cartDetail of cart_details) {
         const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
         const qtyUpdate = cartDetails.qty - cartDetail.qty_refund;
-        await CartDetail.update(cartDetail.cart_detail_id, {
-          qty: qtyUpdate,
-        });
         const totalPriceCartDetail = qtyUpdate * cartDetails.price;
         await CartDetail.update(cartDetail.cart_detail_id, {
+          qty: qtyUpdate,
           total_price: totalPriceCartDetail,
         });
-        const cart = await Cart.getByTransationId(cart_id);
+        const cart = await Cart.getByCartId(cart_id);
         const updateTotalCart = cart.total - totalPriceCartDetail;
         await Cart.update(cart.id, {
           total: updateTotalCart,
@@ -54,7 +50,6 @@ exports.createRefund = async (req, res) => {
         totalRefund = totalRefund + refundDetailData.total_refund_price;
       }
 
-      // refund.total_refund_price = totalRefund;
       await Refund.update(refundId, {
         total_refund_price: totalRefund,
       });

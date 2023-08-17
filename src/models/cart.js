@@ -17,7 +17,7 @@ const Cart = {
         .catch((error) => reject(error));
     });
   },
-  getByTransationId: (id) => {
+  getByCartId: (id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {

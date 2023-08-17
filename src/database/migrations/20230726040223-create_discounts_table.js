@@ -13,6 +13,14 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
+      menu_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
+      menu_detail_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       is_percent: {
         allowNull: true,
         defaultValue: 0,
