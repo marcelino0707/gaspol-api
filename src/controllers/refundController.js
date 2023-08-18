@@ -1,5 +1,6 @@
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
+const Transaction = require("../models/transaction");
 const CartDetail = require("../models/cart_detail");
 const Cart = require("../models/cart");
 
@@ -46,8 +47,38 @@ exports.createRefund = async (req, res) => {
         refundDetailData.total_refund_price = cartDetail.qty_refund * cartDetails.price;
 
         await RefundDetail.create(refundDetailData);
+        refundDetailId = refundDetailData.insertId;
         totalRefund = totalRefund + refundDetailData.total_refund_price;
       }
+
+      await Refund.update(refundId, {
+        total_refund_price: totalRefund,
+      });
+    }
+
+    if (is_refund_all === true) {
+      const refund_details = await RefundDetail.getByRefundId(refundId);
+      for (const refundDetail of refund_details) {
+        const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
+        const refundDetailData = {
+          total_refund_item: cartDetails.qty,
+          total_refund_price: cartDetails.total_price,
+        };
+        await RefundDetail.update(refundDetail.id, refundDetailData);
+
+        const cart = await Cart.getByCartId(cart_id);
+        totalRefund = cart.total;
+      }
+      await CartDetail.update(cart_details.cart_detail_id, {
+        qty: 0,
+        total_price: 0,
+      });
+      await Cart.update(cart_id, {
+        total: 0,
+      });
+      await Transaction.update(cart_id, {
+        total: 0,
+      });
 
       await Refund.update(refundId, {
         total_refund_price: totalRefund,

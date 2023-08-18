@@ -10,8 +10,13 @@ const deletedAtNow = {
 
 exports.getTransactions = async (req, res) => {
   try {
-    const { outlet_id } = req.query;
-    const transactions = await Transaction.getAllByOutletID(outlet_id);
+    const { outlet_id, is_success } = req.query;
+    let transactions = {};
+    if (is_success === "true") {
+      transactions = await Transaction.getAllByIsSuccess(outlet_id);
+    } else {
+      transactions = await Transaction.getAllByOutletID(outlet_id);
+    }
 
     const filteredTransactions = transactions.map((transaction) => {
       const filteredTransaction = {};
@@ -234,8 +239,8 @@ exports.getTransactionById = async (req, res) => {
 
     // Activate cart
     await Cart.update(transaction.cart_id, {
-      is_active : true,
-    })
+      is_active: true,
+    });
 
     return res.status(200).json({
       data: result,
