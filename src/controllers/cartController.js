@@ -1,7 +1,7 @@
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
-const ServingType = require("../models/serving_type");
 const Discount = require("../models/discount")
+const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 const deletedAtNow = {
   deleted_at: thisTimeNow,
@@ -16,14 +16,7 @@ exports.getCart = async (req, res) => {
       });
     }
 
-    const servingTypes = await ServingType.getAll();
     const cartDetails = await CartDetail.getByCartId(cart.id);
-
-    for (const cartDetail of cartDetails) {
-      const servingType = servingTypes.find((type) => type.id == cartDetail.serving_type_id);
-      cartDetail.serving_type_name = servingType.name;
-      delete cartDetail.discount_id;    
-    }
 
     const result = {
       cart_id: cart.id,
@@ -51,19 +44,8 @@ exports.createCart = async (req, res) => {
     let cartId, subTotalPrice = 0;
     
     if(discount_id != 0) {
-      const discounts = await Discount.getAll();
-      const discount = discounts.find((type) => type.id == discount_id);
-      if(cartDetailTotalPrice < discount.min_purchase) {
-        return res.status(400).json({
-          message: "Minimal pembelian belum cukup untuk menggunakan diskon",
-        });
-      } else {
-        if(discount.is_percent == true) {
-          cartDetailTotalPrice = (cartDetailTotalPrice * (100 - discount.value)) / 100;
-        } else {
-          cartDetailTotalPrice = cartDetailTotalPrice - discount.value
-        }
-      }
+      const discount = await Discount.getById(discount_id);
+      cartDetailTotalPrice = await applyDiscountAndUpdateTotal(cartDetailTotalPrice, discount.min_purchase, discount.is_percent, discount.value)
     }
 
     if (cart) {
@@ -110,8 +92,11 @@ exports.createCart = async (req, res) => {
       message: "Menu berhasil ditambahkan ke dalam keranjang!",
     });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Some error occurred while creating the cart",
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || "Some error occurred while creating the cart";
+
+    return res.status(statusCode).json({
+      message: errorMessage,
     });
   }
 };
@@ -131,9 +116,8 @@ exports.getCartItems = async (req, res) => {
 };
 
 exports.updateCart = async (req, res) => {
-  const { outlet_id } = req.body;
   const cart_detail_id = req.params.id;
-  const { menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
+  const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
 
   const updatedCartItems = {
     menu_id,
@@ -150,21 +134,27 @@ exports.updateCart = async (req, res) => {
     updatedCartItems.menu_detail_id = null;
   }
 
-  if (discount_id) {
-    updatedCartItems.discount_id = discount_id;
-  }
-
   try {  
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
     const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
-    const cartDetailTotalPrice = price * qty;
+    let cartDetailTotalPrice = price * qty;
 
     if (qty == 0) {
       updatedCartItems.deleted_at = thisTimeNow;
     }
 
+    if(cartDetail.discount_id != 0) {
+      if(discount_id == 0) {
+        updatedCartItems.discount_id = 0;
+      } else {
+        const discount = await Discount.getById(discount_id);
+        cartDetailTotalPrice = await applyDiscountAndUpdateTotal(cartDetailTotalPrice, discount.min_purchase, discount.is_percent, discount.value)
+      }
+    }
+
     updatedCartItems.total_price = cartDetailTotalPrice;
+  
     await CartDetail.update(cart_detail_id, updatedCartItems);
 
     const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
@@ -178,8 +168,11 @@ exports.updateCart = async (req, res) => {
       message: "Keranjang berhasil diubah!",
     });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Some error occurred while updating the cart",
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || "Some error occurred while updating the cart";
+
+    return res.status(statusCode).json({
+      message: errorMessage,
     });
   }
 };

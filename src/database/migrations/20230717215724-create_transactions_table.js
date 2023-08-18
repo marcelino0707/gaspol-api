@@ -40,20 +40,6 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.FLOAT, 
       },
-      subtotal: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT, 
-      },
-      total: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT, 
-      },
-      discount_id: {
-        allowNull: true,
-        type: Sequelize.INTEGER,
-      },
       payment_type: {
         allowNull: true,
         type: Sequelize.STRING,
@@ -77,11 +63,6 @@ module.exports = {
       invoice_due_date: {
         allowNull: true,
         type: Sequelize.DATE,
-        defaultValue: null, 
-      },
-      refund_reason: {
-        allowNull: true,
-        type: Sequelize.STRING,
         defaultValue: null, 
       },
       created_at: {

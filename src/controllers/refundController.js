@@ -1,6 +1,5 @@
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
-const TransactionDetail = require("../models/transaction_detail");
 const CartDetail = require("../models/cart_detail");
 const Cart = require("../models/cart");
 

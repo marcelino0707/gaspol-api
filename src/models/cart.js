@@ -21,7 +21,7 @@ const Cart = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, outlet_id, subtotal, total, discount_id FROM carts WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT carts.id AS id, carts.outlet_id, carts.subtotal, carts.total, carts.discount_id, discounts.code AS discount_code, discounts.value AS discounts_value, discounts.is_percent AS discounts_is_percent FROM carts LEFT JOIN discounts ON carts.discount_id = discounts.id WHERE carts.id = ? AND carts.deleted_at IS NULL", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

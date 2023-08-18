@@ -7,6 +7,25 @@ function priceDeterminant (price, servingTypeName, servingTypePercent) {
     return result;   
 };
 
+async function applyDiscountAndUpdateTotal(totalPrice, discount_min_purchase, discount_is_percent, discount_value) {
+    try {
+      if (totalPrice < discount_min_purchase) {
+        const errorMessage = "Minimal pembelian untuk menggunakan diskon yaitu " + discount_min_purchase;
+        throw { statusCode: 400, message: errorMessage };
+      }
+  
+      if (discount_is_percent == true) {
+        totalPrice = (totalPrice * (100 - discount_value)) / 100;
+      } else {
+        totalPrice -= discount_value;
+      }
+  
+      return totalPrice;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 module.exports = {
-    priceDeterminant,
+    priceDeterminant, applyDiscountAndUpdateTotal
 };

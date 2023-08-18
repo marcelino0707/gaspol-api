@@ -50,8 +50,9 @@ route.delete("/cart/:id", cart.deleteCartItems);
 route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
 route.get("/transaction/:id", transaction.getTransactionById);
-route.patch("/transaction/:id", transaction.updateTransaction);
-route.delete("/transaction/:id", transaction.deleteTransaction);
+// route.patch("/transaction/:id", transaction.updateTransaction);
+// route.delete("/transaction/:id", transaction.deleteTransaction);
+route.post("/discount-transaction", transaction.createDiscountTransaction);
 
 // Refund
 route.post("/refund", refund.createRefund);
