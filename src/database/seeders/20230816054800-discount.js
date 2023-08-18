@@ -18,7 +18,6 @@ module.exports = {
         code: 'MerdekaNasgor',
         is_percent: false,
         is_discount_cart: false,
-        menu_id: 1,
         value: 10000,
         start_date: '2023-07-01',
         end_date: '2023-07-31',
