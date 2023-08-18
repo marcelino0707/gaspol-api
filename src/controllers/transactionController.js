@@ -229,7 +229,7 @@ exports.getTransactionById = async (req, res) => {
       discount_code: cart.discount_code,
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
-      cartDetails: cartDetails
+      cart_details: cartDetails
     };
 
     // Activate cart
