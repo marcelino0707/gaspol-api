@@ -21,7 +21,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      total_refund_item: {
+      qty_refund_item: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
