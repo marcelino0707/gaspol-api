@@ -34,6 +34,11 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.FLOAT,
       },
+      discounted_price: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.FLOAT,
+      },
       total_price: {
         allowNull: false,
         defaultValue: 0,

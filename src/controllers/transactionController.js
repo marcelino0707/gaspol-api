@@ -106,7 +106,7 @@ exports.createTransaction = async (req, res) => {
 //   try {
 //     const transactionId = req.params.id;
 //     const { customer_name, subtotal, total, transaction_details } = req.body;
-//     customer_seat = rteq.body.customer_seat || 0;
+//     customer_seat = req.body.customer_seat || 0;
 //     const updateTransaction = {
 //       customer_name: customer_name,
 //       customer_seat: customer_seat,
