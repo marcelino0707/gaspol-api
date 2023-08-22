@@ -221,8 +221,10 @@ exports.getTransactionById = async (req, res) => {
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(transaction.cart_id);
-    const refundDetails = await RefundDetail.getByRefundId(refund.id);
-
+    const refundDetails = [];
+    if(refund) {
+      refundDetails = await RefundDetail.getByRefundId(refund.id);
+    }
     const result = {
       transaction_id: transaction.id,
       receipt_number: transaction.receipt_number,
@@ -235,16 +237,21 @@ exports.getTransactionById = async (req, res) => {
       discount_code: cart.discount_code,
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
-      is_refund_all: refund.is_refund_all,
-      refund_reason: refund.refund_reason,
       cart_details: cartDetails,
-      refund_details: refundDetails,
     };
 
-    // Activate cart
-    await Cart.update(transaction.cart_id, {
-      is_active: true,
-    });
+    if(refund) {
+      result.is_refund_all = refund.is_refund_all;
+      result.refund_reason = refund.refund_reason;
+      result.refund_details = refundDetails;
+    }
+
+    if (transaction.invoice_number == null) {
+      // Activate cart
+      await Cart.update(transaction.cart_id, {
+        is_active: true,
+      });
+    }
 
     return res.status(200).json({
       code: 200,
