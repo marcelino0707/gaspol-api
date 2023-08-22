@@ -41,7 +41,7 @@ exports.createRefund = async (req, res) => {
         const refundDetailData = {
           refund_id: refundId,
           cart_detail_id: cartDetail.cart_detail_id,
-          total_refund_item: cartDetail.qty_refund,
+          qty_refund_item: cartDetail.qty_refund,
           refund_reason_item: cartDetail.refund_reason,
         };
 
@@ -65,7 +65,7 @@ exports.createRefund = async (req, res) => {
         for (const refundDetail of refund_details) {
           const cartDetails = await CartDetail.getByCartDetailId(refundDetail.cart_detail_id);
           const refundDetailData = {
-            total_refund_item: refundDetail.qty,
+            qty_refund_item: refundDetail.qty,
             total_refund_price: cartDetails.total_price,
           };
           await RefundDetail.update(refundDetail.id, refundDetailData);
