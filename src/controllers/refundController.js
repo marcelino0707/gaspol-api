@@ -38,51 +38,65 @@ exports.createRefund = async (req, res) => {
         await Cart.update(cart.id, {
           total: updateTotalCart,
         });
-        const refundDetailData = {
-          refund_id: refundId,
-          cart_detail_id: cartDetail.cart_detail_id,
-          total_refund_item: cartDetail.qty_refund,
-          refund_reason_item: cartDetail.refund_reason,
-        };
-        refundDetailData.total_refund_price = cartDetail.qty_refund * cartDetails.price;
 
-        await RefundDetail.create(refundDetailData);
-        refundDetailId = refundDetailData.insertId;
-        totalRefund = totalRefund + refundDetailData.total_refund_price;
+        if (cartDetails.discount_id === null) {
+          const refundDetailData = {
+            refund_id: refundId,
+            cart_detail_id: cartDetail.cart_detail_id,
+            total_refund_item: cartDetail.qty_refund,
+            refund_reason_item: cartDetail.refund_reason,
+          };
+          refundDetailData.total_refund_price = cartDetail.qty_refund * cartDetails.price;
+
+          await RefundDetail.create(refundDetailData);
+          refundDetailId = refundDetailData.insertId;
+          totalRefund = totalRefund + refundDetailData.total_refund_price;
+        } else {
+          const refundDetailData = {
+            refund_id: refundId,
+            cart_detail_id: cartDetail.cart_detail_id,
+            total_refund_item: cartDetails.qty,
+            refund_reason_item: cartDetail.refund_reason,
+          };
+          refundDetailData.total_refund_price = cartDetail.qty * cartDetails.discounted_price;
+
+          const createdRefundDetail = await RefundDetail.create(refundDetailData);
+          refundDetailId = createdRefundDetail.insertId;
+          totalRefund = totalRefund + refundDetailData.total_refund_price;
+        }
+
+        await Refund.update(refundId, {
+          total_refund_price: totalRefund,
+        });
       }
 
-      await Refund.update(refundId, {
-        total_refund_price: totalRefund,
-      });
-    }
+      const cartDetails = await CartDetail.getByCartDetailId(cart_details.cart_detail_id);
+      if (cartDetails.qty == 0) {
+        const refund_details = await RefundDetail.getByRefundId(refundId);
+        for (const refundDetail of refund_details) {
+          const cartDetails = await CartDetail.getByCartDetailId(refundDetail.cart_detail_id);
+          const refundDetailData = {
+            total_refund_item: refundDetail.qty,
+            total_refund_price: cartDetails.total_price,
+          };
+          await RefundDetail.update(refundDetail.id, refundDetailData);
 
-    if (is_refund_all === true) {
-      const refund_details = await RefundDetail.getByRefundId(refundId);
-      for (const refundDetail of refund_details) {
-        const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
-        const refundDetailData = {
-          total_refund_item: cartDetails.qty,
-          total_refund_price: cartDetails.total_price,
-        };
-        await RefundDetail.update(refundDetail.id, refundDetailData);
+          const cart = await Cart.getByCartId(cart_id);
+          totalRefund = cart.total;
+        }
+        await CartDetail.update(cart_details.cart_detail_id, {
+          qty: 0,
+          total_price: 0,
+        });
+        await Cart.update(cart_id, {
+          total: 0,
+        });
 
-        const cart = await Cart.getByCartId(cart_id);
-        totalRefund = cart.total;
+        await Refund.update(refundId, {
+          total_refund_price: totalRefund,
+          is_refund_all: true,
+        });
       }
-      await CartDetail.update(cart_details.cart_detail_id, {
-        qty: 0,
-        total_price: 0,
-      });
-      await Cart.update(cart_id, {
-        total: 0,
-      });
-      await Transaction.update(cart_id, {
-        total: 0,
-      });
-
-      await Refund.update(refundId, {
-        total_refund_price: totalRefund,
-      });
     }
 
     return res.status(201).json({
