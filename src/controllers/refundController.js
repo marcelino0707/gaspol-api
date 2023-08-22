@@ -1,6 +1,5 @@
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
-const Transaction = require("../models/transaction");
 const CartDetail = require("../models/cart_detail");
 const Cart = require("../models/cart");
 
@@ -39,7 +38,7 @@ exports.createRefund = async (req, res) => {
           total: updateTotalCart,
         });
 
-        if (cartDetails.discount_id === null) {
+        if (cartDetails.discount_id === null || cartDetails.discount_id == 0) {
           const refundDetailData = {
             refund_id: refundId,
             cart_detail_id: cartDetail.cart_detail_id,
