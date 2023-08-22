@@ -48,9 +48,8 @@ exports.createRefund = async (req, res) => {
         if (cartDetails.discount_id === null || cartDetails.discount_id == 0) {
           refundDetailData.total_refund_price = cartDetail.qty_refund * cartDetails.price;
         } else {
-          refundDetailData.total_refund_price = cartDetail.qty * cartDetails.discounted_price;
+          refundDetailData.total_refund_price = cartDetail.qty_refund * cartDetails.discounted_price;
         }
-        
         await RefundDetail.create(refundDetailData);
         totalRefund = totalRefund + refundDetailData.total_refund_price;
 
@@ -58,7 +57,7 @@ exports.createRefund = async (req, res) => {
           total_refund_price: totalRefund,
         });
       }
-
+    
       const cartDetails = await CartDetail.getByCartDetailId(cart_details.cart_detail_id);
       if (cartDetails.qty == 0) {
         const refund_details = await RefundDetail.getByRefundId(refundId);
