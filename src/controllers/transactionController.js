@@ -64,6 +64,10 @@ exports.createTransaction = async (req, res) => {
     const cart = await Cart.getByCartId(cart_id);
 
     if (customer_cash) {
+      if (customer_cash < cart.total) {
+        const errorMessage = "Uang anda kurang boss!";
+        throw { statusCode: 400, message: errorMessage };
+      }
       transaction.customer_cash = customer_cash;
       transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type = payment_type;
@@ -88,8 +92,11 @@ exports.createTransaction = async (req, res) => {
       message: "Transaksi Sukses!",
     });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Some error occurred while creating the transaction",
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || "Some error occurred while creating the cart";
+
+    return res.status(statusCode).json({
+      message: errorMessage,
     });
   }
 };
@@ -286,7 +293,7 @@ exports.createDiscountTransaction = async (req, res) => {
   try {
     const cart = await Cart.getByCartId(cart_id);
     const discount = await Discount.getById(discount_id);
-    totalCartPrice = await applyDiscountAndUpdateTotal(cart.subtotal, discount.min_purchase, discount.is_percent, discount.value);
+    totalCartPrice = await applyDiscountAndUpdateTotal(cart.subtotal, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount);
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,

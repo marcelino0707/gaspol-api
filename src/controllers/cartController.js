@@ -45,7 +45,8 @@ exports.createCart = async (req, res) => {
     
     if(discount_id != 0) {
       const discount = await Discount.getById(discount_id);
-      cartDetailTotalPrice = await applyDiscountAndUpdateTotal(cartDetailTotalPrice, discount.min_purchase, discount.is_percent, discount.value)
+      discountedPrice = await applyDiscountAndUpdateTotal(price, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount);
+      cartDetailTotalPrice = discountedPrice * qty;
     }
 
     if (cart) {
@@ -69,6 +70,7 @@ exports.createCart = async (req, res) => {
 
     if (discount_id != 0) {
       newCartDetail.discount_id = discount_id;
+      newCartDetail.discounted_price = discountedPrice;
     }
 
     if (menu_detail_id) {
@@ -149,7 +151,9 @@ exports.updateCart = async (req, res) => {
         updatedCartItems.discount_id = 0;
       } else {
         const discount = await Discount.getById(discount_id);
-        cartDetailTotalPrice = await applyDiscountAndUpdateTotal(cartDetailTotalPrice, discount.min_purchase, discount.is_percent, discount.value)
+        discountedPrice = await applyDiscountAndUpdateTotal(price, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount);
+        cartDetailTotalPrice = discountedPrice * qty;
+        updatedCartItems.discounted_price = discountedPrice;
       }
     }
 

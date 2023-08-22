@@ -7,20 +7,24 @@ function priceDeterminant (price, servingTypeName, servingTypePercent) {
     return result;   
 };
 
-async function applyDiscountAndUpdateTotal(totalPrice, discount_min_purchase, discount_is_percent, discount_value) {
+async function applyDiscountAndUpdateTotal(price, is_percent, value, min_purchase, max_discount) {
     try {
-      if (totalPrice < discount_min_purchase) {
-        const errorMessage = "Minimal pembelian untuk menggunakan diskon yaitu " + discount_min_purchase;
+      if (price < min_purchase) {
+        const errorMessage = "Minimal pembelian untuk menggunakan diskon yaitu " + min_purchase;
         throw { statusCode: 400, message: errorMessage };
       }
   
-      if (discount_is_percent == true) {
-        totalPrice = (totalPrice * (100 - discount_value)) / 100;
+      if (is_percent == true) {
+        discount = price * value / 100;
+        if(discount > max_discount) {
+          discount = max_discount;
+        }
+        price -= discount;
       } else {
-        totalPrice -= discount_value;
+        price -= value;
       }
   
-      return totalPrice;
+      return price;
     } catch (error) {
       throw error;
     }
