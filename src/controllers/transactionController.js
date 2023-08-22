@@ -2,6 +2,8 @@ const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
 const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
+const Refund = require("../models/refund");
+const RefundDetail = require("../models/refund_detail");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 const deletedAtNow = {
@@ -41,25 +43,15 @@ exports.getTransactions = async (req, res) => {
 };
 
 exports.createTransaction = async (req, res) => {
-  const { 
-    outlet_id,
-    cart_id,
-    customer_seat, 
-    customer_name, 
-    transaction_id, 
-    customer_cash,
-    payment_type,
-    delivery_type,
-    delivery_note
-  } = req.body;
+  const { outlet_id, cart_id, customer_seat, customer_name, transaction_id, customer_cash, payment_type, delivery_type, delivery_note } = req.body;
 
   const transaction = {};
 
-  if(customer_name) {
+  if (customer_name) {
     transaction.customer_name = customer_name;
   }
 
-  if(customer_seat) {
+  if (customer_seat) {
     transaction.customer_seat = customer_seat;
   }
 
@@ -73,7 +65,7 @@ exports.createTransaction = async (req, res) => {
 
     if (customer_cash) {
       transaction.customer_cash = customer_cash;
-      transaction.customer_change = customer_cash - cart.total; 
+      transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type = payment_type;
       transaction.invoice_number = "INV-" + generateTimeNow() + "-" + payment_type;
       transaction.invoice_due_date = thisTimeNow;
@@ -81,16 +73,16 @@ exports.createTransaction = async (req, res) => {
 
     if (!transaction_id) {
       transaction.receipt_number = "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
-      transaction.outlet_id= outlet_id;
-      transaction.cart_id= cart_id;
+      transaction.outlet_id = outlet_id;
+      transaction.cart_id = cart_id;
       await Transaction.create(transaction);
     } else {
       await Transaction.update(transaction_id, transaction);
     }
-    
+
     await Cart.update(cart_id, {
-      is_active: false
-    })
+      is_active: false,
+    });
 
     return res.status(201).json({
       message: "Transaksi Sukses!",
@@ -221,6 +213,8 @@ exports.getTransactionById = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
+    const refund = await Refund.getByTransactionId(transaction.cart_id);
+    const refundDetails = await RefundDetail.getByRefundId(refund.id);
 
     const result = {
       transaction_id: transaction.id,
@@ -234,7 +228,10 @@ exports.getTransactionById = async (req, res) => {
       discount_code: cart.discount_code,
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
-      cart_details: cartDetails
+      is_refund_all: refund.is_refund_all,
+      refund_reason: refund.refund_reason,
+      cart_details: cartDetails,
+      refund_details: refundDetails,
     };
 
     // Activate cart
@@ -285,18 +282,15 @@ function generateTimeNow() {
 }
 
 exports.createDiscountTransaction = async (req, res) => {
-  const { 
-    cart_id,
-    discount_id
-  } = req.body;
+  const { cart_id, discount_id } = req.body;
   try {
     const cart = await Cart.getByCartId(cart_id);
     const discount = await Discount.getById(discount_id);
-    totalCartPrice = await applyDiscountAndUpdateTotal(cart.subtotal, discount.min_purchase, discount.is_percent, discount.value)
+    totalCartPrice = await applyDiscountAndUpdateTotal(cart.subtotal, discount.min_purchase, discount.is_percent, discount.value);
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,
-    })
+    });
     return res.status(201).json({
       message: "Diskon berhasil ditambahkan!",
     });
@@ -308,4 +302,4 @@ exports.createDiscountTransaction = async (req, res) => {
       message: errorMessage,
     });
   }
-}
+};
