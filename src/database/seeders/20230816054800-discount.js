@@ -21,7 +21,7 @@ module.exports = {
         value: 10000,
         start_date: '2023-07-01',
         end_date: '2023-07-31',
-        min_purchase: 40000,
+        min_purchase: 20000,
       },
       {
         code: 'Murah Meriah',
@@ -30,7 +30,7 @@ module.exports = {
         value: 12000,
         start_date: '2023-07-01',
         end_date: '2023-07-31',
-        min_purchase: 50000,
+        min_purchase: 25000,
       },
     ],{});
   },
