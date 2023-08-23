@@ -23,6 +23,34 @@ exports.createRefund = async (req, res) => {
       refundId = createdRefund.insertId;
     }
 
+    if (is_refund_all == true) {
+      const refund_details = await RefundDetail.getByRefundId(refundId);
+      for (const refundDetail of refund_details) {
+        const cartDetails = await CartDetail.getByCartDetailId(refundDetail.cart_detail_id);
+        const refundDetailData = {
+          qty_refund_item: refundDetail.qty,
+          total_refund_price: cartDetails.total_price,
+        };
+        await RefundDetail.update(refundDetail.id, refundDetailData);
+
+        const cart = await Cart.getByCartId(cart_id);
+        totalRefund = cart.total;
+
+        await CartDetail.update(refundDetail.cart_detail_id, {
+          qty: 0,
+          total_price: 0,
+        });
+      }
+      await Cart.update(cart_id, {
+        total: 0,
+      });
+
+      await Refund.update(refundId, {
+        total_refund_price: totalRefund,
+        is_refund_all: true,
+      });
+    }
+
     if (cart_details) {
       for (const cartDetail of cart_details) {
         const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
@@ -57,34 +85,7 @@ exports.createRefund = async (req, res) => {
           total_refund_price: totalRefund,
         });
       }
-    
-      const cartDetails = await CartDetail.getByCartDetailId(cart_details.cart_detail_id);
-      if (cartDetails.qty == 0) {
-        const refund_details = await RefundDetail.getByRefundId(refundId);
-        for (const refundDetail of refund_details) {
-          const cartDetails = await CartDetail.getByCartDetailId(refundDetail.cart_detail_id);
-          const refundDetailData = {
-            qty_refund_item: refundDetail.qty,
-            total_refund_price: cartDetails.total_price,
-          };
-          await RefundDetail.update(refundDetail.id, refundDetailData);
-
-          const cart = await Cart.getByCartId(cart_id);
-          totalRefund = cart.total;
-        }
-        await CartDetail.update(cart_details.cart_detail_id, {
-          qty: 0,
-          total_price: 0,
-        });
-        await Cart.update(cart_id, {
-          total: 0,
-        });
-
-        await Refund.update(refundId, {
-          total_refund_price: totalRefund,
-          is_refund_all: true,
-        });
-      }
+      
     }
 
     return res.status(201).json({
