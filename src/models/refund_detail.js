@@ -1,11 +1,27 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const RefundDetail = {
-  getByRefundId: (id) => {
+  getByRefundId: (refund_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, refunds_id as refunds.id, cart_detail_id, refund_reason_item, qty_refund_item, total_refund_price FROM refund_details WHERE id = ?", id, (error, results) => {
+          connection.query("SELECT id, refund_id, cart_detail_id, refund_reason_item, qty_refund_item, total_refund_price FROM refund_details WHERE refund_id = ?", refund_id, (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getByCartDetailId: (cart_detail_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id, refund_id, cart_detail_id, refund_reason_item, qty_refund_item, total_refund_price FROM refund_details WHERE cart_detail_id = ?", cart_detail_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
