@@ -23,7 +23,7 @@ exports.createRefund = async (req, res) => {
       refundId = createdRefund.insertId;
     }
 
-    if (is_refund_all === true) {
+    if (is_refund_all == true) {
       const cartDetails = await CartDetail.getByCartId(cart_id);
       const refundDetails = await RefundDetail.getByRefundId(refundId);
 
@@ -35,6 +35,7 @@ exports.createRefund = async (req, res) => {
               const refundDetailData = {
                 qty_refund_item: updateQtyRefund,
                 total_refund_price: cartDetail.total_price,
+                refund_reason_item: refundDetail.refund_reason_item || "Refund all",
               };
 
               if (cartDetail.discount_id === null || cartDetail.discount_id == 0) {
@@ -63,6 +64,7 @@ exports.createRefund = async (req, res) => {
             refund_id: refundId,
             cart_detail_id: cart_detail.cart_detail_id,
             qty_refund_item: cart_detail.qty,
+            refund_reason_item: "Refund all",
           };
 
           if (isNaN(cart_detail.discount_id) || cart_detail.discount_id == 0) {
@@ -91,7 +93,8 @@ exports.createRefund = async (req, res) => {
       });
     }
 
-    if (cart_details) {
+    if (cart_details && is_refund_all != true) {
+      console.log("TEST-------------------------------------");
       for (const cartDetail of cart_details) {
         const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
         const qtyUpdate = cartDetails.qty - cartDetail.qty_refund;
