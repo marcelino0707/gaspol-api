@@ -221,7 +221,7 @@ exports.getTransactionById = async (req, res) => {
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(id);
-    const refundDetails = [];
+    let refundDetails = [];
     if(refund) {
       refundDetails = await RefundDetail.getByRefundId(refund.id);
     }
