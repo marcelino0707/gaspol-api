@@ -7,11 +7,19 @@ function priceDeterminant (price, servingTypeName, servingTypePercent) {
     return result;   
 };
 
-async function applyDiscountAndUpdateTotal(price, is_percent, value, min_purchase, max_discount) {
+async function applyDiscountAndUpdateTotal(price, qty, is_percent, value, min_purchase, max_discount, is_discount_cart, subtotal) {
     try {
-      if (price < min_purchase) {
-        const errorMessage = "Minimal pembelian untuk menggunakan diskon yaitu " + min_purchase;
-        throw { statusCode: 400, message: errorMessage };
+      if (is_discount_cart == true || is_discount_cart == 1) {
+        if (subtotal < min_purchase) {
+          const errorMessage = "Minimal pembelian untuk menggunakan diskon yaitu " + min_purchase;
+          throw { statusCode: 400, message: errorMessage };
+        }
+      } else {
+        const minPurchase = price * qty;
+        if (minPurchase < min_purchase) {
+          const errorMessage = "Minimal total pembelian menu untuk menggunakan diskon yaitu " + min_purchase;
+          throw { statusCode: 400, message: errorMessage };
+        }
       }
   
       if (is_percent == true) {

@@ -5,7 +5,7 @@ const RefundDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, refund_id, cart_detail_id, refund_reason_item, qty_refund_item, total_refund_price FROM refund_details WHERE refund_id = ?", refund_id, (error, results) => {
+          connection.query("SELECT id, cart_detail_id, refund_reason_item, qty_refund_item, total_refund_price FROM refund_details WHERE refund_id = ?", refund_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

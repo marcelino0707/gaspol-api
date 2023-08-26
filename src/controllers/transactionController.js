@@ -220,8 +220,8 @@ exports.getTransactionById = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
-    const refund = await Refund.getByTransactionId(transaction.id);
-    const refundDetails = [];
+    const refund = await Refund.getByTransactionId(id);
+    let refundDetails = [];
     if(refund) {
       refundDetails = await RefundDetail.getByRefundId(refund.id);
     }
@@ -300,7 +300,7 @@ exports.createDiscountTransaction = async (req, res) => {
   try {
     const cart = await Cart.getByCartId(cart_id);
     const discount = await Discount.getById(discount_id);
-    totalCartPrice = await applyDiscountAndUpdateTotal(cart.subtotal, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount);
+    totalCartPrice = await applyDiscountAndUpdateTotal(null, null, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, cart.subtotal);
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,
