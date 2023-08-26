@@ -27,7 +27,7 @@ exports.createRefund = async (req, res) => {
       const cartDetails = await CartDetail.getByCartId(cart_id);
       const refundDetails = await RefundDetail.getByRefundId(refundId);
 
-      if (refundDetails) {
+      if (refundDetails.length > 0) {
         for (const cartDetail of cartDetails) {
           for (const refundDetail of refundDetails) {
             if (cartDetail.cart_detail_id == refundDetail.cart_detail_id) {
@@ -55,6 +55,8 @@ exports.createRefund = async (req, res) => {
                 qty: 0,
                 total_price: 0,
               });
+            } else {
+              // ini belum ke handle 
             }
           }
         }
