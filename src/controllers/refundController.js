@@ -96,7 +96,6 @@ exports.createRefund = async (req, res) => {
     }
 
     if (cart_details && is_refund_all != true) {
-      console.log("TEST-------------------------------------");
       for (const cartDetail of cart_details) {
         const cartDetails = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
         const qtyUpdate = cartDetails.qty - cartDetail.qty_refund;
