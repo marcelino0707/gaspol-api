@@ -1,12 +1,12 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
-
+const today = new Date().toISOString().slice(0, 10);
 const Transaction = {
   getAllByOutletID: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL AND invoice_due_date IS NULL", outlet_id,
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(created_at) = ? AND deleted_at IS NULL AND invoice_due_date IS NULL", [outlet_id, today],
             (error, results) => {
               disconnectDB();
               if (error) {
@@ -25,8 +25,8 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
-            outlet_id,
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(created_at) = ? AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
+            [outlet_id, today],
             (error, results) => {
               disconnectDB();
               if (error) {

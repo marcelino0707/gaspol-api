@@ -57,4 +57,7 @@ route.post("/discount-transaction", transaction.createDiscountTransaction);
 // Refund
 route.post("/refund", refund.createRefund);
 
+// Struct
+route.get("/struct-transaction")
+
 module.exports = route;
