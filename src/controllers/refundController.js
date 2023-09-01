@@ -56,9 +56,37 @@ exports.createRefund = async (req, res) => {
                 total_price: 0,
               });
 
-              // cart belom ke handle
+              await Cart.update(cart_id, {
+                total: 0,
+              });
             } else {
-              // ini belum ke handle 
+              const refundDetailData = {
+                refund_id: refundId,
+                cart_detail_id: cartDetail.cart_detail_id,
+                qty_refund_item: cartDetail.qty,
+              };
+
+              if (isNaN(cartDetail.discount_id) || cartDetail.discount_id == 0) {
+                refundDetailData.total_refund_price = cartDetail.qty * cartDetail.price;
+              } else {
+                refundDetailData.total_refund_price = cartDetail.qty * cartDetail.discounted_price;
+              }
+              await RefundDetail.create(refundDetailData);
+
+              totalRefund = totalRefund + refundDetailData.total_refund_price;
+
+              await Refund.update(refundId, {
+                total_refund_price: totalRefund,
+              });
+
+              await CartDetail.update(cartDetail.cart_detail_id, {
+                qty: 0,
+                total_price: 0,
+              });
+
+              await Cart.update(cart_id, {
+                total: 0,
+              });
             }
           }
         }
