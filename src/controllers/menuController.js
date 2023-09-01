@@ -1,3 +1,4 @@
+const multer = require('multer');
 const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
 
@@ -114,13 +115,34 @@ exports.getMenuDetailByMenuId = async (req, res) => {
 
 exports.createMenu = async (req, res) => {
   try {
-    const { name, menu_type, price, menu_details } = req.body;
+    const { name, menu_type, price, menu_details, outlet_id } = req.body;
 
     const menu = {
       name: name,
       menu_type: menu_type,
       price: price,
     };
+
+    if (req.files && req.files.length > 0) {
+      const menuDir = `public/menus/${outlet_id}/${name}-${Date.now()}`;
+      
+      // Membuat direktori jika belum ada
+      if (!fs.existsSync(menuDir)) {
+        fs.mkdirSync(menuDir, { recursive: true });
+      }
+
+      // Simpan gambar ke dalam folder
+      multer.diskStorage({
+        destination: (req, file, cb) => {
+          cb(null, menuDir);
+        },
+        filename: (req, file, cb) => {
+          cb(null, file.originalname);
+        },
+      });
+      
+      menu.image_url  = menuDir + `/` + req.files[0].originalname;
+    }
 
     const createdMenu = await Menu.createMenu(menu);
 

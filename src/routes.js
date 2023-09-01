@@ -10,6 +10,7 @@ const servingType = require("./controllers/servingTypeController");
 const discount = require("./controllers/discountController");
 const refund = require("./controllers/refundController");
 const cart = require("./controllers/cartController");
+const struct = require("./controllers/structController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -58,6 +59,6 @@ route.post("/discount-transaction", transaction.createDiscountTransaction);
 route.post("/refund", refund.createRefund);
 
 // Struct
-route.get("/struct-transaction")
+route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 
 module.exports = route;

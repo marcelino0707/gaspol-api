@@ -5,7 +5,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price FROM menus WHERE deleted_at IS NULL", (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE deleted_at IS NULL", (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -21,7 +21,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -37,7 +37,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
