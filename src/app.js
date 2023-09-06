@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 
 const app = express()
 dotenv.config();
@@ -9,10 +10,14 @@ dotenv.config();
 // Parse requests
 app.use(bodyParser.json())
 
-// Cors
+// Enable CORS
 app.use(cors());
 
-// Routes
+// Serving static files from the "public" directory
+const path = require('path')
+app.use(express.static(path.join(__dirname, 'public')))
+
+Routes
 app.use(require('./routes'))
 
 // Start server

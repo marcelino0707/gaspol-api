@@ -1,5 +1,7 @@
 const express = require("express");
 const route = express.Router();
+const multer = require("multer");
+const upload = multer();
 
 // Path Controllers
 const outlet = require("./controllers/outletController");
@@ -28,6 +30,9 @@ route.post("/menu", menu.createMenu);
 route.get("/menu/:id", menu.getMenuById);
 route.patch("/menu/:id", menu.updateMenu);
 route.delete("/menu/:id", menu.deleteMenu);
+
+// Menu v2
+route.post("/v2/menu", upload.single('image'), menu.createMenuV2);
 
 // Menu Detail For Cart
 route.get("/menu-detail/:id", menu.getMenuDetailByMenuId);

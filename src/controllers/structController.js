@@ -25,7 +25,7 @@ exports.getCustomerStruct = async (req, res) => {
     });
 
     const result = {
-      outlet_name: "Jempolan Jakal",
+      outlet_name: "Jempolan",
       date_time: transaction.invoice_due_date.toGMTString(),
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
@@ -84,7 +84,7 @@ exports.getKitchenStruct = async (req, res) => {
     }
 
     const result = {
-      outlet_name: "Jempolan Babarsari",
+      outlet_name: "Jempolan",
       date_time: transaction.invoice_due_date.toGMTString(),
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,

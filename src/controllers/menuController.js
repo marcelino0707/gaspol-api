@@ -1,6 +1,7 @@
 const multer = require('multer');
 const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
+const fs = require('fs');
 
 exports.getMenus = async (req, res) => {
   try {
@@ -27,6 +28,7 @@ exports.getMenuById = async (req, res) => {
       id: menu.id,
       name: menu.name,
       menu_type: menu.menu_type,
+      image_url: menu.image_url,
       price: menu.price,
       dine_in_price: menu.price,
       take_away_price: menu.price + (menu.price * 3) / 100,
@@ -115,34 +117,13 @@ exports.getMenuDetailByMenuId = async (req, res) => {
 
 exports.createMenu = async (req, res) => {
   try {
-    const { name, menu_type, price, menu_details, outlet_id } = req.body;
+    const { name, menu_type, price, menu_details } = req.body;
 
     const menu = {
       name: name,
       menu_type: menu_type,
       price: price,
     };
-
-    if (req.files && req.files.length > 0) {
-      const menuDir = `public/menus/${outlet_id}/${name}-${Date.now()}`;
-      
-      // Membuat direktori jika belum ada
-      if (!fs.existsSync(menuDir)) {
-        fs.mkdirSync(menuDir, { recursive: true });
-      }
-
-      // Simpan gambar ke dalam folder
-      multer.diskStorage({
-        destination: (req, file, cb) => {
-          cb(null, menuDir);
-        },
-        filename: (req, file, cb) => {
-          cb(null, file.originalname);
-        },
-      });
-      
-      menu.image_url  = menuDir + `/` + req.files[0].originalname;
-    }
 
     const createdMenu = await Menu.createMenu(menu);
 
@@ -257,6 +238,81 @@ exports.deleteMenu = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting menu",
+    });
+  }
+};
+
+// Define the storage for multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/menus/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+// Create a multer instance with storage configuration
+multer({ storage: storage });
+
+exports.createMenuV2 = async (req, res) => {
+  let uploadedFilePath = "";
+  const { name, menu_type, price, menu_details, outlet_id } = req.body;
+  const menu = {
+    name: name,
+    menu_type: menu_type,
+    price: price,
+  };
+  try {
+    if (req.file) {
+      const currentTime = new Date().toISOString().replace(/:/g, "-");
+      const fileExtension = req.file.originalname.split(".").pop();
+      const sanitizedName = name.replace(/ /g, "%");
+      const fileName = `${sanitizedName}-${currentTime}.${fileExtension}`;
+      const menuDir = `public/${outlet_id}/menus`;
+
+      // Create new directory if not exists
+      if (!fs.existsSync(menuDir)) {
+        fs.mkdirSync(menuDir, { recursive: true });
+      }
+
+      // Save the uploaded file with the new filename
+      fs.writeFileSync(`${menuDir}/${fileName}`, req.file.buffer);
+
+      // Set the image_url to the new file path
+      menu.image_url = `${menuDir}/${fileName}`;
+      uploadedFilePath = `${menuDir}/${fileName}`;
+    }
+
+    const createdMenu = await Menu.createMenu(menu);
+
+    if (menu_details) {
+      const menuId = createdMenu.insertId;
+      for (const menuDetail of menu_details) {
+        const menuDetailData = {
+          menu_id: menuId,
+          price: menuDetail.price,
+          varian: menuDetail.varian,
+        };
+
+        if (menuDetail.is_topping) {
+          menuDetailData.is_topping = true;
+        }
+
+        await MenuDetail.create(menuDetailData);
+      }
+    }
+
+    return res.status(201).json({
+      message: "Data menu berhasil ditambahkan!",
+    });
+  } catch (error) {
+    // Handle the error, and if necessary, delete the uploaded file
+    if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+      fs.unlinkSync(uploadedFilePath);
+    }
+    return res.status(500).json({
+      message: error.message || "Some error occurred while creating the Menu",
     });
   }
 };
