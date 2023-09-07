@@ -24,7 +24,12 @@ exports.getTransactions = async (req, res) => {
       const filteredTransaction = {};
 
       for (const key in transaction) {
-        if (transaction[key] !== null && transaction[key] !== "" && transaction[key] !== "0.00" && transaction[key] !== 0) {
+        if (
+          transaction[key] !== null &&
+          transaction[key] !== "" &&
+          transaction[key] !== "0.00" &&
+          transaction[key] !== 0
+        ) {
           filteredTransaction[key] = transaction[key];
         }
       }
@@ -43,7 +48,17 @@ exports.getTransactions = async (req, res) => {
 };
 
 exports.createTransaction = async (req, res) => {
-  const { outlet_id, cart_id, customer_seat, customer_name, transaction_id, customer_cash, payment_type, delivery_type, delivery_note } = req.body;
+  const {
+    outlet_id,
+    cart_id,
+    customer_seat,
+    customer_name,
+    transaction_id,
+    customer_cash,
+    payment_type,
+    delivery_type,
+    delivery_note,
+  } = req.body;
 
   const transaction = {};
 
@@ -71,12 +86,14 @@ exports.createTransaction = async (req, res) => {
       transaction.customer_cash = customer_cash;
       transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type = payment_type;
-      transaction.invoice_number = "INV-" + generateTimeNow() + "-" + payment_type;
+      transaction.invoice_number =
+        "INV-" + generateTimeNow() + "-" + payment_type;
       transaction.invoice_due_date = thisTimeNow;
     }
 
     if (!transaction_id) {
-      transaction.receipt_number = "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
+      transaction.receipt_number =
+        "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
       await Transaction.create(transaction);
@@ -93,7 +110,8 @@ exports.createTransaction = async (req, res) => {
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Some error occurred while creating the cart";
+    const errorMessage =
+      error.message || "Some error occurred while creating the cart";
 
     return res.status(statusCode).json({
       message: errorMessage,
@@ -222,7 +240,7 @@ exports.getTransactionById = async (req, res) => {
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(id);
     let refundDetails = [];
-    if(refund) {
+    if (refund) {
       refundDetails = await RefundDetail.getByRefundId(refund.id);
     }
     const result = {
@@ -240,7 +258,7 @@ exports.getTransactionById = async (req, res) => {
       cart_details: cartDetails,
     };
 
-    if(refund) {
+    if (refund) {
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
       result.refund_details = refundDetails;
@@ -299,8 +317,23 @@ exports.createDiscountTransaction = async (req, res) => {
   const { cart_id, discount_id } = req.body;
   try {
     const cart = await Cart.getByCartId(cart_id);
+    if (cart.discount_id == discount_id) {
+      return res.status(201).json({
+        message: "Diskon sudah terpasang!",
+      });
+    }
+
     const discount = await Discount.getById(discount_id);
-    totalCartPrice = await applyDiscountAndUpdateTotal(null, null, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, cart.subtotal);
+    totalCartPrice = await applyDiscountAndUpdateTotal(
+      null,
+      null,
+      discount.is_percent,
+      discount.value,
+      discount.min_purchase,
+      discount.max_discount,
+      discount.is_discount_cart,
+      cart.subtotal
+    );
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,
@@ -310,7 +343,9 @@ exports.createDiscountTransaction = async (req, res) => {
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Some error occurred while creating the discount for transaction";
+    const errorMessage =
+      error.message ||
+      "Some error occurred while creating the discount for transaction";
 
     return res.status(statusCode).json({
       message: errorMessage,

@@ -13,6 +13,7 @@ const discount = require("./controllers/discountController");
 const refund = require("./controllers/refundController");
 const cart = require("./controllers/cartController");
 const struct = require("./controllers/structController");
+const report = require("./controllers/reportController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -66,5 +67,8 @@ route.post("/refund", refund.createRefund);
 // Struct
 route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 route.get("/struct-kitchen/:id", struct.getKitchenStruct);
+
+// Report 
+route.get("/report", report.getReport);
 
 module.exports = route;

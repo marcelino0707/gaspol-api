@@ -1,6 +1,8 @@
 exports.getReport = async (req, res) => {
-  const { outlet_id, date } = req.query;
+  const { outlet_id, start_date, end_date } = req.query;
   try {
+
+
     return res.status(200).json({
       code: 200,
       message: "Laporan berhasil ditampilkan!",
