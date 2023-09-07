@@ -14,10 +14,9 @@ app.use(bodyParser.json())
 app.use(cors());
 
 // Serving static files from the "public" directory
-const path = require('path')
 app.use(express.static(path.join(__dirname, 'public')))
 
-Routes
+// Routes
 app.use(require('./routes'))
 
 // Start server
