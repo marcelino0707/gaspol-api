@@ -233,9 +233,10 @@ exports.createTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
-  // const { outlet_id } = req.query;
+  const { is_report } = req.query;
   try {
     const transaction = await Transaction.getById(id);
+    console.log(transaction);
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(id);
@@ -257,6 +258,11 @@ exports.getTransactionById = async (req, res) => {
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
     };
+
+    if (is_report) {
+      result.invoice_number = transaction.invoice_number;
+      result.invoice_due_date = transaction.invoice_due_date;
+    }
 
     if (refund) {
       result.is_refund_all = refund.is_refund_all;

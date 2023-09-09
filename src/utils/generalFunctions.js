@@ -15,7 +15,7 @@ async function applyDiscountAndUpdateTotal(price, qty, is_percent, value, min_pu
           throw { statusCode: 400, message: errorMessage };
         } 
         
-        if (is_percent == true) {
+        if (is_percent == true || is_percent == 1) {
           discount = subtotal * value / 100;
           if(discount > max_discount) {
             discount = max_discount;
@@ -28,22 +28,24 @@ async function applyDiscountAndUpdateTotal(price, qty, is_percent, value, min_pu
         return subtotal;        
       } else {
         const minPurchase = price * qty;
+        let discountedPrice;
         if (minPurchase < min_purchase) {
           const errorMessage = "Minimal total pembelian menu untuk menggunakan diskon yaitu " + min_purchase;
           throw { statusCode: 400, message: errorMessage };
         }
 
-        if (is_percent == true) {
-          discount = price * value / 100;
+        if (is_percent == true || is_percent == 1) {
+          console.log("masuk percent");
+          discount = minPurchase * value / 100;
           if(discount > max_discount) {
             discount = max_discount;
           }
-          price -= discount;
+          discountedPrice = minPurchase - discount;
         } else {
-          price -= value;
+          discountedPrice = minPurchase - value;
         }
     
-        return price;
+        return discountedPrice;
       }
     } catch (error) {
       throw error;

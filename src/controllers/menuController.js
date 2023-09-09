@@ -186,12 +186,6 @@ exports.updateMenu = async (req, res) => {
         price: menuDetail.price,
       };
 
-      if (menuDetail.is_topping) {
-        updatedMenuDetail.is_topping = menuDetail.is_topping;
-      } else {
-        updatedMenuDetail.is_topping = false;
-      }
-
       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
 
       if (menuDetail.menu_detail_id == undefined) {

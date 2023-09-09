@@ -88,6 +88,26 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  getAllReport: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id, receipt_number, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note, invoice_number, invoice_due_date FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL AND invoice_due_date IS NOT NULL AND invoice_due_date BETWEEN ? AND ?",
+            [outlet_id, start_date, end_date],
+            (error, results) => {
+              disconnectDB();
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  }, 
 };
 
 module.exports = Transaction;

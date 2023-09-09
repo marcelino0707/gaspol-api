@@ -46,7 +46,7 @@ exports.createCart = async (req, res) => {
     if(discount_id != 0) {
       const discount = await Discount.getById(discount_id);
       discountedPrice = await applyDiscountAndUpdateTotal(price, qty, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, null);
-      cartDetailTotalPrice = discountedPrice * qty;
+      cartDetailTotalPrice = discountedPrice;
     }
 
     if (cart) {
