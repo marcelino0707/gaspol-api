@@ -261,8 +261,8 @@ exports.createMenuV2 = async (req, res) => {
     if (req.file) {
       const currentTime = new Date().toISOString().replace(/:/g, "-");
       const fileExtension = req.file.originalname.split(".").pop();
-      const sanitizedName = name.replace(/ /g, "%");
-      const fileName = `${sanitizedName}-${currentTime}.${fileExtension}`;
+      const sanitizedName = name.replace(/ /g, "-");
+      const fileName = `${sanitizedName}-${currentTime}-${outlet_id}.${fileExtension}`;
       const menuDir = `public/${outlet_id}/menus`;
 
       // Create new directory if not exists
