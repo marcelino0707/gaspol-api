@@ -70,7 +70,7 @@ exports.createCart = async (req, res) => {
 
     if (discount_id != 0) {
       newCartDetail.discount_id = discount_id;
-      newCartDetail.discounted_price = discountedPrice;
+      newCartDetail.discounted_price = discountedPrice / qty;
     }
 
     if (menu_detail_id) {

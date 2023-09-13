@@ -91,14 +91,17 @@ exports.createTransaction = async (req, res) => {
       transaction.invoice_due_date = thisTimeNow;
     }
 
-    if (!transaction_id) {
+    const existingTransaction = await Transaction.getByCartId(cart_id)
+    if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
         "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
       await Transaction.create(transaction);
-    } else {
+    } else if (transaction_id) {
       await Transaction.update(transaction_id, transaction);
+    } else if (existingTransaction) {
+      await Transaction.update(existingTransaction.id, transaction);
     }
 
     await Cart.update(cart_id, {
@@ -236,7 +239,6 @@ exports.getTransactionById = async (req, res) => {
   const { is_report } = req.query;
   try {
     const transaction = await Transaction.getById(id);
-    console.log(transaction);
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(id);
@@ -259,6 +261,12 @@ exports.getTransactionById = async (req, res) => {
       cart_details: cartDetails,
     };
 
+    if(transaction.invoice_number) {
+      result.customer_cash = transaction.customer_cash;
+      result.customer_change = transaction.customer_change;
+      result.invoice_due_date = formatTanggalWaktu(transaction.invoice_due_date);
+    }
+
     if (is_report) {
       result.invoice_number = transaction.invoice_number;
       result.invoice_due_date = transaction.invoice_due_date;
@@ -267,7 +275,14 @@ exports.getTransactionById = async (req, res) => {
     if (refund) {
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
-      result.refund_details = refundDetails;
+      result.total_refund = refund.total_refund;
+      if(refund.is_refund_all == 0 || refund.is_refund_all == null) {
+        const refundDetailsWithoutId = refundDetails.map((detail) => {
+          const { id, ...detailWithoutId } = detail;
+          return detailWithoutId;
+        });
+        result.refund_details = refundDetailsWithoutId;
+      }
     }
 
     if (transaction.invoice_number == null) {
@@ -358,3 +373,20 @@ exports.createDiscountTransaction = async (req, res) => {
     });
   }
 };
+
+function formatTanggalWaktu(input) {
+  const options = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+  };
+
+  const tanggalWaktu = new Date(input);
+  const hasilFormat = tanggalWaktu.toLocaleDateString('id-ID', options);
+
+  return hasilFormat.replace(/(\d{4}), (.+)( \d{2}:\d{2})/, '$1$3, $2');
+}
+
