@@ -310,3 +310,88 @@ exports.createMenuV2 = async (req, res) => {
     });
   }
 };
+
+exports.updateMenuV2 = async (req, res) => {
+  try {
+    const menuId = req.params.id;
+    const { name, menu_type, price, menu_details, outlet_id } = req.body;
+    const deletedAtNow = {
+      deleted_at: new Date(),
+    };
+
+    const updatedMenu = {
+      name: name,
+      menu_type: menu_type,
+      price: price,
+    };
+
+    // Check if a new image is uploaded
+    if (req.file) {
+      const currentTime = new Date().toISOString().replace(/:/g, "-");
+      const fileExtension = req.file.originalname.split(".").pop();
+      const sanitizedName = name.replace(/ /g, "-");
+      const fileName = `${sanitizedName}-${currentTime}-${outlet_id}.${fileExtension}`;
+      const menuDir = `public/${outlet_id}/menus`;
+
+      // Create new directory if not exists
+      if (!fs.existsSync(menuDir)) {
+        fs.mkdirSync(menuDir, { recursive: true });
+      }
+
+      // Save the uploaded file with the new filename
+      fs.writeFileSync(`${menuDir}/${fileName}`, req.file.buffer);
+
+      // Set the image_url to the new file path
+      updatedMenu.image_url = `${menuDir}/${fileName}`;
+
+      // Delete the old image if it exists
+      const oldMenu = await Menu.getById(menuId);
+      if (oldMenu && fs.existsSync(oldMenu.image_url)) {
+        fs.unlinkSync(oldMenu.image_url);
+      }
+    }
+
+    await Menu.updateMenu(menuId, updatedMenu);
+    
+    if (menu_details) {
+      const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
+      const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
+      const menuDetailsIds = menu_details.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
+      const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
+      const invalidMenuDetailIds = menuDetailsIds.filter((id) => !oldMenuDetailIds.includes(id));
+      if (invalidMenuDetailIds.length > 0) {
+        return res.status(400).json({
+          message: "Terdapat varian menu yang tidak terdaftar pada menu!",
+        });
+      }
+  
+      for (const menuDetail of menu_details) {
+        const updatedMenuDetail = {
+          varian: menuDetail.varian,
+          price: menuDetail.price,
+        };
+  
+        await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+  
+        if (menuDetail.menu_detail_id == undefined) {
+          updatedMenuDetail.menu_id = menuId;
+          await MenuDetail.create(updatedMenuDetail);
+        }
+      }   
+  
+      if (menuDetailIdsToDelete.length > 0) {
+        for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
+          await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: "Berhasil mengubah data menu!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error to update menu",
+    });
+  }
+};
