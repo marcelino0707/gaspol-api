@@ -35,7 +35,6 @@ async function applyDiscountAndUpdateTotal(price, qty, is_percent, value, min_pu
         }
 
         if (is_percent == true || is_percent == 1) {
-          console.log("masuk percent");
           discount = minPurchase * value / 100;
           if(discount > max_discount) {
             discount = max_discount;

@@ -91,13 +91,14 @@ exports.createTransaction = async (req, res) => {
       transaction.invoice_due_date = thisTimeNow;
     }
 
-    const existingTransaction = await Transaction.getByCartId(cart_id)
+    let existingTransaction = await Transaction.getByCartId(cart_id)
     if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
         "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
-      await Transaction.create(transaction);
+      const createdTransaction = await Transaction.create(transaction);
+      existingTransaction = await Transaction.getById(createdTransaction.insertId)
     } else if (transaction_id) {
       await Transaction.update(transaction_id, transaction);
     } else if (existingTransaction) {
@@ -108,8 +109,59 @@ exports.createTransaction = async (req, res) => {
       is_active: false,
     });
 
+    const cartDetails = await CartDetail.getByCartId(existingTransaction.cart_id);
+
+     // Format data yang akan dikirimkan sebagai respons
+     const result = {
+      transaction_id: existingTransaction.id,
+      receipt_number: existingTransaction.receipt_number,
+      customer_name: existingTransaction.customer_name,
+      customer_seat: existingTransaction.customer_seat,
+      payment_type: existingTransaction.payment_type,
+      delivery_type: existingTransaction.delivery_type,
+      delivery_note: existingTransaction.delivery_note,
+      cart_id: existingTransaction.cart_id,
+      subtotal: cart.subtotal,
+      total: cart.total,
+      discount_id: cart.discount_id,
+      discount_code: cart.discount_code,
+      discounts_value: cart.discounts_value,
+      discounts_is_percent: cart.discounts_is_percent,
+      cart_details: cartDetails,
+    };
+    
+    if(transaction.delivery_type || existingTransaction.delivery_type) {
+      result.delivery_type = transaction.delivery_type || existingTransaction.delivery_type;
+      result.delivery_note = transaction.delivery_note || existingTransaction.delivery_note;
+    }
+
+    if (transaction.invoice_number || existingTransaction.invoice_due_date) {
+      result.customer_cash = transaction.customer_cash || existingTransaction.customer_cash;
+      result.customer_change = transaction.customer_change || existingTransaction.customer_change;
+      const tanggalWaktu = transaction.invoice_due_date || existingTransaction.invoice_due_date;
+      result.invoice_due_date = formatTanggalWaktu(tanggalWaktu);
+    }
+
+    const refund = await Refund.getByTransactionId(existingTransaction.id);
+    if(refund) {
+      const refundDetails = await RefundDetail.getByRefundId(refund.id);
+      result.is_refund_all = refund.is_refund_all;
+      result.refund_reason = refund.refund_reason;
+      result.total_refund = refund.total_refund;
+      if(refund.is_refund_all == 0 || refund.is_refund_all == null) {
+        const refundDetailsWithoutId = refundDetails.map((detail) => {
+          const { id, ...detailWithoutId } = detail;
+          return detailWithoutId;
+        });
+        result.refund_details = refundDetailsWithoutId;
+      }
+    }
+
+
     return res.status(201).json({
+      code: 201,
       message: "Transaksi Sukses!",
+      data: result, // Mengirimkan data yang baru dibuat sebagai respons
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
@@ -251,6 +303,7 @@ exports.getTransactionById = async (req, res) => {
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
+      payment_type: transaction.payment_type,
       cart_id: transaction.cart_id,
       subtotal: cart.subtotal,
       total: cart.total,
@@ -260,6 +313,11 @@ exports.getTransactionById = async (req, res) => {
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
     };
+
+    if(transaction.delivery_type) {
+      result.delivery_type = transaction.delivery_type;
+      result.delivery_note = transaction.delivery_note;
+    }
 
     if(transaction.invoice_number) {
       result.customer_cash = transaction.customer_cash;
@@ -376,17 +434,20 @@ exports.createDiscountTransaction = async (req, res) => {
 
 function formatTanggalWaktu(input) {
   const options = {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   };
 
   const tanggalWaktu = new Date(input);
   const hasilFormat = tanggalWaktu.toLocaleDateString('id-ID', options);
 
-  return hasilFormat.replace(/(\d{4}), (.+)( \d{2}:\d{2})/, '$1$3, $2');
+  // Menghilangkan kata "pukul"
+  const hasilAkhir = hasilFormat.replace(' pukul', ',');
+
+  return hasilAkhir;
 }
 
