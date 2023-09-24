@@ -249,13 +249,74 @@ const storage = multer.diskStorage({
 // Create a multer instance with storage configuration
 multer({ storage: storage });
 
+exports.getMenusV2 = async (req, res) => {
+  try {
+    const menus = await Menu.getAllCMS();
+
+    return res.status(200).json({
+      data: menus,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to fetch menus",
+    });
+  }
+};
+
+exports.getMenuByIdV2 = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const menu = await Menu.getByIdCMS(id);
+    const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+
+    const result = {
+      id: menu.id,
+      name: menu.name,
+      menu_type: menu.menu_type,
+      image_url: menu.image_url,
+      price: menu.price,
+      is_active: menu.is_active,
+      dine_in_price: menu.price,
+      take_away_price: menu.price + (menu.price * 3) / 100,
+      delivery_service_price: menu.price + (menu.price * 10) / 100,
+      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
+      grabfood_price: menu.price + (menu.price * 30) / 100,
+      shopeefood_price: menu.price + (menu.price * 20) / 100,
+    };
+
+    if(menuDetails.length > 0) {
+      for (const menuDetail of menuDetails) {
+        menuDetail.dine_in_price = menuDetail.price;
+        menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
+        menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
+        menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
+        menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
+        menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
+      }
+    }
+    
+    result.menu_details = [...menuDetails];
+
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error to get menu",
+    });
+  }
+};
+
 exports.createMenuV2 = async (req, res) => {
   let uploadedFilePath = "";
-  const { name, menu_type, price, menu_details, outlet_id } = req.body;
+  const { name, menu_type, price, menu_details, outlet_id, is_active } = req.body;
   const menu = {
     name: name,
     menu_type: menu_type,
     price: price,
+    is_active: is_active,
   };
   try {
     if (req.file) {
@@ -314,7 +375,7 @@ exports.createMenuV2 = async (req, res) => {
 exports.updateMenuV2 = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const { name, menu_type, price, menu_details, outlet_id } = req.body;
+    const { name, menu_type, price, menu_details, is_active, outlet_id } = req.body;
     const deletedAtNow = {
       deleted_at: new Date(),
     };
@@ -323,6 +384,8 @@ exports.updateMenuV2 = async (req, res) => {
       name: name,
       menu_type: menu_type,
       price: price,
+      is_active: is_active,
+      updated_at: new Date(),
     };
 
     // Check if a new image is uploaded

@@ -5,7 +5,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE deleted_at IS NULL", (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE deleted_at IS NULL AND is_active = 1", (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -21,7 +21,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE id = ? AND deleted_at IS NULL AND is_active = 1", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -37,12 +37,44 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE name LIKE ?", [`%${name}%`], (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE name LIKE ? AND is_active = 1", [`%${name}%`], (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
             } else {
               resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getAllCMS: () => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id, name, menu_type, price, image_url, is_active FROM menus WHERE deleted_at IS NULL", (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getByIdCMS: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id, name, menu_type, price, image_url, is_active FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
             }
           });
         })
@@ -66,7 +98,7 @@ const Menu = {
     });
   },
   updateMenu: (id, updateMenu) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => { 
       connectDB()
         .then((connection) => {
           connection.query("UPDATE menus SET ? WHERE id = ?", [updateMenu, id], (error, results) => {

@@ -33,7 +33,9 @@ route.patch("/menu/:id", menu.updateMenu);
 route.delete("/menu/:id", menu.deleteMenu);
 
 // Menu v2
+route.get("/v2/menu", menu.getMenusV2);
 route.post("/v2/menu", upload.single('image'), menu.createMenuV2);
+route.get("/v2/menu/:id", menu.getMenuByIdV2);
 route.patch("/v2/menu/:id", upload.single('image'), menu.updateMenuV2);
 
 // Menu Detail For Cart
