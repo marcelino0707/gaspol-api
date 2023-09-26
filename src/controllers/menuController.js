@@ -318,6 +318,10 @@ exports.createMenuV2 = async (req, res) => {
     price: price,
     is_active: is_active,
   };
+  let menuDetails;
+  if(menu_details) {
+    menuDetails =  JSON.parse(menu_details);
+  }
   try {
     if (req.file) {
       const currentTime = new Date().toISOString().replace(/:/g, "-");
@@ -343,7 +347,7 @@ exports.createMenuV2 = async (req, res) => {
 
     if (menu_details) {
       const menuId = createdMenu.insertId;
-      for (const menuDetail of menu_details) {
+      for (const menuDetail of menuDetails) {
         const menuDetailData = {
           menu_id: menuId,
           price: menuDetail.price,
@@ -379,6 +383,11 @@ exports.updateMenuV2 = async (req, res) => {
     const deletedAtNow = {
       deleted_at: new Date(),
     };
+
+    let menuDetails;
+    if(menu_details) {
+      menuDetails =  JSON.parse(menu_details);
+    }
 
     const updatedMenu = {
       name: name,
@@ -419,7 +428,7 @@ exports.updateMenuV2 = async (req, res) => {
     if (menu_details) {
       const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
       const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
-      const menuDetailsIds = menu_details.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
+      const menuDetailsIds = menuDetails.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
       const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
       const invalidMenuDetailIds = menuDetailsIds.filter((id) => !oldMenuDetailIds.includes(id));
       if (invalidMenuDetailIds.length > 0) {
@@ -428,7 +437,7 @@ exports.updateMenuV2 = async (req, res) => {
         });
       }
   
-      for (const menuDetail of menu_details) {
+      for (const menuDetail of menuDetails) {
         const updatedMenuDetail = {
           varian: menuDetail.varian,
           price: menuDetail.price,
