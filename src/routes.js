@@ -14,6 +14,7 @@ const refund = require("./controllers/refundController");
 const cart = require("./controllers/cartController");
 const struct = require("./controllers/structController");
 const report = require("./controllers/reportController");
+const installmentCart = require("./controllers/installmentCartController");
 
 // Outlet
 route.get("/outlet", outlet.getOutlets);
@@ -73,5 +74,9 @@ route.get("/struct-kitchen/:id", struct.getKitchenStruct);
 
 // Report 
 route.get("/report", report.getReport);
+
+route.get("/installment-cart", installmentCart.getInstallmentCart);
+route.post("/installment-cart", installmentCart.createInstallmentCart);
+route.get("/installment-cart/:id", installmentCart.getInstallmentCartByCartId);
 
 module.exports = route;

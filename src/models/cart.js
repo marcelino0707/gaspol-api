@@ -33,6 +33,22 @@ const Cart = {
         .catch((error) => reject(error));
     });
   },
+  getNotYetPaidByCartId: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT total FROM carts WHERE id = ? AND is_paided = 0 AND deleted_at IS NULL", id, (error, results) => {
+            disconnectDB();
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   create: (cart) => {
     return new Promise((resolve, reject) => {
       connectDB()

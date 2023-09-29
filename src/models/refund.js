@@ -21,7 +21,7 @@ const Refund = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, is_refund_all, refund_reason, total_refund FROM refunds WHERE transaction_id = ?", id, (error, results) => {
+          connection.query("SELECT id, is_refund_all, refund_reason, total_refund_price FROM refunds WHERE transaction_id = ?", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

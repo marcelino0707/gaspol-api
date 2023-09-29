@@ -4,7 +4,7 @@ const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
-const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
+const { applyDiscountAndUpdateTotal, formatDate } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 const deletedAtNow = {
   deleted_at: thisTimeNow,
@@ -139,7 +139,7 @@ exports.createTransaction = async (req, res) => {
       result.customer_cash = transaction.customer_cash || existingTransaction.customer_cash;
       result.customer_change = transaction.customer_change || existingTransaction.customer_change;
       const tanggalWaktu = transaction.invoice_due_date || existingTransaction.invoice_due_date;
-      result.invoice_due_date = formatTanggalWaktu(tanggalWaktu);
+      result.invoice_due_date = formatDate(tanggalWaktu);
     }
 
     const refund = await Refund.getByTransactionId(existingTransaction.id);
@@ -147,7 +147,7 @@ exports.createTransaction = async (req, res) => {
       const refundDetails = await RefundDetail.getByRefundId(refund.id);
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
-      result.total_refund = refund.total_refund;
+      result.total_refund = refund.total_refund_price;
       if(refund.is_refund_all == 0 || refund.is_refund_all == null) {
         const refundDetailsWithoutId = refundDetails.map((detail) => {
           const { id, ...detailWithoutId } = detail;
@@ -322,7 +322,7 @@ exports.getTransactionById = async (req, res) => {
     if(transaction.invoice_number) {
       result.customer_cash = transaction.customer_cash;
       result.customer_change = transaction.customer_change;
-      result.invoice_due_date = formatTanggalWaktu(transaction.invoice_due_date);
+      result.invoice_due_date = formatDate(transaction.invoice_due_date);
     }
 
     if (is_report) {
@@ -333,7 +333,7 @@ exports.getTransactionById = async (req, res) => {
     if (refund) {
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
-      result.total_refund = refund.total_refund;
+      result.total_refund = refund.total_refund_price;
       if(refund.is_refund_all == 0 || refund.is_refund_all == null) {
         const refundDetailsWithoutId = refundDetails.map((detail) => {
           const { id, ...detailWithoutId } = detail;
@@ -431,23 +431,3 @@ exports.createDiscountTransaction = async (req, res) => {
     });
   }
 };
-
-function formatTanggalWaktu(input) {
-  const options = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
-
-  const tanggalWaktu = new Date(input);
-  const hasilFormat = tanggalWaktu.toLocaleDateString('id-ID', options);
-
-  // Menghilangkan kata "pukul"
-  const hasilAkhir = hasilFormat.replace(' pukul', ',');
-
-  return hasilAkhir;
-}
-
