@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      total_refund: {
+      total_refund_price: {
         type: Sequelize.FLOAT,
         allowNull: false,
       },

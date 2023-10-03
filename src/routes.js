@@ -4,7 +4,6 @@ const multer = require("multer");
 const upload = multer();
 
 // Path Controllers
-const outlet = require("./controllers/outletController");
 const product = require("./controllers/productController");
 const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
@@ -15,9 +14,8 @@ const cart = require("./controllers/cartController");
 const struct = require("./controllers/structController");
 const report = require("./controllers/reportController");
 const installmentCart = require("./controllers/installmentCartController");
-
-// Outlet
-route.get("/outlet", outlet.getOutlets);
+const authentication = require("./controllers/authenticationController");
+const outlet = require("./controllers/outletController");
 
 // Product
 route.get("/product", product.getProducts);
@@ -51,7 +49,6 @@ route.get("/discount", discount.getDiscounts);
 // Cart
 route.get("/cart", cart.getCart);
 route.post("/cart", cart.createCart);
-// route.patch("/cart", cart.updateCart);
 route.delete("/cart", cart.deleteCart);
 route.get("/cart/:id", cart.getCartItems);
 route.patch("/cart/:id", cart.updateCart);
@@ -61,8 +58,6 @@ route.delete("/cart/:id", cart.deleteCartItems);
 route.get("/transaction", transaction.getTransactions);
 route.post("/transaction", transaction.createTransaction);
 route.get("/transaction/:id", transaction.getTransactionById);
-// route.patch("/transaction/:id", transaction.updateTransaction);
-// route.delete("/transaction/:id", transaction.deleteTransaction);
 route.post("/discount-transaction", transaction.createDiscountTransaction);
 
 // Refund
@@ -75,8 +70,13 @@ route.get("/struct-kitchen/:id", struct.getKitchenStruct);
 // Report 
 route.get("/report", report.getReport);
 
+// Installment Cart
 route.get("/installment-cart", installmentCart.getInstallmentCart);
 route.post("/installment-cart", installmentCart.createInstallmentCart);
 route.get("/installment-cart/:id", installmentCart.getInstallmentCartByCartId);
+
+// Authentication
+route.post("/check-pin", outlet.checkPin);
+route.post("/login", authentication.login);
 
 module.exports = route;

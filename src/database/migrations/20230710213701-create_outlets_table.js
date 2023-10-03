@@ -13,13 +13,12 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      user_unix_code: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
       address: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.TEXT,
+      },
+      pin: {
+        type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,

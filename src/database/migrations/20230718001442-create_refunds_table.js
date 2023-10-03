@@ -22,7 +22,7 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING,
       },
-      total_refund_price: {
+      total_refund: {
         type: Sequelize.FLOAT,
         allowNull: true,
       },

@@ -9,21 +9,31 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      name: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       username: {
         allowNull: false,
         type: Sequelize.STRING,
+        unique: true,
       },
       password: {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      role_id: {
-        allowNull: false,
+      role: {
+        allowNull: true,
+        defaultValue: 0,
         type: Sequelize.INTEGER,
       },
       outlet_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
+      },
+      menu_access: {
+        allowNull: true,
+        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,
@@ -34,6 +44,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      deleted_at: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null, 
       },
     });
   },
