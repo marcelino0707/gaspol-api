@@ -14,7 +14,7 @@ module.exports = {
         password: hashedSuperAdminPassword,
         role: 1,
         outlet_id: 0,
-        menu_access: "[1]",
+        menu_access: "1",
       },
       {
         name: "Admin Jempolan",
@@ -22,7 +22,7 @@ module.exports = {
         password: hashedAdminPassword,
         role: 2,
         outlet_id: 1,
-        menu_access: "[2,3]",
+        menu_access: "2,3",
       },
     ],{});
   },
