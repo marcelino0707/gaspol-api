@@ -5,9 +5,9 @@ const User = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query(
-            "SELECT id, username, password, role, outlet_id, menu_access FROM users WHERE username = ? AND deleted_at IS NULL",
-            username,
+          connection.execute(
+            "SELECT id, name, username, password, role, outlet_id, menu_access FROM users WHERE username = ? AND deleted_at IS NULL",
+            [username],
             (error, results) => {
               disconnectDB();
               if (error) {

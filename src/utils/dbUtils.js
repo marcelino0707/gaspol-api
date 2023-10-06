@@ -19,7 +19,6 @@ const connectDB = () => {
         if (error) {
           reject(error);
         } else {
-          // console.log('Connected to database');
           resolve(connection);
         }
       });
@@ -34,7 +33,6 @@ const disconnectDB = () => {
         if (error) {
           reject(error);
         } else {
-          // console.log('Disconnected from database');
           connection = null;
           resolve();
         }
