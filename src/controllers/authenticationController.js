@@ -1,4 +1,3 @@
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require("../models/user");
 
@@ -14,9 +13,7 @@ exports.login = async (req, res) => {
             })
         }
 
-        const match = await bcrypt.compare(password, user.password);
-
-        if(match) {
+        if(password == user.password) {
             let outletName = "GASPOL";
             let roleName = "Super Admin";
             if(user.role != 1) {
