@@ -1,11 +1,11 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const Menu = {
-  getAll: () => {
+  getAll: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE deleted_at IS NULL AND is_active = 1", (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE outlet_id = ? AND deleted_at IS NULL AND is_active = 1", outlet_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -49,11 +49,11 @@ const Menu = {
         .catch((error) => reject(error));
     });
   },
-  getAllCMS: () => {
+  getAllCMS: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url, is_active FROM menus WHERE deleted_at IS NULL", (error, results) => {
+          connection.query("SELECT id, name, outlet_id, menu_type, price, image_url, is_active FROM menus WHERE outlet_id = ? AND deleted_at IS NULL", outlet_id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);
@@ -69,7 +69,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url, is_active FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT id, name, outlet_id, menu_type, price, image_url, is_active FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
             disconnectDB();
             if (error) {
               reject(error);

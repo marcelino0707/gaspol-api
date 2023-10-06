@@ -31,6 +31,10 @@ module.exports = {
         defaultValue: 1,
         type: Sequelize.TINYINT,
       },
+      outlet_id: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

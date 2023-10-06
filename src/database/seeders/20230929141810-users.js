@@ -6,6 +6,7 @@ module.exports = {
     const saltRounds = 10;
     const hashedSuperAdminPassword = await bcrypt.hash("Simple123!", saltRounds);
     const hashedAdminPassword = await bcrypt.hash("Password123!", saltRounds);
+
     await queryInterface.bulkInsert('users', 
     [
       {
@@ -23,6 +24,14 @@ module.exports = {
         role: 2,
         outlet_id: 1,
         menu_access: "2,3",
+      },
+      {
+        name: "Admin Sambal Colek",
+        username: 'admincolek',
+        password: hashedAdminPassword,
+        role: 2,
+        outlet_id: 2,
+        menu_access: "2",
       },
     ],{});
   },

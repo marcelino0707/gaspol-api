@@ -5,7 +5,8 @@ const fs = require('fs');
 
 exports.getMenus = async (req, res) => {
   try {
-    const menus = await Menu.getAll();
+    const { outlet_id } = req.query;
+    const menus = await Menu.getAll(outlet_id);
 
     return res.status(200).json({
       data: menus,
@@ -250,8 +251,9 @@ const storage = multer.diskStorage({
 multer({ storage: storage });
 
 exports.getMenusV2 = async (req, res) => {
+  const { outlet_id } = req.query;
   try {
-    const menus = await Menu.getAllCMS();
+    const menus = await Menu.getAllCMS(outlet_id);
 
     return res.status(200).json({
       data: menus,
@@ -276,25 +278,26 @@ exports.getMenuByIdV2 = async (req, res) => {
       menu_type: menu.menu_type,
       image_url: menu.image_url,
       price: menu.price,
+      outlet_id: menu.outlet_id,
       is_active: menu.is_active,
       dine_in_price: menu.price,
-      take_away_price: menu.price + (menu.price * 3) / 100,
-      delivery_service_price: menu.price + (menu.price * 10) / 100,
-      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-      grabfood_price: menu.price + (menu.price * 30) / 100,
-      shopeefood_price: menu.price + (menu.price * 20) / 100,
+      // take_away_price: menu.price + (menu.price * 3) / 100,
+      // delivery_service_price: menu.price + (menu.price * 10) / 100,
+      // gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
+      // grabfood_price: menu.price + (menu.price * 30) / 100,
+      // shopeefood_price: menu.price + (menu.price * 20) / 100,
     };
 
-    if(menuDetails.length > 0) {
-      for (const menuDetail of menuDetails) {
-        menuDetail.dine_in_price = menuDetail.price;
-        menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
-        menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-        menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
-        menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
-        menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
-      }
-    }
+    // if(menuDetails.length > 0) {
+    //   for (const menuDetail of menuDetails) {
+    //     menuDetail.dine_in_price = menuDetail.price;
+    //     menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
+    //     menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
+    //     menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
+    //     menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
+    //     menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
+    //   }
+    // }
     
     result.menu_details = [...menuDetails];
 
@@ -317,6 +320,7 @@ exports.createMenuV2 = async (req, res) => {
     menu_type: menu_type,
     price: price,
     is_active: is_active,
+    outlet_id: outlet_id,
   };
   let menuDetails;
   if(menu_details) {
@@ -394,6 +398,7 @@ exports.updateMenuV2 = async (req, res) => {
       menu_type: menu_type,
       price: price,
       is_active: is_active,
+      outlet_id: outlet_id,
       updated_at: new Date(),
     };
 

@@ -20,21 +20,23 @@ exports.login = async (req, res) => {
         if(match) {
             let outletName = "GASPOL";
             let roleName = "Super Admin";
-            if(user.role !== 1) {
+            if(user.role != 1) {
                 const outlet = await Outlet.getByOutletId(user.outlet_id);
                 outletName = outlet.name;
                 roleName = "Admin";
             } 
 
+            const userTokenData = {
+                userId: user.id,
+                name: user.name,
+                role: roleName,
+                outlet_id: user.outlet_id,
+                outlet_name: outletName,
+                menu_access: user.menu_access,
+            };
+
             const token = jwt.sign(
-                {
-                    userId: user.id,
-                    name: user.name,
-                    role: roleName,
-                    outlet_id: user.outlet_id,
-                    outlet_name: outletName,
-                    menu_access: user.menu_access,
-                },
+                userTokenData,
                 process.env.JWT_SECRET_KEY,
                 { expiresIn: '1d'}
             )
