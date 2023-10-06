@@ -35,7 +35,6 @@ exports.createRefund = async (req, res) => {
           const updateQtyRefund = cartDetail.qty + (matchingRefundDetail ? matchingRefundDetail.qty_refund_item : 0);
           const totalRefundPrice = cartDetail.total_price + (matchingRefundDetail ? matchingRefundDetail.total_refund_price : 0);
           const refundReasonItem = matchingRefundDetail ? matchingRefundDetail.refund_reason_item : refund_reason;
-          console.log(cartDetail.qty);
           if (matchingRefundDetail) {
             await RefundDetail.update(matchingRefundDetail.id, {
               qty_refund_item: updateQtyRefund,

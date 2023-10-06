@@ -6,9 +6,6 @@ const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
 const { applyDiscountAndUpdateTotal, formatDate } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
-const deletedAtNow = {
-  deleted_at: thisTimeNow,
-};
 
 exports.getTransactions = async (req, res) => {
   try {

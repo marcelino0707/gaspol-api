@@ -16,6 +16,7 @@ const report = require("./controllers/reportController");
 const installmentCart = require("./controllers/installmentCartController");
 const authentication = require("./controllers/authenticationController");
 const outlet = require("./controllers/outletController");
+const user = require("./controllers/userController");
 
 // Product
 route.get("/product", product.getProducts);
@@ -78,5 +79,9 @@ route.get("/installment-cart/:id", installmentCart.getInstallmentCartByCartId);
 // Authentication
 route.post("/check-pin", outlet.checkPin);
 route.post("/login", authentication.login);
+
+// Users Management
+route.get("/user-management", user.getUsers);
+route.get("/user-management/:id", user.getUserById);
 
 module.exports = route;

@@ -1,6 +1,7 @@
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
 const Discount = require("../models/discount")
+const Transaction = require("../models/transaction");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 const deletedAtNow = {
@@ -17,13 +18,21 @@ exports.getCart = async (req, res) => {
     }
 
     const cartDetails = await CartDetail.getByCartId(cart.id);
-
+    
     const result = {
+      customer_name: "",
+      customer_seat: "",
       cart_id: cart.id,
       subtotal: cart.subtotal,
       total: cart.total,
       cart_details: cartDetails,
     };
+
+    const transaction = await Transaction.getByCartId(cart.id);
+    if(transaction) {
+      result.customer_name = transaction.customer_name;
+      result.customer_seat = transaction.customer_seat;
+    }
 
     return res.status(200).json({
       data: result,

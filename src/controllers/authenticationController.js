@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require("../models/user");
-const Outlet = require("../models/outlet");
 
 exports.login = async (req, res) => {
   const {username, password} = req.body
@@ -21,8 +20,7 @@ exports.login = async (req, res) => {
             let outletName = "GASPOL";
             let roleName = "Super Admin";
             if(user.role != 1) {
-                const outlet = await Outlet.getByOutletId(user.outlet_id);
-                outletName = outlet.name;
+                outletName = user.name;
                 roleName = "Admin";
             } 
 
