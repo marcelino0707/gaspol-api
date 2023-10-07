@@ -2,3 +2,5 @@ node_modules
 .env
 src.zip
 public
+src/config/database.js
+src/database
