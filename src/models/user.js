@@ -46,7 +46,7 @@ const User = {
       connectDB()
         .then((connection) => {
           connection.execute(
-            "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users LEFT JOIN outlets ON users.outlet_id = outlets.id WHERE users.deleted_at IS NULL",
+            "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users JOIN outlets ON users.outlet_id = outlets.id WHERE users.deleted_at IS NULL",
             (error, results) => {
               disconnectDB();
               if (error) {
@@ -77,22 +77,6 @@ const User = {
     });
   },
   update: (id, data) => {
-    return new Promise((resolve, reject) => {
-      connectDB()
-        .then((connection) => {
-          connection.query("UPDATE users SET ? WHERE id = ?", [data, id], (error, results) => {
-            disconnectDB();
-            if (error) {
-              reject(error);
-            } else {
-              resolve(results);
-            }
-          });
-        })
-        .catch((error) => reject(error));
-    });
-  },
-  delete: (id, data) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {

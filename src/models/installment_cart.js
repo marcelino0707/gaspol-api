@@ -12,7 +12,7 @@ const IntallmentCart = {
               if (error) {
                 reject(error);
               } else {
-                resolve(results[0]);
+                resolve(results);
               }
             }
           );

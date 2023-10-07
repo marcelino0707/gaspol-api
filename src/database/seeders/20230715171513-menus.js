@@ -40,7 +40,7 @@ module.exports = {
         name: "Puding Ding Coklat",
         price: 7000,
         outlet_id: 1,
-        menu_type: "Dessert",
+        menu_type: "Additional Makanan",
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -48,7 +48,7 @@ module.exports = {
         name: "Ice Cream Manja",
         price: 8000,
         outlet_id: 1,
-        menu_type: "Dessert",
+        menu_type: "Additional Makanan",
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -64,7 +64,7 @@ module.exports = {
         name: "Sambal Matahmu",
         price: 4000,
         outlet_id: 1,
-        menu_type: "Additions",
+        menu_type: "Additional Makanan",
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -72,7 +72,7 @@ module.exports = {
         name: "Sosis Sapi Goreng",
         price: 2000,
         outlet_id: 1,
-        menu_type: "Additions",
+        menu_type: "Additional Makanan",
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -80,7 +80,7 @@ module.exports = {
         name: "Nugget",
         price: 4000,
         outlet_id: 1,
-        menu_type: "Additions",
+        menu_type: "Additional Makanan",
         created_at: new Date(),
         updated_at: new Date()
       },

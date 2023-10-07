@@ -82,6 +82,16 @@ route.post("/login", authentication.login);
 
 // Users Management
 route.get("/user-management", user.getUsers);
+route.post("/user-management", user.create);
 route.get("/user-management/:id", user.getUserById);
+route.patch("/user-management/:id", user.update);
+route.delete("/user-management/:id", user.delete);
+
+// Outlet Management
+route.get("/outlet", outlet.getOutlets);
+route.post("/outlet", outlet.create);
+route.get("/outlet/:id", outlet.getOutletById);
+route.patch("/outlet/:id", outlet.update);
+route.delete("/outlet/:id", outlet.delete);
 
 module.exports = route;
