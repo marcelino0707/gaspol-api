@@ -92,7 +92,7 @@ exports.delete = async (req, res) => {
       deleted_at: new Date(),
     };
 
-    const deleteUser = await User.update(userId, deletedAtNow);
+    await User.update(userId, deletedAtNow);
 
     return res.status(200).json({
       message: "Berhasil menghapus data user",
