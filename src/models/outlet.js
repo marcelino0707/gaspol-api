@@ -64,23 +64,7 @@ const Outlet = {
         })
         .catch((error) => reject(error));
     });
-  },
-  delete: (id, data) => {
-    return new Promise((resolve, reject) => {
-      connectDB()
-        .then((connection) => {
-          connection.query("UPDATE outlets SET ? WHERE id = ?", [data, id], (error, results) => {
-            disconnectDB();
-            if (error) {
-              reject(error);
-            } else {
-              resolve(results);
-            }
-          });
-        })
-        .catch((error) => reject(error));
-    });
-  },
+  }
 };
 
 module.exports = Outlet;
