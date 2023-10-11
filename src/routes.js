@@ -44,7 +44,7 @@ route.get("/menu-detail/:id", menu.getMenuDetailByMenuId);
 // Serving Type
 route.get("/serving-type", servingType.getServingType);
 
-// Discount
+// Discount Kasir
 route.get("/discount", discount.getDiscounts);
 
 // Cart
@@ -93,5 +93,12 @@ route.post("/outlet", outlet.create);
 route.get("/outlet/:id", outlet.getOutletById);
 route.patch("/outlet/:id", outlet.update);
 route.delete("/outlet/:id", outlet.delete);
+
+// Discount CMS
+route.get("/v2/discount", discount.getDiscountsV2);
+route.post("/discount", discount.create);
+route.get("/discount/:id", discount.getDiscountById);
+route.patch("/discount/:id", discount.update);
+route.delete("/discount/:id", discount.delete);
 
 module.exports = route;

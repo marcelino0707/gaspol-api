@@ -45,6 +45,10 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.FLOAT,
       },
+      outlet_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
