@@ -17,6 +17,7 @@ const installmentCart = require("./controllers/installmentCartController");
 const authentication = require("./controllers/authenticationController");
 const outlet = require("./controllers/outletController");
 const user = require("./controllers/userController");
+const profile = require("./controllers/profileController");
 
 // Product
 route.get("/product", product.getProducts);
@@ -100,5 +101,8 @@ route.post("/discount", discount.create);
 route.get("/discount/:id", discount.getDiscountById);
 route.patch("/discount/:id", discount.update);
 route.delete("/discount/:id", discount.delete);
+
+// Profile
+route.patch("/profile/:id", profile.updateProfile);
 
 module.exports = route;

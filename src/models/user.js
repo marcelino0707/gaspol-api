@@ -26,7 +26,7 @@ const User = {
       connectDB()
         .then((connection) => {
           connection.execute(
-            "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users LEFT JOIN outlets ON users.outlet_id = outlets.id WHERE users.id = ?",
+            "SELECT users.id, users.name, users.username, users.password, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name, outlets.pin as pin FROM users LEFT JOIN outlets ON users.outlet_id = outlets.id WHERE users.id = ?",
             [id],
             (error, results) => {
               disconnectDB();
