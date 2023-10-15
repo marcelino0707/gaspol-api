@@ -9,12 +9,23 @@ const thisTimeNow = new Date();
 
 exports.getTransactions = async (req, res) => {
   try {
-    const { outlet_id, is_success } = req.query;
+    const { outlet_id, is_success, tanggal } = req.query;
     let transactions = {};
-    if (is_success === "true") {
-      transactions = await Transaction.getAllByIsSuccess(outlet_id);
+    let reportDate;
+    if(tanggal) {
+      reportDate = tanggal;
     } else {
-      transactions = await Transaction.getAllByOutletID(outlet_id);
+      const dateNow = thisTimeNow.toLocaleDateString('id-ID', {
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      });
+
+      reportDate = dateNow.split('/').reverse().join();
+    }
+
+    if (is_success === "true") {
+      transactions = await Transaction.getAllByIsSuccess(outlet_id, reportDate);
+    } else {
+      transactions = await Transaction.getAllByOutletID(outlet_id, reportDate);
     }
 
     const filteredTransactions = transactions.map((transaction) => {

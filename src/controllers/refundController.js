@@ -1,6 +1,9 @@
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
 const CartDetail = require("../models/cart_detail");
+const Transaction = require("../models/transaction");
+const Cart = require("../models/cart");
+const { formatDate } = require("../utils/generalFunctions");
 
 exports.createRefund = async (req, res) => {
   try {
@@ -26,7 +29,6 @@ exports.createRefund = async (req, res) => {
     
     if (is_refund_all === true) {
       const cartDetails = await CartDetail.getByCartId(cart_id);
-
       if (refundDetails.length > 0) {
         for (const cartDetail of cartDetails) {
           const matchingRefundDetail = refundDetails.find(
@@ -126,8 +128,56 @@ exports.createRefund = async (req, res) => {
       total_refund: totalRefund,
     });
 
+    const transaction = await Transaction.getByCartId(cart_id);
+    const cart = await Cart.getByCartId(cart_id);
+    const cartDetails = await CartDetail.getByCartId(cart_id);
+    const refundResult = await Refund.getByTransactionId(transaction_id);
+    const refundDetailsResult = await RefundDetail.getByRefundId(refundId);
+    
+    const result = {
+      transaction_id: transaction.id,
+      receipt_number: transaction.receipt_number,
+      customer_name: transaction.customer_name,
+      customer_seat: transaction.customer_seat,
+      payment_type: transaction.payment_type,
+      delivery_type: transaction.delivery_type,
+      delivery_note: transaction.delivery_note,
+      cart_id: transaction.cart_id,
+      subtotal: cart.subtotal,
+      total: cart.total,
+      discount_id: cart.discount_id,
+      discount_code: cart.discount_code,
+      discounts_value: cart.discounts_value,
+      discounts_is_percent: cart.discounts_is_percent,
+      cart_details: cartDetails,
+    };
+
+    if(transaction.delivery_type) {
+      result.delivery_type = transaction.delivery_type;
+      result.delivery_note = transaction.delivery_note;
+    }
+
+    if (transaction.invoice_number) {
+      result.customer_cash = transaction.customer_cash;
+      result.customer_change = transaction.customer_change;
+      const tanggalWaktu = transaction.invoice_due_date;
+      result.invoice_due_date = formatDate(tanggalWaktu);
+    }
+
+    result.is_refund_all = refundResult.is_refund_all;
+    result.refund_reason = refundResult.refund_reason;
+    result.total_refund = refundResult.total_refund;
+    if(refundResult.is_refund_all == 0 || refundResult.is_refund_all == null) {
+      const refundDetailsWithoutId = refundDetailsResult.map((detail) => {
+        const { id, ...detailWithoutId } = detail;
+        return detailWithoutId;
+      });
+      result.refund_details = refundDetailsWithoutId;
+    }
+
     return res.status(201).json({
       message: "Refund berhasil dilakukan!",
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
