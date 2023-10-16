@@ -125,7 +125,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           let query =
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note, invoice_number, invoice_due_date FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL";
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note, invoice_number, DATE_FORMAT(invoice_due_date, '%Y-%m-%d %H:%i') as invoice_due_date, DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') as updated_at FROM transactions WHERE outlet_id = ? AND deleted_at IS NULL";
           if (
             (start_date != undefined || start_date != null) &&
             (end_date != undefined || end_date != null)
@@ -133,14 +133,14 @@ const Transaction = {
             query += " AND DATE(created_at) BETWEEN ? AND ?";
           }
 
-          if (is_success != undefined || is_success != null || is_success == true) {
+          if (is_success == "true") {
             query += " AND invoice_due_date IS NOT NULL";
           }
 
-          if (is_pending != undefined || is_pending != null || is_pending == true) {
+          if (is_pending == "true") {
             query += " AND invoice_due_date IS NULL";
           }
-
+          
           connection.query(
             query,
             [outlet_id, start_date, end_date, is_success, is_pending],
