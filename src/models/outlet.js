@@ -6,7 +6,7 @@ const Outlet = {
       connectDB()
         .then((connection) => {
           connection.query('SELECT id, name, address, pin FROM outlets WHERE id = ? AND deleted_at IS NULL', outlet_id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -22,7 +22,7 @@ const Outlet = {
       connectDB()
         .then((connection) => {
           connection.query('SELECT id, name, address FROM outlets WHERE deleted_at IS NULL', (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -38,7 +38,7 @@ const Outlet = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO outlets SET ?", outlet, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -54,7 +54,7 @@ const Outlet = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE outlets SET ? WHERE id = ?", [outlet, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

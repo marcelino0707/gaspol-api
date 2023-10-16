@@ -8,7 +8,7 @@ const IntallmentCart = {
           connection.query(
             "SELECT id, cart_id, total, created_at FROM installment_carts WHERE deleted_at IS NULL",
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -28,7 +28,7 @@ const IntallmentCart = {
             "SELECT id, total, created_at FROM installment_carts WHERE cart_id = ? AND deleted_at IS NULL",
             cart_id,
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -45,7 +45,7 @@ const IntallmentCart = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO installment_carts SET ?", data, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

@@ -6,7 +6,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE outlet_id = ? AND deleted_at IS NULL AND is_active = 1", outlet_id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -22,7 +22,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE id = ? AND deleted_at IS NULL AND is_active = 1", id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -38,7 +38,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE name LIKE ? AND is_active = 1", [`%${name}%`], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -54,7 +54,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, name, outlet_id, menu_type, price, image_url, is_active FROM menus WHERE outlet_id = ? AND deleted_at IS NULL", outlet_id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -70,7 +70,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, name, outlet_id, menu_type, price, image_url, is_active FROM menus WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -86,7 +86,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO menus SET ?", menu, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -102,7 +102,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE menus SET ? WHERE id = ?", [updateMenu, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -118,7 +118,7 @@ const Menu = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE menus SET ? WHERE id = ?", [data, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

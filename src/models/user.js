@@ -9,7 +9,7 @@ const User = {
             "SELECT users.id, users.name, users.username, users.password, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users LEFT JOIN outlets ON users.outlet_id = outlets.id WHERE users.username = ? AND users.deleted_at IS NULL",
             [username],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -29,7 +29,7 @@ const User = {
             "SELECT users.id, users.name, users.username, users.password, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name, outlets.pin as pin FROM users LEFT JOIN outlets ON users.outlet_id = outlets.id WHERE users.id = ?",
             [id],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -48,7 +48,7 @@ const User = {
           connection.execute(
             "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users JOIN outlets ON users.outlet_id = outlets.id WHERE users.deleted_at IS NULL",
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -65,7 +65,7 @@ const User = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO users SET ?", data, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -81,7 +81,7 @@ const User = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE users SET ? WHERE id = ?", [data, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

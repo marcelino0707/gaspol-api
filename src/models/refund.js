@@ -6,7 +6,7 @@ const Refund = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, transaction_id, is_refund_all, refund_reason, total_refund FROM refunds WHERE id = ?", id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -22,7 +22,7 @@ const Refund = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT id, is_refund_all, refund_reason, total_refund FROM refunds WHERE transaction_id = ?", id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -38,7 +38,7 @@ const Refund = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO refunds SET ?", refund, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -54,7 +54,7 @@ const Refund = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE refunds SET ? WHERE id = ?", [refund, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

@@ -5,7 +5,7 @@ const ServingType = {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
         connection.query("SELECT id, name, percent FROM serving_types", (error, results) => {
-          disconnectDB();
+          disconnectDB(connection);
           if (error) {
             reject(error);
           } else {
@@ -20,7 +20,7 @@ const ServingType = {
       connectDB()
         .then((connection) => {
           connection.query("SELECT name, percent FROM serving_types WHERE id = ?", id, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

@@ -28,7 +28,7 @@ const Discount = {
         }
         query += ` AND (CONCAT(start_date, ' ', TIME(start_date)) <= '${currentDate}' AND CONCAT(end_date, ' ', TIME(end_date)) >= '${currentDate}')`;
         connection.query(query, (error, results) => {
-          disconnectDB();
+          disconnectDB(connection);
           if (error) {
             reject(error);
           } else {
@@ -42,7 +42,7 @@ const Discount = {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
         connection.query("SELECT id, code, is_percent, is_discount_cart, value, DATE_FORMAT(start_date, '%Y-%m-%d %H:%i') as start_date, DATE_FORMAT(end_date, '%Y-%m-%d %H:%i') as end_date, min_purchase, max_discount, DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') as updated_at FROM discounts WHERE outlet_id = ? AND deleted_at IS NULL", outlet_id, (error, results) => {
-          disconnectDB();
+          disconnectDB(connection);
           if (error) {
             reject(error);
           } else {
@@ -60,7 +60,7 @@ const Discount = {
             "SELECT id, code, is_percent, is_discount_cart, value, DATE_FORMAT(start_date, '%Y-%m-%d %H:%i') as start_date, DATE_FORMAT(end_date, '%Y-%m-%d %H:%i') as end_date, min_purchase, max_discount, updated_at FROM discounts WHERE deleted_at IS NULL AND id = ?",
             id,
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -77,7 +77,7 @@ const Discount = {
       connectDB()
         .then((connection) => {
           connection.query("INSERT INTO discounts SET ?", data, (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {
@@ -93,7 +93,7 @@ const Discount = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE discounts SET ? WHERE id = ?", [data, id], (error, results) => {
-            disconnectDB();
+            disconnectDB(connection);
             if (error) {
               reject(error);
             } else {

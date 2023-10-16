@@ -8,7 +8,7 @@ const Transaction = {
             "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(created_at) = ? AND deleted_at IS NULL AND invoice_due_date IS NULL",
             [outlet_id, date],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -28,7 +28,7 @@ const Transaction = {
             "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(invoice_due_date) = ? AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
             [outlet_id, date],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -48,7 +48,7 @@ const Transaction = {
             "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note, invoice_number, invoice_due_date FROM transactions WHERE id = ? AND deleted_at IS NULL",
             id,
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -68,7 +68,7 @@ const Transaction = {
             "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note, invoice_number, invoice_due_date FROM transactions WHERE cart_id = ? AND deleted_at IS NULL",
             cart_id,
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -88,7 +88,7 @@ const Transaction = {
             "INSERT INTO transactions SET ?",
             transaction,
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -108,7 +108,7 @@ const Transaction = {
             "UPDATE transactions SET ? WHERE id = ?",
             [transaction, id],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -145,7 +145,7 @@ const Transaction = {
             query,
             [outlet_id, start_date, end_date, is_success, is_pending],
             (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {

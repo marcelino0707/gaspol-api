@@ -6,7 +6,7 @@ const Product = {
         connectDB()
           .then((connection) => {
               connection.query('SELECT id, id_outlet, name, stock, cost, unit FROM products', (error, results) => {
-                disconnectDB();
+                disconnectDB(connection);
                 if (error) {
                   reject(error);
                 } else {
@@ -22,7 +22,7 @@ const Product = {
           connectDB()
           .then((connection) => {
               connection.query('SELECT id, id_outlet, name, stock, cost, unit FROM products WHERE id = ?', id, (error, results) => {
-                disconnectDB();
+                disconnectDB(connection);
                 if (error) {
                     reject(error);
                 } else {
@@ -38,7 +38,7 @@ const Product = {
         connectDB()
           .then((connection) => {
             connection.query('INSERT INTO products SET ?', product, (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -54,7 +54,7 @@ const Product = {
         connectDB()
           .then((connection) => {
             connection.query('UPDATE products SET ? WHERE id = ?', [product, id], (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
@@ -70,7 +70,7 @@ const Product = {
         connectDB()
           .then((connection) => {
             connection.query('UPDATE products SET ? WHERE id = ?', [data, id], (error, results) => {
-              disconnectDB();
+              disconnectDB(connection);
               if (error) {
                 reject(error);
               } else {
