@@ -71,6 +71,7 @@ route.get("/struct-kitchen/:id", struct.getKitchenStruct);
 
 // Report 
 route.get("/report", report.getReport);
+route.get("/payment-report", report.getPaymentReport);
 
 // Installment Cart
 route.get("/installment-cart", installmentCart.getInstallmentCart);

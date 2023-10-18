@@ -85,7 +85,6 @@ exports.createTransaction = async (req, res) => {
 
   try {
     const cart = await Cart.getByCartId(cart_id);
-
     if (customer_cash) {
       if (customer_cash < cart.total) {
         const errorMessage = "Uang anda kurang boss!";
@@ -119,7 +118,6 @@ exports.createTransaction = async (req, res) => {
 
     const cartDetails = await CartDetail.getByCartId(existingTransaction.cart_id);
 
-     // Format data yang akan dikirimkan sebagai respons
      const result = {
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
@@ -169,7 +167,7 @@ exports.createTransaction = async (req, res) => {
     return res.status(201).json({
       code: 201,
       message: "Transaksi Sukses!",
-      data: result, // Mengirimkan data yang baru dibuat sebagai respons
+      data: result,
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
@@ -424,6 +422,7 @@ exports.createDiscountTransaction = async (req, res) => {
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,
+      updated_at: thisTimeNow,
     });
     return res.status(201).json({
       message: "Diskon berhasil ditambahkan!",

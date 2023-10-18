@@ -97,6 +97,7 @@ exports.createCart = async (req, res) => {
     await Cart.update(cartId, {
       subtotal: subTotalPrice,
       total: subTotalPrice,
+      updated_at: thisTimeNow,
     });
 
     return res.status(201).json({
@@ -199,6 +200,7 @@ exports.deleteCart = async (req, res) => {
     const deleteCost = {
       subtotal: 0,
       total: 0,
+      updated_at: thisTimeNow,
     };
 
     await Cart.update(cart.id, deleteCost);
@@ -223,7 +225,8 @@ exports.deleteCartItems = async (req, res) => {
 
     const updateCost = {
       subtotal: totalCart,
-      total: totalCart
+      total: totalCart,
+      updated_at: thisTimeNow,
     };
 
     await Cart.update(cart.id, updateCost);

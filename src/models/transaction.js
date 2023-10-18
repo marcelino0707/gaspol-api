@@ -157,6 +157,25 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  getByAllPaymentReport: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query = "SELECT transactions.id AS transaction_id, carts.id AS cart_id, transactions.invoice_number, transactions.payment_type, carts.total, (SELECT refunds.total_refund FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS total_refund,( SELECT DATE_FORMAT(refunds.updated_at, '%Y-%m-%d %H:%i') FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_updated_at FROM transactions JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.invoice_number IS NOT NULL AND transactions.outlet_id = ? AND DATE(carts.updated_at) BETWEEN ? AND ?"
+          connection.query(
+            query,
+            [outlet_id, start_date, end_date], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
 };
 
 module.exports = Transaction;
