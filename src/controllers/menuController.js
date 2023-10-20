@@ -1,6 +1,7 @@
 const multer = require('multer');
 const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
+const CustomPrice = require("../models/custom_price")
 const fs = require('fs');
 
 exports.getMenus = async (req, res) => {
@@ -116,100 +117,119 @@ exports.getMenuDetailByMenuId = async (req, res) => {
   }
 }
 
-exports.createMenu = async (req, res) => {
-  try {
-    const { name, menu_type, price, menu_details } = req.body;
+// exports.createMenu = async (req, res) => {
+//   try {
+//     const { name, menu_type, price, menu_details } = req.body;
 
-    const menu = {
-      name: name,
-      menu_type: menu_type,
-      price: price,
-    };
+//     const menu = {
+//       name: name,
+//       menu_type: menu_type,
+//       price: price,
+//     };
 
-    const createdMenu = await Menu.createMenu(menu);
+//     const createdMenu = await Menu.createMenu(menu);
 
-    if (menu_details) {
-      const menuId = createdMenu.insertId;
-      for (const menuDetail of menu_details) {
-        const menuDetailData = {
-          menu_id: menuId,
-          price: menuDetail.price,
-          varian: menuDetail.varian,
-        };
+//     const customPriceIds = await CustomPrice.getAllCustomPrices();
+//     const customPricesToInsert = customPriceIds.map(item => ({
+//       menu_id : createdMenu.insertId,
+//       menu_detail_id : 0,
+//       price : price,
+//       custom_price_id: item.id,
+//     }));
 
-        if (menuDetail.is_topping) {
-          menuDetailData.is_topping = true;
-        }
+//     await CustomPrice.createMultiple(customPricesToInsert);
 
-        await MenuDetail.create(menuDetailData);
-      }
-    }
+//     if (menu_details) {
+//       const menuId = createdMenu.insertId;
+//       for (const menuDetail of menu_details) {
+//         const menuDetailData = {
+//           menu_id: menuId,
+//           price: menuDetail.price,
+//           varian: menuDetail.varian,
+//         };
 
-    return res.status(201).json({
-      message: "Data menu berhasil ditambahkan!",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Some error occurred while creating the Menu",
-    });
-  }
-};
+//         if (menuDetail.is_topping) {
+//           menuDetailData.is_topping = true;
+//         }
 
-exports.updateMenu = async (req, res) => {
-  try {
-    const menuId = req.params.id;
-    const { name, menu_type, price, menu_details } = req.body;
-    const deletedAtNow = {
-      deleted_at: new Date(),
-    };
+//         const createdMenuVarian = await MenuDetail.create(menuDetailData);
 
-    const updatedMenu = {
-      name: name,
-      menu_type: menu_type,
-      price: price,
-    };
-    await Menu.updateMenu(menuId, updatedMenu);
+//         const customVarianPricesToInsert = customPriceIds.map(item => ({
+//           menu_id : menuId,
+//           menu_detail_id : createdMenuVarian.insertId,
+//           price : menuDetail.price,
+//           custom_price_id: item.id,
+//         }));
 
-    const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
-    const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
-    const menuDetailsIds = menu_details.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
-    const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
-    const invalidMenuDetailIds = menuDetailsIds.filter((id) => !oldMenuDetailIds.includes(id));
-    if (invalidMenuDetailIds.length > 0) {
-      return res.status(400).json({
-        message: "Terdapat varian menu yang tidak terdaftar pada menu!",
-      });
-    }
+//         await CustomPrice.createMultiple(customVarianPricesToInsert);
+//       }
+//     }
 
-    for (const menuDetail of menu_details) {
-      const updatedMenuDetail = {
-        varian: menuDetail.varian,
-        price: menuDetail.price,
-      };
+//     return res.status(201).json({
+//       message: "Data menu berhasil ditambahkan!",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: error.message || "Some error occurred while creating the Menu",
+//     });
+//   }
+// };
 
-      await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+// exports.updateMenu = async (req, res) => {
+//   try {
+//     const menuId = req.params.id;
+//     const { name, menu_type, price, menu_details } = req.body;
+//     const deletedAtNow = {
+//       deleted_at: new Date(),
+//     };
 
-      if (menuDetail.menu_detail_id == undefined) {
-        updatedMenuDetail.menu_id = menuId;
-        await MenuDetail.create(updatedMenuDetail);
-      }
-    }   
+//     const updatedMenu = {
+//       name: name,
+//       menu_type: menu_type,
+//       price: price,
+//     };
+//     await Menu.updateMenu(menuId, updatedMenu);
 
-    if (menuDetailIdsToDelete.length > 0) {
-      for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
-        await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
-      }
-    }
+//     const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
+//     const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
+//     const menuDetailsIds = menu_details.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
+//     const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
+//     const invalidMenuDetailIds = menuDetailsIds.filter((id) => !oldMenuDetailIds.includes(id));
+//     if (invalidMenuDetailIds.length > 0) {
+//       return res.status(400).json({
+//         message: "Terdapat varian menu yang tidak terdaftar pada menu!",
+//       });
+//     }
 
-    return res.status(200).json({
-      message: "Berhasil mengubah data menu!",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Error to update menu",
-    });
-  }
-};
+//     for (const menuDetail of menu_details) {
+//       const updatedMenuDetail = {
+//         varian: menuDetail.varian,
+//         price: menuDetail.price,
+//       };
+
+//       await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
+
+//       if (menuDetail.menu_detail_id == undefined) {
+//         updatedMenuDetail.menu_id = menuId;
+//         await MenuDetail.create(updatedMenuDetail);
+//       }
+//     }   
+
+//     if (menuDetailIdsToDelete.length > 0) {
+//       for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
+//         await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
+//       }
+//     }
+
+//     return res.status(200).json({
+//       message: "Berhasil mengubah data menu!",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: error.message || "Error to update menu",
+//     });
+//   }
+// };
 
 exports.deleteMenu = async (req, res) => {
   try {
@@ -349,6 +369,17 @@ exports.createMenuV2 = async (req, res) => {
 
     const createdMenu = await Menu.createMenu(menu);
 
+    const customPriceIds = await CustomPrice.getAllCustomPrices();
+
+    const customPricesToInsert = customPriceIds.map(item => ({
+      menu_id : createdMenu.insertId,
+      menu_detail_id : 0,
+      price : price,
+      custom_price_id: item.id,
+    }));
+
+    await CustomPrice.createMultiple(customPricesToInsert);
+
     if (menu_details) {
       const menuId = createdMenu.insertId;
       for (const menuDetail of menuDetails) {
@@ -362,7 +393,16 @@ exports.createMenuV2 = async (req, res) => {
           menuDetailData.is_topping = true;
         }
 
-        await MenuDetail.create(menuDetailData);
+        const createdMenuVarian = await MenuDetail.create(menuDetailData);
+
+        const customVarianPricesToInsert = customPriceIds.map(item => ({
+          menu_id : menuId,
+          menu_detail_id : createdMenuVarian.insertId,
+          price : menuDetail.price,
+          custom_price_id: item.id,
+        }));
+
+        await CustomPrice.createMultiple(customVarianPricesToInsert);
       }
     }
 

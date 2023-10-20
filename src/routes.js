@@ -18,6 +18,7 @@ const authentication = require("./controllers/authenticationController");
 const outlet = require("./controllers/outletController");
 const user = require("./controllers/userController");
 const profile = require("./controllers/profileController");
+const customePrice = require("./controllers/customizePriceController");
 
 // Product
 route.get("/product", product.getProducts);

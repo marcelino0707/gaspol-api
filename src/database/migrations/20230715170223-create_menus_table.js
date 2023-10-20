@@ -20,7 +20,7 @@ module.exports = {
       price: {
         allowNull: false,
         defaultValue: 0,
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
       image_url: {
         type: Sequelize.STRING,

@@ -2,25 +2,16 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('menu_details', {
+    await queryInterface.createTable('custom_prices', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      menu_id: {
+      name: {
         allowNull: false,
-        type: Sequelize.INTEGER,
-      },
-      varian: {
-        allowNull: true,
         type: Sequelize.STRING,
-      },
-      price: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,
@@ -41,6 +32,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('menu_details');
+    await queryInterface.dropTable('custom_prices');
   }
 };
