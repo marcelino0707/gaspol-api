@@ -10,7 +10,7 @@ const thisTimeNow = new Date();
 exports.getTransactions = async (req, res) => {
   try {
     const { outlet_id, is_success, tanggal } = req.query;
-    let transactions = {};
+    let transactions = [];
     let reportDate;
     if(tanggal) {
       reportDate = tanggal;
@@ -19,7 +19,7 @@ exports.getTransactions = async (req, res) => {
         year: 'numeric', month: '2-digit', day: '2-digit'
       });
 
-      reportDate = dateNow.split('/').reverse().join();
+      reportDate = dateNow.split('/').reverse().join("-");
     }
 
     if (is_success === "true") {

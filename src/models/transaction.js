@@ -5,8 +5,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(created_at) = ? AND deleted_at IS NULL AND invoice_due_date IS NULL",
-            [outlet_id, date],
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(created_at) = '" + date + "' AND deleted_at IS NULL AND invoice_due_date IS NULL",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
@@ -25,8 +24,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = ? AND DATE(invoice_due_date) = ? AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
-            [outlet_id, date],
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(invoice_due_date) = '" + date + "' AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
