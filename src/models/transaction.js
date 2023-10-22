@@ -24,7 +24,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(invoice_due_date) = '" + date + "' AND deleted_at IS NULL AND invoice_due_date IS NOT NULL",
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(invoice_due_date) = '" + date + "' AND deleted_at IS NULL",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
@@ -159,7 +159,7 @@ const Transaction = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          const query = "SELECT transactions.id AS transaction_id, carts.id AS cart_id, transactions.invoice_number, transactions.payment_type, carts.total, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS refund_id, (SELECT refunds.total_refund FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS total_refund, ( SELECT DATE_FORMAT(refunds.updated_at, '%Y-%m-%d %H:%i') FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_updated_at FROM transactions JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.invoice_number IS NOT NULL AND transactions.outlet_id = ? AND DATE(carts.updated_at) BETWEEN ? AND ?"
+          const query = "SELECT transactions.id AS transaction_id, carts.id AS cart_id, transactions.invoice_number, transactions.payment_type, carts.total, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS refund_id, (SELECT refunds.total_refund FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS total_refund, ( SELECT DATE_FORMAT(refunds.updated_at, '%Y-%m-%d %H:%i') FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_updated_at FROM transactions JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.invoice_number IS NOT NULL AND transactions.outlet_id = ? AND DATE(transactions.invoice_due_date) BETWEEN ? AND ?"
           connection.query(
             query,
             [outlet_id, start_date, end_date], (error, results) => {

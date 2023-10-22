@@ -7,6 +7,13 @@ const RefundDetail = require("../models/refund_detail");
 const { applyDiscountAndUpdateTotal, formatDate } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 
+function formatYearMonthDay(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 exports.getTransactions = async (req, res) => {
   try {
     const { outlet_id, is_success, tanggal } = req.query;
@@ -15,14 +22,12 @@ exports.getTransactions = async (req, res) => {
     if(tanggal) {
       reportDate = tanggal;
     } else {
-      const dateNow = thisTimeNow.toLocaleDateString('id-ID', {
-        year: 'numeric', month: '2-digit', day: '2-digit'
-      });
-
-      reportDate = dateNow.split('/').reverse().join("-");
+      const utcOffset = -420; // Offset UTC+7 (Waktu Indonesia Barat)
+      const indoDateTime = new Date(thisTimeNow.getTime() - utcOffset * 60 * 1000);
+      reportDate = formatYearMonthDay(indoDateTime);
     }
 
-    if (is_success === "true") {
+    if (is_success == "true") {
       transactions = await Transaction.getAllByIsSuccess(outlet_id, reportDate);
     } else {
       transactions = await Transaction.getAllByOutletID(outlet_id, reportDate);
@@ -44,7 +49,6 @@ exports.getTransactions = async (req, res) => {
 
       return filteredTransaction;
     });
-
     return res.status(200).json({
       data: filteredTransactions,
     });
