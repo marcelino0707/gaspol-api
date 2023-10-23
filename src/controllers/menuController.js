@@ -301,26 +301,9 @@ exports.getMenuByIdV2 = async (req, res) => {
       outlet_id: menu.outlet_id,
       is_active: menu.is_active,
       dine_in_price: menu.price,
-      // take_away_price: menu.price + (menu.price * 3) / 100,
-      // delivery_service_price: menu.price + (menu.price * 10) / 100,
-      // gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-      // grabfood_price: menu.price + (menu.price * 30) / 100,
-      // shopeefood_price: menu.price + (menu.price * 20) / 100,
     };
 
-    // if(menuDetails.length > 0) {
-    //   for (const menuDetail of menuDetails) {
-    //     menuDetail.dine_in_price = menuDetail.price;
-    //     menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
-    //     menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-    //     menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
-    //     menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
-    //     menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
-    //   }
-    // }
-    
     result.menu_details = [...menuDetails];
-
 
     return res.status(200).json({
       data: result,
@@ -483,16 +466,19 @@ exports.updateMenuV2 = async (req, res) => {
       }
   
       for (const menuDetail of menuDetails) {
-        const updatedMenuDetail = {
-          varian: menuDetail.varian,
-          price: menuDetail.price,
-        };
-  
-        await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
-  
         if (menuDetail.menu_detail_id == undefined) {
-          updatedMenuDetail.menu_id = menuId;
-          await MenuDetail.create(updatedMenuDetail);
+          await MenuDetail.create({
+            menu_id: menuId,
+            varian: menuDetail.varian,
+            price: menuDetail.price,
+          });
+        } else {
+          const updatedMenuDetail = {
+            varian: menuDetail.varian,
+            updated_at: new Date(),
+          };
+    
+          await MenuDetail.update(menuDetail.menu_detail_id, updatedMenuDetail);
         }
       }   
   

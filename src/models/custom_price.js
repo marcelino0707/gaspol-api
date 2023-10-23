@@ -20,6 +20,42 @@ const CustomPrice = {
         .catch((error) => reject(error));
     });
   },
+  getCustomMenuPricesByMenuId: (menuId) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT cmp.id, cmp.menu_detail_id, cmp.custom_price_id, cmp.price, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL",
+            menuId,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  create: (data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("INSERT INTO custom_menu_prices SET ?", data, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   createMultiple: (data) => {
     return new Promise((resolve, reject) => {
       connectDB()

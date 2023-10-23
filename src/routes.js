@@ -18,7 +18,7 @@ const authentication = require("./controllers/authenticationController");
 const outlet = require("./controllers/outletController");
 const user = require("./controllers/userController");
 const profile = require("./controllers/profileController");
-const customePrice = require("./controllers/customizePriceController");
+const customPrice = require("./controllers/customizePriceController");
 
 // Product
 route.get("/product", product.getProducts);
@@ -106,5 +106,9 @@ route.delete("/discount/:id", discount.delete);
 
 // Profile
 route.patch("/profile/:id", profile.updateProfile);
+
+// Custom Menu Price
+route.get("/custom-menu-price/:id", customPrice.getCustomizePriceByMenuId);
+route.patch("/custom-menu-price/:id", customPrice.updateCustomizePrice);
 
 module.exports = route;
