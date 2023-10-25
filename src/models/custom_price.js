@@ -25,7 +25,7 @@ const CustomPrice = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cmp.id, cmp.menu_detail_id, cmp.custom_price_id, cmp.price, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL",
+            "SELECT cmp.id, cmp.menu_detail_id, cmp.custom_price_id, cmp.price, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL AND md.deleted_at IS NULL",
             menuId,
             (error, results) => {
               disconnectDB(connection);

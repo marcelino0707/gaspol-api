@@ -36,21 +36,8 @@ exports.updateCustomizePrice = async (req, res) => {
         deleted_at: new Date(),
       };
 
-      // const customPrices =  [
-      //   {
-      //     "id" : 19,
-      //     "price" : 12000,
-      //   },
-      //   {
-      //     "menu_id" : 1,
-      //     "menu_detail_id" : 0,
-      //     "custom_price_id" : 1,
-      //     "price" : 13000,
-      //   }
-      // ];
-
       if(custom_prices) {
-        const customPrices = JSON.parse(custom_prices);
+        const customPrices = custom_prices;
         const oldCustomPrices = await CustomPrice.getCustomMenuPricesByMenuId(menuId);
         const oldCustomPriceIds = oldCustomPrices.map((item) => item.id);
         const customPriceIds = customPrices.filter((item) => item.id !== undefined).map((item) => item.id);

@@ -467,11 +467,22 @@ exports.updateMenuV2 = async (req, res) => {
   
       for (const menuDetail of menuDetails) {
         if (menuDetail.menu_detail_id == undefined) {
-          await MenuDetail.create({
+          const createdMenuVariant = await MenuDetail.create({
             menu_id: menuId,
             varian: menuDetail.varian,
             price: menuDetail.price,
           });
+
+          const customPriceIds = await CustomPrice.getAllCustomPrices();
+
+          const customPricesToInsert = customPriceIds.map(item => ({
+            menu_id : menuId,
+            menu_detail_id : createdMenuVariant.insertId,
+            price : menuDetail.price,
+            custom_price_id: item.id,
+          }));
+
+          await CustomPrice.createMultiple(customPricesToInsert);
         } else {
           const updatedMenuDetail = {
             varian: menuDetail.varian,
