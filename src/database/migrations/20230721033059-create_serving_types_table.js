@@ -13,10 +13,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      percent: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT,
+      outlet_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,

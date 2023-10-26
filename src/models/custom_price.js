@@ -1,12 +1,13 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const CustomPrice = {
-  getAllCustomPrices: () => {
+  getAllCustomPrices: (outletId) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, name FROM custom_prices WHERE deleted_at IS NULL",
+            "SELECT id, name FROM custom_prices WHERE outlet_id = ? AND deleted_at IS NULL",
+            outletId,
             (error, results) => {
               disconnectDB(connection);
               if (error) {

@@ -6,39 +6,27 @@ module.exports = {
     [
       {
         name: "Dine In",
-        percent: 0,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
       {
         name: "Take Away",
-        percent: 3,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
       {
         name: "Delivery Service",
-        percent: 10,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
       {
         name: "GoFood",
-        percent: 20,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
       {
         name: "GrabFood",
-        percent: 30,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
       {
         name: "ShopeeFood",
-        percent: 20,
-        created_at: new Date(),
-        updated_at: new Date()
+        outlet_id: 1,
       },
     ],{});
   },

@@ -1,8 +1,9 @@
 const CustomPrice = require("../models/custom_price");
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
+  const outletId = req.query.outlet_id;
   try {
-    const allCustomPrices = await CustomPrice.getAllCustomPrices();
+    const allCustomPrices = await CustomPrice.getAllCustomPrices(outletId);
     const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(menuId);
     const result = {
       custom_prices: allCustomPrices,
