@@ -18,7 +18,7 @@ module.exports = {
         password: "Password123!",
         role: 2,
         outlet_id: 1,
-        menu_access: "2,3",
+        menu_access: "2,3,4",
       },
       {
         name: "Admin Sambal Colek",

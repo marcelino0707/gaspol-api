@@ -2,6 +2,7 @@ const multer = require('multer');
 const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
 const CustomPrice = require("../models/custom_price")
+const ServingType = require("../models/serving_type")
 const fs = require('fs');
 
 exports.getMenus = async (req, res) => {
@@ -22,37 +23,55 @@ exports.getMenus = async (req, res) => {
 exports.getMenuById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { outlet_id } = req.query;
 
     const menu = await Menu.getById(id);
     const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+    const servingTypes = await ServingType.getAll(outlet_id);
+    const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(id);
+    const menuDetailsWithcustomMenuPrices = menuDetails.map((item) => {
+      const customMenuDetailPrices = customMenuPrices.filter(
+        (customPrice) =>  customPrice.menu_detail_id == item.menu_detail_id
+      );
+      delete item.price;
+      const sanitizedCustomMenuDetailPrices = customMenuDetailPrices.map((priceObj) => {
+        const { id, menu_detail_id, varian, ...sanitizedPriceObj } = priceObj;
+        return sanitizedPriceObj;
+      });
+      return {
+        ...item,
+        menu_price: [...sanitizedCustomMenuDetailPrices],
+      }
+    })
 
     const result = {
       id: menu.id,
       name: menu.name,
       menu_type: menu.menu_type,
       image_url: menu.image_url,
-      price: menu.price,
-      dine_in_price: menu.price,
-      take_away_price: menu.price + (menu.price * 3) / 100,
-      delivery_service_price: menu.price + (menu.price * 10) / 100,
-      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-      grabfood_price: menu.price + (menu.price * 30) / 100,
-      shopeefood_price: menu.price + (menu.price * 20) / 100,
+      serving_types: servingTypes,
+      menu_details: menuDetailsWithcustomMenuPrices,
+      // price: menu.price,
+      // dine_in_price: menu.price,
+      // take_away_price: menu.price + (menu.price * 3) / 100,
+      // delivery_service_price: menu.price + (menu.price * 10) / 100,
+      // gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
+      // grabfood_price: menu.price + (menu.price * 30) / 100,
+      // shopeefood_price: menu.price + (menu.price * 20) / 100,
     };
 
-    if(menuDetails.length > 0) {
-      for (const menuDetail of menuDetails) {
-        menuDetail.dine_in_price = menuDetail.price;
-        menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
-        menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-        menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
-        menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
-        menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
-      }
-    }
+    // if(menuDetails.length > 0) {
+    //   for (const menuDetail of menuDetails) {
+    //     menuDetail.dine_in_price = menuDetail.price;
+    //     menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
+    //     menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
+    //     menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
+    //     menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
+    //     menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
+    //   }
+    // }
     
-    result.menu_details = [...menuDetails];
-
+    // result.menu_details = [...menuDetails];
 
     return res.status(200).json({
       data: result,
@@ -129,16 +148,6 @@ exports.getMenuDetailByMenuId = async (req, res) => {
 
 //     const createdMenu = await Menu.createMenu(menu);
 
-//     const customPriceIds = await CustomPrice.getAllCustomPrices();
-//     const customPricesToInsert = customPriceIds.map(item => ({
-//       menu_id : createdMenu.insertId,
-//       menu_detail_id : 0,
-//       price : price,
-//       custom_price_id: item.id,
-//     }));
-
-//     await CustomPrice.createMultiple(customPricesToInsert);
-
 //     if (menu_details) {
 //       const menuId = createdMenu.insertId;
 //       for (const menuDetail of menu_details) {
@@ -158,7 +167,7 @@ exports.getMenuDetailByMenuId = async (req, res) => {
 //           menu_id : menuId,
 //           menu_detail_id : createdMenuVarian.insertId,
 //           price : menuDetail.price,
-//           custom_price_id: item.id,
+//           serving_type_id: item.id,
 //         }));
 
 //         await CustomPrice.createMultiple(customVarianPricesToInsert);
@@ -352,13 +361,13 @@ exports.createMenuV2 = async (req, res) => {
 
     const createdMenu = await Menu.createMenu(menu);
 
-    const customPriceIds = await CustomPrice.getAllCustomPrices(outlet_id);
+    const customPriceIds = await ServingType.getAll(outlet_id);
 
     const customPricesToInsert = customPriceIds.map(item => ({
       menu_id : createdMenu.insertId,
       menu_detail_id : 0,
       price : price,
-      custom_price_id: item.id,
+      serving_type_id: item.id,
     }));
 
     await CustomPrice.createMultiple(customPricesToInsert);
@@ -382,7 +391,7 @@ exports.createMenuV2 = async (req, res) => {
           menu_id : menuId,
           menu_detail_id : createdMenuVarian.insertId,
           price : menuDetail.price,
-          custom_price_id: item.id,
+          serving_type_id: item.id,
         }));
 
         await CustomPrice.createMultiple(customVarianPricesToInsert);
@@ -453,8 +462,8 @@ exports.updateMenuV2 = async (req, res) => {
 
     await Menu.updateMenu(menuId, updatedMenu);
     
-    if (menu_details) {
-      const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
+    const oldMenuDetails = await MenuDetail.getAllByMenuID(menuId);
+    if (menu_details && oldMenuDetails) {
       const oldMenuDetailIds = oldMenuDetails.map((item) => item.menu_detail_id);
       const menuDetailsIds = menuDetails.filter((item) => item.menu_detail_id !== undefined).map((item) => item.menu_detail_id);
       const menuDetailIdsToDelete = oldMenuDetailIds.filter((id) => !menuDetailsIds.includes(id));
@@ -473,13 +482,13 @@ exports.updateMenuV2 = async (req, res) => {
             price: menuDetail.price,
           });
 
-          const customPriceIds = await CustomPrice.getAllCustomPrices(outlet_id);
+          const customPriceIds = await ServingType.getAll(outlet_id);
 
           const customPricesToInsert = customPriceIds.map(item => ({
             menu_id : menuId,
             menu_detail_id : createdMenuVariant.insertId,
             price : menuDetail.price,
-            custom_price_id: item.id,
+            serving_type_id: item.id,
           }));
 
           await CustomPrice.createMultiple(customPricesToInsert);
@@ -497,6 +506,12 @@ exports.updateMenuV2 = async (req, res) => {
         for (const menuDetailIdToDelete of menuDetailIdsToDelete) {
           await MenuDetail.delete(menuDetailIdToDelete, deletedAtNow);
         }
+      }
+    }
+
+    if(menu_details == undefined && oldMenuDetails) {
+      for (const oldMenuDetail of oldMenuDetails) {
+        await MenuDetail.delete(oldMenuDetail.menu_detail_id, deletedAtNow);
       }
     }
 

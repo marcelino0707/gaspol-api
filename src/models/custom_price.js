@@ -1,32 +1,12 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const CustomPrice = {
-  getAllCustomPrices: (outletId) => {
-    return new Promise((resolve, reject) => {
-      connectDB()
-        .then((connection) => {
-          connection.query(
-            "SELECT id, name FROM custom_prices WHERE outlet_id = ? AND deleted_at IS NULL",
-            outletId,
-            (error, results) => {
-              disconnectDB(connection);
-              if (error) {
-                reject(error);
-              } else {
-                resolve(results);
-              }
-            }
-          );
-        })
-        .catch((error) => reject(error));
-    });
-  },
   getCustomMenuPricesByMenuId: (menuId) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cmp.id, cmp.menu_detail_id, cmp.custom_price_id, cmp.price, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL AND md.deleted_at IS NULL",
+            "SELECT cmp.id, cmp.menu_detail_id, cmp.serving_type_id, cmp.price, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL AND md.deleted_at IS NULL",
             menuId,
             (error, results) => {
               disconnectDB(connection);
@@ -62,13 +42,13 @@ const CustomPrice = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "INSERT INTO custom_menu_prices (menu_id, menu_detail_id, price, custom_price_id) VALUES ?",
+            "INSERT INTO custom_menu_prices (menu_id, menu_detail_id, price, serving_type_id) VALUES ?",
             [
               data.map((item) => [
                 item.menu_id,
                 item.menu_detail_id,
                 item.price,
-                item.custom_price_id,
+                item.serving_type_id,
               ]),
             ],
             (error, results) => {

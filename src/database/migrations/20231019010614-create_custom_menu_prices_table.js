@@ -17,7 +17,7 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      custom_price_id: {
+      serving_type_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },

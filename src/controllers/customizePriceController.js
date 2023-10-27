@@ -1,9 +1,10 @@
 const CustomPrice = require("../models/custom_price");
+const ServingType = require("../models/serving_type");
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
   const outletId = req.query.outlet_id;
   try {
-    const allCustomPrices = await CustomPrice.getAllCustomPrices(outletId);
+    const allCustomPrices = await ServingType.getAll(outletId);
     const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(menuId);
     const result = {
       custom_prices: allCustomPrices,
