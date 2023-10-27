@@ -25,11 +25,22 @@ exports.getMenuById = async (req, res) => {
     const { id } = req.params;
     const { outlet_id } = req.query;
 
-    const menu = await Menu.getById(id);
-    const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
     const servingTypes = await ServingType.getAll(outlet_id);
     const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(id);
-    const menuDetailsWithcustomMenuPrices = menuDetails.map((item) => {
+
+    // Main Menu
+    const menu = await Menu.getById(id);
+    const mainMenuPrices = customMenuPrices.filter(
+      (customPrice) => customPrice.menu_detail_id == 0
+    )
+    const sanitizedCustomMainMenuPrices = mainMenuPrices.map((priceObj) => {
+      const { id, menu_detail_id, varian, ...sanitizedPriceObj } = priceObj;
+      return sanitizedPriceObj;
+    })
+
+    // Menu Variant
+    const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+    const menuDetailsWithCustomMenuPrices = menuDetails.map((item) => {
       const customMenuDetailPrices = customMenuPrices.filter(
         (customPrice) =>  customPrice.menu_detail_id == item.menu_detail_id
       );
@@ -40,7 +51,7 @@ exports.getMenuById = async (req, res) => {
       });
       return {
         ...item,
-        menu_price: [...sanitizedCustomMenuDetailPrices],
+        menu_prices: [...sanitizedCustomMenuDetailPrices],
       }
     })
 
@@ -49,29 +60,10 @@ exports.getMenuById = async (req, res) => {
       name: menu.name,
       menu_type: menu.menu_type,
       image_url: menu.image_url,
+      menu_prices: sanitizedCustomMainMenuPrices,
       serving_types: servingTypes,
-      menu_details: menuDetailsWithcustomMenuPrices,
-      // price: menu.price,
-      // dine_in_price: menu.price,
-      // take_away_price: menu.price + (menu.price * 3) / 100,
-      // delivery_service_price: menu.price + (menu.price * 10) / 100,
-      // gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-      // grabfood_price: menu.price + (menu.price * 30) / 100,
-      // shopeefood_price: menu.price + (menu.price * 20) / 100,
+      menu_details: menuDetailsWithCustomMenuPrices,
     };
-
-    // if(menuDetails.length > 0) {
-    //   for (const menuDetail of menuDetails) {
-    //     menuDetail.dine_in_price = menuDetail.price;
-    //     menuDetail.take_away_price = menuDetail.price + (menuDetail.price * 3) / 100;
-    //     menuDetail.delivery_service_price = menuDetail.price + (menuDetail.price * 10) / 100;
-    //     menuDetail.gofood_price = menuDetail.price + (menuDetail.price * 20) / 100 + 1000;
-    //     menuDetail.grabfood_price = menuDetail.price + (menuDetail.price * 30) / 100;
-    //     menuDetail.shopeefood_price = menuDetail.price + (menuDetail.price * 20) / 100;
-    //   }
-    // }
-    
-    // result.menu_details = [...menuDetails];
 
     return res.status(200).json({
       data: result,

@@ -10,7 +10,7 @@ exports.getCustomizePriceByMenuId = async (req, res) => {
       custom_prices: allCustomPrices,
       custom_menu_prices: customMenuPrices.map((item) => {
         const customPrice = allCustomPrices.find(
-          (price) => price.id === item.custom_price_id
+          (price) => price.id === item.serving_type_id
         );
         return {
           ...item,
@@ -50,7 +50,7 @@ exports.updateCustomizePrice = async (req, res) => {
             await CustomPrice.create({
               menu_id: menuId,
               menu_detail_id: customPrice.menu_detail_id,
-              custom_price_id: customPrice.custom_price_id,
+              serving_type_id: customPrice.serving_type_id,
               price: customPrice.price,
             })
           } else {
