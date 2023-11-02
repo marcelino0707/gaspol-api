@@ -7,26 +7,32 @@ module.exports = {
       {
         name: "Dine In",
         outlet_id: 1,
+        is_active: 1,
       },
       {
         name: "Take Away",
         outlet_id: 1,
+        is_active: 1,
       },
       {
         name: "Delivery Service",
         outlet_id: 1,
+        is_active: 1,
       },
       {
         name: "GoFood",
         outlet_id: 1,
+        is_active: 1,
       },
       {
         name: "GrabFood",
         outlet_id: 1,
+        is_active: 1,
       },
       {
         name: "ShopeeFood",
         outlet_id: 1,
+        is_active: 1,
       },
     ],{});
   },

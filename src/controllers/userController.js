@@ -4,12 +4,13 @@ const User = require("../models/user");
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.getUsers();
-
-    // const outlets = await Outlet.getAll();
+    
+    // untuk management user
+    const outlets = await Outlet.getAll();
 
     const result = {
       users,
-      // outlets,
+      outlets,
     };
 
     return res.status(200).json({

@@ -45,6 +45,10 @@ route.get("/menu-detail/:id", menu.getMenuDetailByMenuId);
 
 // Serving Type
 route.get("/serving-type", servingType.getServingType);
+route.post("/serving-type", servingType.createServingType);
+route.get("/serving-type/:id", servingType.getServingTypeById);
+route.patch("/serving-type/:id", servingType.updateServingType);
+route.delete("/serving-type/:id", servingType.delete);
 
 // Discount Kasir
 route.get("/discount", discount.getDiscounts);

@@ -4,7 +4,41 @@ const ServingType = {
   getAll: (outletId) => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        connection.query("SELECT id, name FROM serving_types", outletId, (error, results) => {
+        connection.query("SELECT id, name FROM serving_types WHERE is_active = 1 AND deleted_at IS NULL", outletId, (error, results) => {
+          disconnectDB(connection);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    });
+  },
+  getById: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id, name, is_active FROM serving_types WHERE id = ? AND deleted_at IS NULL",
+            id,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results[0]);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getAllCMS: (outletId) => {
+    return new Promise((resolve, reject) => {
+      connectDB().then((connection) => {
+        connection.query("SELECT id, name, is_active FROM serving_types WHERE deleted_at IS NULL", outletId, (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);
