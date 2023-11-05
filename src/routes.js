@@ -30,7 +30,7 @@ route.delete("/product/:id", product.deleteProduct);
 // Menu
 route.get("/menu", menu.getMenus);
 // route.post("/menu", menu.createMenu);
-route.get("/menu/:id", menu.getMenuById);
+// route.get("/menu/:id", menu.getMenuById);
 // route.patch("/menu/:id", menu.updateMenu);
 route.delete("/menu/:id", menu.deleteMenu);
 

@@ -79,44 +79,70 @@ exports.getMenuById = async (req, res) => {
 exports.getMenuDetailByMenuId = async (req, res) => {
   try {
     const { id } = req.params;
+    const { menu_detail_id } = req.query;
+    let result;
+    if(menu_detail_id) {
+      const mainMenu = await Menu.getById(id);
+      const menuVarian = await MenuDetail.getByID(menu_detail_id);
+      const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(id);
+      result = {
+        id: id,
+        menu_type: mainMenu.menu_type,
+      };
+      let originalVarian;
+      if (menu_detail_id == 0) {
+        originalVarian = {
+          index : 0,
+          menu_detail_id: 0,
+          varian: null,
+          name : mainMenu.name,
+        }
+      } else {
+        originalVarian = {
+          index : 0,
+          menu_detail_id: menuVarian.menu_detail_id,
+          varian: menuVarian.varian,
+          name : mainMenu.name,
+        }
+      }
+      const menuPrices = customMenuPrices.filter(
+        (customPrice) => customPrice.menu_detail_id == menu_detail_id
+      )
 
-    const menu = await Menu.getById(id);
-    const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+      const sanitizedCustomMenuPrices = menuPrices.map((priceObj) => {
+        const { serving_type_id: id, name, price } = priceObj;
+        return { id, name, price };
+      })
 
-    const result = {
-      id: menu.id,
-      menu_type: menu.menu_type,
-    };
+      originalVarian.serving_types = sanitizedCustomMenuPrices
 
-    const originalVarian = {
-      index: 0,
-      menu_detail_id: 0,
-      varian: null,
-      name : menu.name,
-      price: menu.price,
-      dine_in_price: menu.price,
-      take_away_price: menu.price + (menu.price * 3) / 100,
-      delivery_service_price: menu.price + (menu.price * 10) / 100,
-      gofood_price: menu.price + (menu.price * 20) / 100 + 1000,
-      grabfood_price: menu.price + (menu.price * 30) / 100,
-      shopeefood_price: menu.price + (menu.price * 20) / 100,
+      result.menu_details = [originalVarian]
+    } else {
+      const menu = await Menu.getById(id);
+      const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+      result = {
+        id: menu.id,
+        menu_type: menu.menu_type,
+      };
+  
+      const originalVarian = {
+        index: 0,
+        menu_detail_id: 0,
+        varian: null,
+        name : menu.name,
+        serving_types: [],
+      }
+  
+      const menuVariants = menuDetails.map((menuDetail, index) => ({
+        index: index + 1,
+        menu_detail_id: menuDetail.menu_detail_id,
+        varian: menuDetail.varian,
+        name: menu.name,
+        serving_types: [],
+      }));
+  
+      result.menu_details = [originalVarian, ...menuVariants];
     }
-
-    const menuVariants = menuDetails.map((menuDetail, index) => ({
-      index: index + 1,
-      menu_detail_id: menuDetail.menu_detail_id,
-      varian: menuDetail.varian,
-      name: menu.name,
-      price: menuDetail.price,
-      dine_in_price: menuDetail.price,
-      take_away_price: menuDetail.price + (menuDetail.price * 3) / 100,
-      delivery_service_price: menuDetail.price + (menuDetail.price * 10) / 100,
-      gofood_price: menuDetail.price + (menuDetail.price * 20) / 100 + 1000,
-      grabfood_price: menuDetail.price + (menuDetail.price * 30) / 100,
-      shopeefood_price: menuDetail.price + (menuDetail.price * 20) / 100,
-    }));
-
-    result.menu_details = [originalVarian, ...menuVariants];
 
     return res.status(200).json({
       data: result,
