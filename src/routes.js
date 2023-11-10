@@ -4,7 +4,6 @@ const multer = require("multer");
 const upload = multer();
 
 // Path Controllers
-const product = require("./controllers/productController");
 const menu = require("./controllers/menuController");
 const transaction = require("./controllers/transactionController");
 const servingType = require("./controllers/servingTypeController");
@@ -20,46 +19,37 @@ const user = require("./controllers/userController");
 const profile = require("./controllers/profileController");
 const customPrice = require("./controllers/customizePriceController");
 
-// Product
-route.get("/product", product.getProducts);
-route.post("/product", product.createProduct);
-route.get("/product/:id", product.getProductById);
-route.patch("/product/:id", product.updateProduct);
-route.delete("/product/:id", product.deleteProduct);
-
 // Menu
-route.get("/menu", menu.getMenus);
-// route.post("/menu", menu.createMenu);
-// route.get("/menu/:id", menu.getMenuById);
-// route.patch("/menu/:id", menu.updateMenu);
-route.delete("/menu/:id", menu.deleteMenu);
+route.get("/menu", menu.getMenus); // Kasir
+route.get("/menu/:id", menu.getMenuById); // Kasir
+route.delete("/menu/:id", menu.deleteMenu); // Kasir
 
 // Menu v2
-route.get("/v2/menu", menu.getMenusV2);
-route.post("/v2/menu", upload.single('image'), menu.createMenuV2);
-route.get("/v2/menu/:id", menu.getMenuByIdV2);
-route.patch("/v2/menu/:id", upload.single('image'), menu.updateMenuV2);
+route.get("/v2/menu", menu.getMenusV2); // CMS
+route.post("/v2/menu", upload.single('image'), menu.createMenuV2); // CMS
+route.get("/v2/menu/:id", menu.getMenuByIdV2); // CMS
+route.patch("/v2/menu/:id", upload.single('image'), menu.updateMenuV2); // CMS
 
 // Menu Detail For Cart
-route.get("/menu-detail/:id", menu.getMenuDetailByMenuId);
+route.get("/menu-detail/:id", menu.getMenuDetailByMenuId); // Kasir
 
 // Serving Type
-route.get("/serving-type", servingType.getServingType);
-route.post("/serving-type", servingType.createServingType);
-route.get("/serving-type/:id", servingType.getServingTypeById);
-route.patch("/serving-type/:id", servingType.updateServingType);
-route.delete("/serving-type/:id", servingType.delete);
+route.get("/serving-type", servingType.getServingType); // CMS 
+route.post("/serving-type", servingType.createServingType); // CMS
+route.get("/serving-type/:id", servingType.getServingTypeById); // CMS
+route.patch("/serving-type/:id", servingType.updateServingType); // CMS
+route.delete("/serving-type/:id", servingType.delete); // CMS
 
 // Discount Kasir
-route.get("/discount", discount.getDiscounts);
+route.get("/discount", discount.getDiscounts); // Kasir
 
 // Cart
-route.get("/cart", cart.getCart);
-route.post("/cart", cart.createCart);
-route.delete("/cart", cart.deleteCart);
-route.get("/cart/:id", cart.getCartItems);
-route.patch("/cart/:id", cart.updateCart);
-route.delete("/cart/:id", cart.deleteCartItems);
+route.get("/cart", cart.getCart); // Kasir
+route.post("/cart", cart.createCart); // Kasir
+route.delete("/cart", cart.deleteCart); // Kasir
+route.get("/cart/:id", cart.getCartItems); // Kasir by cart_detail_id
+route.patch("/cart/:id", cart.updateCart); // Kasir by cart_detail_id
+route.delete("/cart/:id", cart.deleteCartItems); // Kasir
 
 // Transaction
 route.get("/transaction", transaction.getTransactions);
@@ -95,11 +85,11 @@ route.patch("/user-management/:id", user.update);
 route.delete("/user-management/:id", user.delete);
 
 // Outlet Management
-route.get("/outlet", outlet.getOutlets);
-route.post("/outlet", outlet.create);
-route.get("/outlet/:id", outlet.getOutletById);
-route.patch("/outlet/:id", outlet.update);
-route.delete("/outlet/:id", outlet.delete);
+route.get("/outlet", outlet.getOutlets); // CMS 
+route.post("/outlet", outlet.create); // CMS
+route.get("/outlet/:id", outlet.getOutletById); // CMS
+route.patch("/outlet/:id", outlet.update); // CMS
+route.delete("/outlet/:id", outlet.delete); // CMS
 
 // Discount CMS
 route.get("/v2/discount", discount.getDiscountsV2);

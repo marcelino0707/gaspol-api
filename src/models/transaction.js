@@ -24,7 +24,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(invoice_due_date) = '" + date + "' AND deleted_at IS NULL",
+            "SELECT id, receipt_number, outlet_id, cart_id, customer_name, customer_seat, customer_cash, customer_change, payment_type, delivery_type, delivery_note FROM transactions WHERE outlet_id = " + outlet_id + " AND DATE(updated_at) = '" + date + "' AND invoice_due_date IS NOT NULL AND deleted_at IS NULL",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
