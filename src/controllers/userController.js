@@ -40,7 +40,7 @@ exports.getUserById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { name, username, password, outlet_id, menu_access } = req.body;
+    const { name, username, password, outlet_id, menu_access, role } = req.body;
 
     const user = {
       name: name,
@@ -48,6 +48,7 @@ exports.create = async (req, res) => {
       password: password,
       outlet_id: outlet_id,
       menu_access: menu_access,
+      role: role,
     };
 
     await User.create(user);
