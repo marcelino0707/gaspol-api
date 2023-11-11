@@ -41,6 +41,26 @@ const User = {
         .catch((error) => reject(error));
     });
   },
+  getByUserByOutletId: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.execute(
+            "SELECT id FROM users WHERE outlet_id = ?",
+            [id],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results[0]);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getUsers: () => {
     return new Promise((resolve, reject) => {
       connectDB()

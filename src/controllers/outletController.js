@@ -1,4 +1,5 @@
 const Outlet = require("../models/outlet");
+const User = require("../models/user");
 
 exports.checkPin = async (req, res) => {
   const { outlet_id, pin } = req.body;
@@ -99,15 +100,22 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const outletId = req.params.id;
-    const deletedAtNow = {
-      deleted_at: new Date(),
-    };
-
-    await Outlet.update(outletId, deletedAtNow);
-
-    return res.status(200).json({
-      message: "Berhasil menghapus data outlet",
-    });
+    const existUser = await User.getByUserByOutletId(outletId);
+    if (existUser) {
+      return res.status(401).json({
+        message: "Gagal menghapus data outlet, terdapat user yang menggunakan outlet ini!",
+      });
+    } else {
+      const deletedAtNow = {
+        deleted_at: new Date(),
+      };
+  
+      await Outlet.update(outletId, deletedAtNow);
+  
+      return res.status(200).json({
+        message: "Berhasil menghapus data outlet",
+      });
+    }
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting outlet",
