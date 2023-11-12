@@ -344,13 +344,11 @@ exports.getTransactionById = async (req, res) => {
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
       result.total_refund = refund.total_refund;
-      if(refund.is_refund_all == 0 || refund.is_refund_all == null) {
-        const refundDetailsWithoutId = refundDetails.map((detail) => {
-          const { id, ...detailWithoutId } = detail;
-          return detailWithoutId;
-        });
-        result.refund_details = refundDetailsWithoutId;
-      }
+      const refundDetailsWithoutId = refundDetails.map((detail) => {
+        const { id, ...detailWithoutId } = detail;
+        return detailWithoutId;
+      });
+      result.refund_details = refundDetailsWithoutId;
     }
 
     if (transaction.invoice_number == null) {

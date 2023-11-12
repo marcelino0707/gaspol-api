@@ -35,8 +35,15 @@ exports.createRefund = async (req, res) => {
           total_refund_price: cartDetail.total_price,
           refund_reason_item: refund_reason,
         };
+
+        const refundData = {
+          is_refund_all: 1,
+          refund_reason: refund_reason,
+        }
         
         await RefundDetail.create(refundDetailData);
+
+        await Refund.update(refundId, refundData);
 
         await CartDetail.update(cartDetail.cart_detail_id, {
           qty: 0,
