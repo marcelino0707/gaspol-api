@@ -96,15 +96,18 @@ exports.getPaymentReport = async (req, res) => {
         result.refund = [refunds];
       }
 
-      const totalUangCashSeharusnya = transactions.reduce(
-        (total, transaction) => total + transaction.total,
-        0
-      );
+      const totalUangCashSeharusnya = transactions
+        .filter((transaction) => transaction.payment_type === "Tunai")
+        .reduce((total, transaction) => total + transaction.total, 0);
 
-      const totalUangCashPengeluaran = transactions.reduce(
+      const totalSeluruhPengeluaran = transactions.reduce(
         (total, transaction) => total + transaction.total_refund,
         0
       );
+
+      const totalUangCashPengeluaran = transactions
+        .filter((transaction) => transaction.payment_type === "Tunai")
+        .reduce((total, transaction) => total + transaction.total_refund, 0);
 
       const paymentMethods = {};
       transactions.forEach((transaction) => {
@@ -116,15 +119,19 @@ exports.getPaymentReport = async (req, res) => {
         }
       });
 
-      const totalOmset =
-        totalUangCashSeharusnya +
-        Object.values(paymentMethods).reduce((sum, value) => sum + value, 0);
+      const totalOmset = Object.values(paymentMethods).reduce(
+        (sum, value) => sum + value,
+        0
+      );
 
       result.payment_reports = {
         uang_cash_rill: totalUangCashSeharusnya - totalUangCashPengeluaran,
-        total_uang_cash_seharusnya: totalUangCashSeharusnya,
+        pengeluaran_cash: totalUangCashPengeluaran,
+        total_uang_cash_seharusnya:
+          totalUangCashSeharusnya + totalUangCashPengeluaran,
         ...paymentMethods,
-        total_omset: totalOmset,
+        total_pengeluaran: totalSeluruhPengeluaran,
+        total_omset: totalOmset - (totalSeluruhPengeluaran - totalUangCashPengeluaran),
       };
 
       return res.status(200).json({
