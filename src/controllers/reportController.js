@@ -137,7 +137,6 @@ exports.getPaymentReport = async (req, res) => {
         code: 404,
         message: "Laporan Kosong!",
         data: null,
-        test: transactions,
       });
     }
   } catch (error) {
