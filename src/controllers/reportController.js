@@ -112,10 +112,12 @@ exports.getPaymentReport = async (req, res) => {
       const paymentMethods = {};
       transactions.forEach((transaction) => {
         const { payment_type, total } = transaction;
-        if (!paymentMethods[payment_type]) {
-          paymentMethods[payment_type] = total;
-        } else {
-          paymentMethods[payment_type] += total;
+        if (payment_type !== "Tunai") {
+          if (!paymentMethods[payment_type]) {
+            paymentMethods[payment_type] = total;
+          } else {
+            paymentMethods[payment_type] += total;
+          }
         }
       });
 
@@ -128,10 +130,10 @@ exports.getPaymentReport = async (req, res) => {
         uang_cash_rill: totalUangCashSeharusnya - totalUangCashPengeluaran,
         pengeluaran_cash: totalUangCashPengeluaran,
         total_uang_cash_seharusnya:
-          totalUangCashSeharusnya + totalUangCashPengeluaran,
+          totalUangCashSeharusnya,
         ...paymentMethods,
         total_pengeluaran: totalSeluruhPengeluaran,
-        total_omset: totalOmset - (totalSeluruhPengeluaran - totalUangCashPengeluaran),
+        total_omset: totalOmset + totalUangCashSeharusnya,
       };
 
       return res.status(200).json({

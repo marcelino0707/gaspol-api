@@ -4,7 +4,7 @@ const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
-const { applyDiscountAndUpdateTotal, formatDate } = require("../utils/generalFunctions");
+const { applyDiscountAndUpdateTotal, formatDate, generateFormattedDate } = require("../utils/generalFunctions");
 const thisTimeNow = new Date();
 
 function formatYearMonthDay(date) {
@@ -99,7 +99,7 @@ exports.createTransaction = async (req, res) => {
       transaction.payment_type = payment_type;
       transaction.invoice_number =
         "INV-" + generateTimeNow() + "-" + payment_type;
-      transaction.invoice_due_date = thisTimeNow;
+      transaction.invoice_due_date = generateFormattedDate();
     }
 
     let existingTransaction = await Transaction.getByCartId(cart_id)

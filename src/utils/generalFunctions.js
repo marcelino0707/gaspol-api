@@ -74,8 +74,21 @@ function formatDate(isoDate) {
   return formattedDate;
 }
 
+function generateFormattedDate() {
+  const thisTimeNow = new Date();
+  const year = thisTimeNow.getFullYear();
+  const month = (thisTimeNow.getMonth() + 1).toString().padStart(2, "0");
+  const day = thisTimeNow.getDate().toString().padStart(2, "0");
+  const hours = thisTimeNow.getHours().toString().padStart(2, "0");
+  const minutes = thisTimeNow.getMinutes().toString().padStart(2, "0");
+  const seconds = thisTimeNow.getSeconds().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 module.exports = {
   priceDeterminant,
   applyDiscountAndUpdateTotal,
   formatDate,
+  generateFormattedDate,
 };

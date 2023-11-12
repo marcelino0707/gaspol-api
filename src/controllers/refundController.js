@@ -3,7 +3,7 @@ const RefundDetail = require("../models/refund_detail");
 const CartDetail = require("../models/cart_detail");
 const Transaction = require("../models/transaction");
 const Cart = require("../models/cart");
-const { formatDate } = require("../utils/generalFunctions");
+const { formatDate, generateFormattedDate } = require("../utils/generalFunctions");
 
 exports.createRefund = async (req, res) => {
   try {
@@ -83,6 +83,7 @@ exports.createRefund = async (req, res) => {
 
     await Refund.update(refundId, {
       total_refund: totalRefund,
+      updated_at: generateFormattedDate(),
     });
 
     const transaction = await Transaction.getByCartId(cart_id);

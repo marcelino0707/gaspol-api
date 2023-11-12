@@ -1,6 +1,5 @@
 const InstallmentCart = require("../models/installment_cart");
 const Cart = require("../models/cart");
-const IntallmentCart = require("../models/installment_cart");
 const { formatDate } = require("../utils/generalFunctions");
 
 exports.getInstallmentCart = async (req, res) => {
