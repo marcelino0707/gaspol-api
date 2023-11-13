@@ -298,7 +298,6 @@ exports.createTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
-  const { is_report } = req.query;
   try {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
@@ -332,12 +331,8 @@ exports.getTransactionById = async (req, res) => {
     if(transaction.invoice_number) {
       result.customer_cash = transaction.customer_cash;
       result.customer_change = transaction.customer_change;
-      result.invoice_due_date = formatDate(transaction.invoice_due_date);
-    }
-
-    if (is_report) {
       result.invoice_number = transaction.invoice_number;
-      result.invoice_due_date = transaction.invoice_due_date;
+      result.invoice_due_date = formatDate(transaction.invoice_due_date);
     }
 
     if (refund) {

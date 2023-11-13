@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       customer_name: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       customer_seat: {
