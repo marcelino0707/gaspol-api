@@ -61,11 +61,11 @@ exports.createRefund = async (req, res) => {
         const oldCartDetail = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
         
         let totalRefundPrice = 0
-        // if (oldCartDetail.discount_id === null || oldCartDetail.discount_id === 0) {
+        if (oldCartDetail.discount_id === null || oldCartDetail.discount_id === 0) {
           totalRefundPrice = cartDetail.qty_refund * oldCartDetail.price;
-        // } else {
-        //   totalRefundPrice = cartDetail.qty_refund * oldCartDetail.discounted_price;
-        // }
+        } else {
+          totalRefundPrice = cartDetail.qty_refund * oldCartDetail.discounted_price;
+        }
         
         const qtyUpdate = oldCartDetail.qty - cartDetail.qty_refund;
         const totalPriceUpdate = qtyUpdate * oldCartDetail.price;
@@ -96,6 +96,20 @@ exports.createRefund = async (req, res) => {
     const cartDetails = await CartDetail.getByCartId(cart_id);
     const refundResult = await Refund.getByTransactionId(transaction_id);
     const refundDetailsResult = await RefundDetail.getByRefundId(refundId);
+
+    if(is_refund_all === true) {
+      await Transaction.update(transaction_id, {
+        is_refunded : 1,
+        updated_at: indoDateTime,
+      })
+    } else {
+      if(transaction.total == refundResult.total_refund) {
+        await Transaction.update(transaction_id, {
+          is_refunded : 1,
+          updated_at: indoDateTime,
+        })
+      }
+    }
     
     const result = {
       transaction_id: transaction.id,

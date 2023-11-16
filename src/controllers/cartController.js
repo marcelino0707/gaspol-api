@@ -46,6 +46,20 @@ exports.getCart = async (req, res) => {
   }
 };
 
+exports.getCartItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cartDetail = await CartDetail.getByCartDetailId(id);
+    return res.status(200).json({
+      data: cartDetail,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to fetch carts",
+    });
+  }
+};
+
 exports.createCart = async (req, res) => {
   const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
   try {
@@ -54,8 +68,8 @@ exports.createCart = async (req, res) => {
     
     let cartId, subTotalPrice = 0;
     
+    const discount = await Discount.getById(discount_id);
     if(discount_id != 0) {
-      const discount = await Discount.getById(discount_id);
       discountedPrice = await applyDiscountAndUpdateTotal(price, qty, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, null);
       cartDetailTotalPrice = discountedPrice;
     }
@@ -81,7 +95,14 @@ exports.createCart = async (req, res) => {
 
     if (discount_id != 0) {
       newCartDetail.discount_id = discount_id;
-      newCartDetail.discounted_price = discountedPrice / qty;
+
+      if(discount.is_percent == true || discount.is_percent == 1)
+      {
+        const discountedPricePercent = discountedPrice / qty;
+        newCartDetail.discounted_price = Math.max(100, Math.ceil(discountedPricePercent / 100) * 100);
+      } else {
+        newCartDetail.discounted_price = discountedPrice / qty;
+      }
     }
 
     if (menu_detail_id) {
@@ -112,20 +133,6 @@ exports.createCart = async (req, res) => {
 
     return res.status(statusCode).json({
       message: errorMessage,
-    });
-  }
-};
-
-exports.getCartItems = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const cartDetail = await CartDetail.getByCartDetailId(id);
-    return res.status(200).json({
-      data: cartDetail,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Failed to fetch carts",
     });
   }
 };
@@ -178,6 +185,8 @@ exports.updateCart = async (req, res) => {
     const updateSubtotal = {
       subtotal: subTotalPrice,
       total: subTotalPrice,
+      discount_id: null,
+      updated_at: indoDateTime,
     };
     await Cart.update(cart.id, updateSubtotal);
 
@@ -194,30 +203,6 @@ exports.updateCart = async (req, res) => {
   }
 };
 
-exports.deleteCart = async (req, res) => {
-  try {
-    const { outlet_id } = req.query;
-    const cart = await Cart.getByOutletId(outlet_id);
-    await CartDetail.deleteAllByCartId(cart.id, deletedAtNow);
-
-    const deleteCost = {
-      subtotal: 0,
-      total: 0,
-      updated_at: indoDateTime,
-    };
-
-    await Cart.update(cart.id, deleteCost);
-
-    return res.status(200).json({
-      message: "Berhasil menghapus data keranjang",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Error while deleting cart",
-    });
-  }
-};
-
 exports.deleteCartItems = async (req, res) => {
   try {
     const cart_detail_id = req.params.id;
@@ -229,6 +214,7 @@ exports.deleteCartItems = async (req, res) => {
     const updateCost = {
       subtotal: totalCart,
       total: totalCart,
+      discount_id: null,
       updated_at: indoDateTime,
     };
 
@@ -241,6 +227,31 @@ exports.deleteCartItems = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting item cart",
+    });
+  }
+};
+
+exports.deleteCart = async (req, res) => {
+  try {
+    const { outlet_id } = req.query;
+    const cart = await Cart.getByOutletId(outlet_id);
+    await CartDetail.deleteAllByCartId(cart.id, deletedAtNow);
+
+    const deleteCost = {
+      subtotal: 0,
+      total: 0,
+      discount_id: null,
+      updated_at: indoDateTime,
+    };
+
+    await Cart.update(cart.id, deleteCost);
+
+    return res.status(200).json({
+      message: "Berhasil menghapus data keranjang",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting cart",
     });
   }
 };
