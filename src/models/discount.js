@@ -1,7 +1,7 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 const getCurrentDateTime = () => {
   const now = indoDateTime;

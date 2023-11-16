@@ -3,7 +3,7 @@ const RefundDetail = require("../models/refund_detail");
 const CartDetail = require("../models/cart_detail");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getReport = async (req, res) => {
   const { outlet_id, start_date, end_date, is_success, is_pending } = req.query;
@@ -16,7 +16,7 @@ exports.getReport = async (req, res) => {
       startDate = start_date;
       endDate = end_date;
     } else {
-      const dateNow = indoDateTime.format("YYYY-MM-DD");
+      const dateNow = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
       startDate = dateNow;
       endDate = dateNow;
     }
@@ -53,7 +53,7 @@ exports.getPaymentReport = async (req, res) => {
       startDate = start_date;
       endDate = end_date;
     } else {
-      const dateNow = indoDateTime.format("YYYY-MM-DD");
+      const dateNow = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
       startDate = dateNow;
       endDate = dateNow;
     }

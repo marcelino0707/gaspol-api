@@ -5,7 +5,7 @@ const Transaction = require("../models/transaction");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
 const deletedAtNow = {
   deleted_at: indoDateTime,
 };

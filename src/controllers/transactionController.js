@@ -6,19 +6,11 @@ const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
 const {
   applyDiscountAndUpdateTotal,
-  formatDate,
-  generateFormattedDate,
+  formatDate
 } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
-
-function formatYearMonthDay(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getTransactions = async (req, res) => {
   try {
@@ -28,7 +20,7 @@ exports.getTransactions = async (req, res) => {
     if (tanggal) {
       reportDate = tanggal;
     } else {
-      reportDate = indoDateTime.format("YYYY-MM-DD");
+      reportDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
     }
 
     if (is_success == "true") {
@@ -102,14 +94,14 @@ exports.createTransaction = async (req, res) => {
       transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type = payment_type;
       transaction.invoice_number =
-        "INV-" + generateTimeNow() + "-" + payment_type;
-      transaction.invoice_due_date = generateFormattedDate();
+        "INV-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss") + "-" + payment_type;
+      transaction.invoice_due_date = indoDateTime;
     }
 
     let existingTransaction = await Transaction.getByCartId(cart_id);
     if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
-        "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
+        "AT-" + customer_name + "-" + customer_seat + "-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss");
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
       const createdTransaction = await Transaction.create(transaction);
@@ -262,36 +254,6 @@ exports.getTransactionById = async (req, res) => {
     });
   }
 };
-
-// exports.deleteTransaction = async (req, res) => {
-//   try {
-//     const transactionId = req.params.id;
-
-//     await Transaction.delete(transactionId, deletedAtNow);
-
-//     return res.status(200).json({
-//       message: "Berhasil menghapus data transaksi",
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: error.message || "Error while deleting menu",
-//     });
-//   }
-// };
-
-function generateTimeNow() {
-  const now = indoDateTime;
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, "0");
-  const day = now.getDate().toString().padStart(2, "0");
-  const hours = now.getHours().toString().padStart(2, "0");
-  const minutes = now.getMinutes().toString().padStart(2, "0");
-  const seconds = now.getSeconds().toString().padStart(2, "0");
-
-  const thisTime = `${year}${month}${day}-${hours}${minutes}${seconds}`;
-
-  return thisTime;
-}
 
 exports.createDiscountTransaction = async (req, res) => {
   const { cart_id, discount_id } = req.body;
