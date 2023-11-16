@@ -7,7 +7,7 @@ const { formatDate, generateFormattedDate } = require("../utils/generalFunctions
 
 exports.createRefund = async (req, res) => {
   try {
-    const { transaction_id, is_refund_all, cart_id, refund_reason, cart_details } = req.body;
+    const { transaction_id, is_refund_all, cart_id, refund_reason, cart_details, payment_type } = req.body;
     const refund = await Refund.getByTransactionId(transaction_id);
 
     let refundId,
@@ -34,6 +34,7 @@ exports.createRefund = async (req, res) => {
           qty_refund_item: cartDetail.qty,
           total_refund_price: cartDetail.total_price,
           refund_reason_item: refund_reason,
+          payment_type: payment_type,
         };
 
         const refundData = {
@@ -76,6 +77,7 @@ exports.createRefund = async (req, res) => {
           qty_refund_item: cartDetail.qty_refund,
           total_refund_price: cartDetail.qty_refund * oldCartDetail.price,
           refund_reason_item: cartDetail.refund_reason_item,
+          payment_type: payment_type,
         });
         totalRefund = totalRefund + totalRefundPrice;
       }

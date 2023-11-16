@@ -4,8 +4,8 @@ exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
   const outletId = req.query.outlet_id;
   try {
-    const allCustomPrices = await ServingType.getAll(outletId);
-    const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuId(menuId);
+    const allCustomPrices = await ServingType.getAllCMS(outletId);
+    const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(menuId);
     const result = {
       custom_prices: allCustomPrices,
       custom_menu_prices: customMenuPrices.map((item) => {
@@ -40,7 +40,7 @@ exports.updateCustomizePrice = async (req, res) => {
 
       if(custom_prices) {
         const customPrices = custom_prices;
-        const oldCustomPrices = await CustomPrice.getCustomMenuPricesByMenuId(menuId);
+        const oldCustomPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(menuId);
         const oldCustomPriceIds = oldCustomPrices.map((item) => item.id);
         const customPriceIds = customPrices.filter((item) => item.id !== undefined).map((item) => item.id);
         const customPriceIdsToDelete = oldCustomPriceIds.filter((id) => !customPriceIds.includes(id));

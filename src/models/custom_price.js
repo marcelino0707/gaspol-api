@@ -6,7 +6,27 @@ const CustomPrice = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cmp.menu_detail_id, cmp.serving_type_id, cmp.price, st.name FROM custom_menu_prices cmp LEFT JOIN serving_types st ON cmp.serving_type_id = st.id WHERE cmp.menu_id = ? AND cmp.deleted_at IS NULL AND st.is_active = 1 AND st.deleted_at IS NULL",
+            "SELECT cmp.id, cmp.menu_detail_id, cmp.serving_type_id, cmp.price, st.name, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id LEFT JOIN serving_types st ON cmp.serving_type_id = st.id WHERE md.deleted_at IS NULL AND cmp.menu_id = ? AND cmp.deleted_at IS NULL AND st.deleted_at IS NULL AND st.is_active = 1",
+            menuId,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getCustomMenuPricesByMenuIdCMS: (menuId) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT cmp.id, cmp.menu_detail_id, cmp.serving_type_id, cmp.price, st.name, md.varian FROM custom_menu_prices cmp LEFT JOIN menu_details md ON cmp.menu_detail_id = md.id LEFT JOIN serving_types st ON cmp.serving_type_id = st.id WHERE md.deleted_at IS NULL AND cmp.menu_id = ? AND cmp.deleted_at IS NULL AND st.deleted_at IS NULL",
             menuId,
             (error, results) => {
               disconnectDB(connection);
