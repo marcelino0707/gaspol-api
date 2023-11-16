@@ -4,13 +4,19 @@ const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
-const { applyDiscountAndUpdateTotal, formatDate, generateFormattedDate } = require("../utils/generalFunctions");
-const thisTimeNow = new Date();
+const {
+  applyDiscountAndUpdateTotal,
+  formatDate,
+  generateFormattedDate,
+} = require("../utils/generalFunctions");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 
 function formatYearMonthDay(date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -19,12 +25,10 @@ exports.getTransactions = async (req, res) => {
     const { outlet_id, is_success, tanggal } = req.query;
     let transactions = [];
     let reportDate;
-    if(tanggal) {
+    if (tanggal) {
       reportDate = tanggal;
     } else {
-      const utcOffset = -420; // Offset UTC+7 (Waktu Indonesia Barat)
-      const indoDateTime = new Date(thisTimeNow.getTime() - utcOffset * 60 * 1000);
-      reportDate = formatYearMonthDay(indoDateTime);
+      reportDate = indoDateTime.format("YYYY-MM-DD");
     }
 
     if (is_success == "true") {
@@ -102,14 +106,16 @@ exports.createTransaction = async (req, res) => {
       transaction.invoice_due_date = generateFormattedDate();
     }
 
-    let existingTransaction = await Transaction.getByCartId(cart_id)
+    let existingTransaction = await Transaction.getByCartId(cart_id);
     if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
         "AT-" + customer_name + "-" + customer_seat + "-" + generateTimeNow();
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
       const createdTransaction = await Transaction.create(transaction);
-      existingTransaction = await Transaction.getById(createdTransaction.insertId)
+      existingTransaction = await Transaction.getById(
+        createdTransaction.insertId
+      );
     } else if (transaction_id) {
       await Transaction.update(transaction_id, transaction);
     } else if (existingTransaction) {
@@ -120,9 +126,11 @@ exports.createTransaction = async (req, res) => {
       is_active: false,
     });
 
-    const cartDetails = await CartDetail.getByCartId(existingTransaction.cart_id);
+    const cartDetails = await CartDetail.getByCartId(
+      existingTransaction.cart_id
+    );
 
-     const result = {
+    const result = {
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
       customer_name: existingTransaction.customer_name,
@@ -139,21 +147,26 @@ exports.createTransaction = async (req, res) => {
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
     };
-    
-    if(transaction.delivery_type || existingTransaction.delivery_type) {
-      result.delivery_type = transaction.delivery_type || existingTransaction.delivery_type;
-      result.delivery_note = transaction.delivery_note || existingTransaction.delivery_note;
+
+    if (transaction.delivery_type || existingTransaction.delivery_type) {
+      result.delivery_type =
+        transaction.delivery_type || existingTransaction.delivery_type;
+      result.delivery_note =
+        transaction.delivery_note || existingTransaction.delivery_note;
     }
 
     if (transaction.invoice_number || existingTransaction.invoice_due_date) {
-      result.customer_cash = transaction.customer_cash || existingTransaction.customer_cash;
-      result.customer_change = transaction.customer_change || existingTransaction.customer_change;
-      const tanggalWaktu = transaction.invoice_due_date || existingTransaction.invoice_due_date;
+      result.customer_cash =
+        transaction.customer_cash || existingTransaction.customer_cash;
+      result.customer_change =
+        transaction.customer_change || existingTransaction.customer_change;
+      const tanggalWaktu =
+        transaction.invoice_due_date || existingTransaction.invoice_due_date;
       result.invoice_due_date = formatDate(tanggalWaktu);
     }
 
     const refund = await Refund.getByTransactionId(existingTransaction.id);
-    if(refund) {
+    if (refund) {
       const refundDetails = await RefundDetail.getByRefundId(refund.id);
       result.is_refund_all = refund.is_refund_all;
       result.refund_reason = refund.refund_reason;
@@ -164,7 +177,6 @@ exports.createTransaction = async (req, res) => {
       });
       result.refund_details = refundDetailsWithoutId;
     }
-
 
     return res.status(201).json({
       code: 201,
@@ -209,12 +221,12 @@ exports.getTransactionById = async (req, res) => {
       cart_details: cartDetails,
     };
 
-    if(transaction.delivery_type) {
+    if (transaction.delivery_type) {
       result.delivery_type = transaction.delivery_type;
       result.delivery_note = transaction.delivery_note;
     }
 
-    if(transaction.invoice_number) {
+    if (transaction.invoice_number) {
       result.customer_cash = transaction.customer_cash;
       result.customer_change = transaction.customer_change;
       result.invoice_number = transaction.invoice_number;
@@ -268,7 +280,7 @@ exports.getTransactionById = async (req, res) => {
 // };
 
 function generateTimeNow() {
-  const now = new Date();
+  const now = indoDateTime;
   const year = now.getFullYear();
   const month = (now.getMonth() + 1).toString().padStart(2, "0");
   const day = now.getDate().toString().padStart(2, "0");
@@ -305,7 +317,7 @@ exports.createDiscountTransaction = async (req, res) => {
     await Cart.update(cart_id, {
       discount_id: discount_id,
       total: totalCartPrice,
-      updated_at: thisTimeNow,
+      updated_at: indoDateTime,
     });
     return res.status(201).json({
       message: "Diskon berhasil ditambahkan!",

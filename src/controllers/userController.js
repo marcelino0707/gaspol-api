@@ -1,5 +1,8 @@
 const Outlet = require("../models/outlet");
 const User = require("../models/user");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 
 exports.getUsers = async (req, res) => {
   try {
@@ -91,7 +94,7 @@ exports.delete = async (req, res) => {
   try {
     const userId = req.params.id;
     const deletedAtNow = {
-      deleted_at: new Date(),
+      deleted_at: indoDateTime,
     };
 
     await User.update(userId, deletedAtNow);

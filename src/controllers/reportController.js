@@ -1,7 +1,9 @@
 const Transaction = require("../models/transaction");
 const RefundDetail = require("../models/refund_detail");
 const CartDetail = require("../models/cart_detail");
-const thisTimeNow = new Date();
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 
 exports.getReport = async (req, res) => {
   const { outlet_id, start_date, end_date, is_success, is_pending } = req.query;
@@ -14,14 +16,7 @@ exports.getReport = async (req, res) => {
       startDate = start_date;
       endDate = end_date;
     } else {
-      let dateNow = thisTimeNow.toLocaleDateString("id-ID", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-
-      dateNow = dateNow.split("/").reverse().join("-");
-
+      const dateNow = indoDateTime.format("YYYY-MM-DD");
       startDate = dateNow;
       endDate = dateNow;
     }
@@ -58,14 +53,7 @@ exports.getPaymentReport = async (req, res) => {
       startDate = start_date;
       endDate = end_date;
     } else {
-      let dateNow = thisTimeNow.toLocaleDateString("id-ID", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-
-      dateNow = dateNow.split("/").reverse().join("-");
-
+      const dateNow = indoDateTime.format("YYYY-MM-DD");
       startDate = dateNow;
       endDate = dateNow;
     }

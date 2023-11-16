@@ -1,7 +1,10 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 
 const getCurrentDateTime = () => {
-  const now = new Date();
+  const now = indoDateTime;
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');

@@ -3,9 +3,11 @@ const CartDetail = require("../models/cart_detail");
 const Discount = require("../models/discount")
 const Transaction = require("../models/transaction");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
-const thisTimeNow = new Date();
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 const deletedAtNow = {
-  deleted_at: thisTimeNow,
+  deleted_at: indoDateTime,
 };
 
 exports.getCart = async (req, res) => {
@@ -97,7 +99,8 @@ exports.createCart = async (req, res) => {
     await Cart.update(cartId, {
       subtotal: subTotalPrice,
       total: subTotalPrice,
-      updated_at: thisTimeNow,
+      discount_id: null,
+      updated_at: indoDateTime,
     });
 
     return res.status(201).json({
@@ -137,7 +140,7 @@ exports.updateCart = async (req, res) => {
     price,
     qty,
     note_item,
-    updated_at: thisTimeNow,
+    updated_at: indoDateTime,
   };
 
   if (menu_detail_id) {
@@ -153,7 +156,7 @@ exports.updateCart = async (req, res) => {
     let cartDetailTotalPrice = price * qty;
 
     if (qty == 0) {
-      updatedCartItems.deleted_at = thisTimeNow;
+      updatedCartItems.deleted_at = indoDateTime;
     }
 
     if(cartDetail.discount_id != 0) {
@@ -200,7 +203,7 @@ exports.deleteCart = async (req, res) => {
     const deleteCost = {
       subtotal: 0,
       total: 0,
-      updated_at: thisTimeNow,
+      updated_at: indoDateTime,
     };
 
     await Cart.update(cart.id, deleteCost);
@@ -226,7 +229,7 @@ exports.deleteCartItems = async (req, res) => {
     const updateCost = {
       subtotal: totalCart,
       total: totalCart,
-      updated_at: thisTimeNow,
+      updated_at: indoDateTime,
     };
 
     await Cart.update(cart.id, updateCost);

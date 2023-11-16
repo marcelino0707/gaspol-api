@@ -1,4 +1,7 @@
 const ServingType = require("../models/serving_type");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 
 exports.getServingType = async (req, res) => {
   try {
@@ -60,7 +63,7 @@ exports.updateServingType = async (req, res) => {
     const servingType = {
       name: name,
       is_active: is_active,
-      updated_at: new Date(),
+      updated_at: indoDateTime,
     }
 
     await ServingType.update(servingTypeId, servingType);
@@ -79,7 +82,7 @@ exports.delete = async (req, res) => {
   try {
     const servingTypeId = req.params.id;
     const deletedAtNow = {
-      deleted_at: new Date(),
+      deleted_at: indoDateTime,
     };
 
     await ServingType.update(servingTypeId, deletedAtNow);

@@ -1,5 +1,8 @@
 const Outlet = require("../models/outlet");
 const User = require("../models/user");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta");
 
 exports.updateProfile = async (req, res) => {
     try {
@@ -10,7 +13,7 @@ exports.updateProfile = async (req, res) => {
         name: name,
         username: username,
         password: password,
-        updated_at: new Date(),
+        updated_at: indoDateTime,
       };
 
       await User.update(userId, updatedUser);
@@ -18,7 +21,7 @@ exports.updateProfile = async (req, res) => {
       if(pin && pin != "") {
         const updatedOutlet = {
           pin : pin,
-          updated_at: new Date(),
+          updated_at: indoDateTime,
         }
 
         await Outlet.update(outlet_id, updatedOutlet);

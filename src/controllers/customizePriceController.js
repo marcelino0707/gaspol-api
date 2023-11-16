@@ -1,5 +1,8 @@
 const CustomPrice = require("../models/custom_price");
 const ServingType = require("../models/serving_type");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
   const outletId = req.query.outlet_id;
@@ -35,7 +38,7 @@ exports.updateCustomizePrice = async (req, res) => {
       const menuId = req.params.id;
       const { custom_prices } = req.body;
       const deletedAtNow = {
-        deleted_at: new Date(),
+        deleted_at: indoDateTime,
       };
 
       if(custom_prices) {
@@ -56,7 +59,7 @@ exports.updateCustomizePrice = async (req, res) => {
           } else {
             const updatedCustomPrice = {
               price: customPrice.price,
-              updated_at: new Date(),
+              updated_at: indoDateTime,
             }
 
             await CustomPrice.update(customPrice.id, updatedCustomPrice);

@@ -1,5 +1,7 @@
 const Discount = require("../models/discount");
-
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
 exports.getDiscounts = async (req, res) => {
   const { is_discount_cart } = req.query;
   try {
@@ -86,7 +88,7 @@ exports.update = async (req, res) => {
       min_purchase: min_purchase,
       max_discount: max_discount,
       outlet_id: outlet_id,
-      updated_at: new Date(),
+      updated_at: indoDateTime,
     };
 
     await Discount.update(discountId, updatedDiscount);
@@ -105,7 +107,7 @@ exports.delete = async (req, res) => {
   try {
     const discountId = req.params.id;
     const deletedAtNow = {
-      deleted_at: new Date(),
+      deleted_at: indoDateTime,
     };
 
     await Discount.update(discountId, deletedAtNow);

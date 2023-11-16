@@ -1,5 +1,8 @@
 const Outlet = require("../models/outlet");
 const User = require("../models/user");
+const moment = require("moment-timezone");
+const thisTimeNow = moment();
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta");
 
 exports.checkPin = async (req, res) => {
   const { outlet_id, pin } = req.body;
@@ -107,7 +110,7 @@ exports.delete = async (req, res) => {
       });
     } else {
       const deletedAtNow = {
-        deleted_at: new Date(),
+        deleted_at: indoDateTime,
       };
   
       await Outlet.update(outletId, deletedAtNow);
