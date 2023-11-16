@@ -2,7 +2,7 @@ const CustomPrice = require("../models/custom_price");
 const ServingType = require("../models/serving_type");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
   const outletId = req.query.outlet_id;

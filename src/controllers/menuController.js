@@ -6,7 +6,7 @@ const ServingType = require("../models/serving_type")
 const fs = require('fs');
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta");
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
 
 exports.getMenus = async (req, res) => {
   try {

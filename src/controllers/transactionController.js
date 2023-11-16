@@ -11,7 +11,7 @@ const {
 } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
 
 function formatYearMonthDay(date) {
   const year = date.getFullYear();

@@ -1,7 +1,7 @@
 const Discount = require("../models/discount");
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
 exports.getDiscounts = async (req, res) => {
   const { is_discount_cart } = req.query;
   try {

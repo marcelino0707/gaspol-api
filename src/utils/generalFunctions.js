@@ -1,6 +1,6 @@
 const moment = require("moment-timezone");
 const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta"); 
+const indoDateTime = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"); 
 function priceDeterminant(price, servingTypeName, servingTypePercent) {
   let result = price + (price * servingTypePercent) / 100;
   if (servingTypeName == "GoFood") {
