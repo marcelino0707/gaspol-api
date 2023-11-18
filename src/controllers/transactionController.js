@@ -14,14 +14,9 @@ const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getTransactions = async (req, res) => {
   try {
-    const { outlet_id, is_success, tanggal } = req.query;
+    const { outlet_id, is_success } = req.query;
     let transactions = [];
-    let reportDate;
-    if (tanggal) {
-      reportDate = tanggal;
-    } else {
-      reportDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
-    }
+    const reportDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
 
     if (is_success == "true") {
       transactions = await Transaction.getAllByIsSuccess(outlet_id, reportDate);
@@ -49,6 +44,7 @@ exports.getTransactions = async (req, res) => {
       data: filteredTransactions,
       dateTimeNow: new Date(),
       thisTimeNowMomento: indoDateTime,
+      reportDate: reportDate,
     });
   } catch (error) {
     return res.status(500).json({
