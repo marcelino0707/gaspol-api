@@ -22,6 +22,8 @@ app.use("/public", express.static("public"));
 // Routes
 app.use(require("./routes"));
 
+console.log("Current Date in Node.js:", new Date());
+
 // Start server
 const port = process.env.PORT;
 app.listen(port, () => {
