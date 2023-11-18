@@ -47,6 +47,8 @@ exports.getTransactions = async (req, res) => {
     });
     return res.status(200).json({
       data: filteredTransactions,
+      dateTimeNow: new Date(),
+      thisTimeNowMomento: indoDateTime,
     });
   } catch (error) {
     return res.status(500).json({
