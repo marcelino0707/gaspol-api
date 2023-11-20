@@ -1,8 +1,28 @@
 const Outlet = require("../models/outlet");
 const User = require("../models/user");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+
+exports.checkPin = async (req, res) => {
+  const { outlet_id, pin } = req.body;
+  try {
+    const outlet = await Outlet.getByOutletId(outlet_id);
+    if (outlet.pin != pin) {
+      return res.status(401).json({
+        code: 401,
+        message: "Pin Salah!",
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        message: "Pin Benar!",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to check pin!",
+    });
+  }
+};
 
 exports.checkPin = async (req, res) => {
   const { outlet_id, pin } = req.body;
@@ -101,6 +121,8 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const outletId = req.params.id;
     const existUser = await User.getByUserByOutletId(outletId);

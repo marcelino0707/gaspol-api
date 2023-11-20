@@ -5,12 +5,12 @@ const Transaction = require("../models/transaction");
 const Cart = require("../models/cart");
 const { formatDate } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.createRefund = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
-    const { transaction_id, is_refund_all, cart_id, refund_reason, cart_details, payment_type } = req.body;
+    const { transaction_id, is_refund_all, cart_id, refund_reason, cart_details, payment_type_id } = req.body;
     const refund = await Refund.getByTransactionId(transaction_id);
 
     let refundId,
@@ -37,7 +37,7 @@ exports.createRefund = async (req, res) => {
           qty_refund_item: cartDetail.qty,
           total_refund_price: cartDetail.total_price,
           refund_reason_item: refund_reason,
-          payment_type: payment_type,
+          payment_type_id: payment_type_id,
         };
 
         const refundData = {
@@ -80,7 +80,7 @@ exports.createRefund = async (req, res) => {
           qty_refund_item: cartDetail.qty_refund,
           total_refund_price: cartDetail.qty_refund * oldCartDetail.price,
           refund_reason_item: cartDetail.refund_reason_item,
-          payment_type: payment_type,
+          payment_type_id: payment_type_id,
         });
         totalRefund = totalRefund + totalRefundPrice;
       }
@@ -117,6 +117,7 @@ exports.createRefund = async (req, res) => {
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
       payment_type: transaction.payment_type,
+      payment_category: transaction.payment_category,
       delivery_type: transaction.delivery_type,
       delivery_note: transaction.delivery_note,
       cart_id: transaction.cart_id,

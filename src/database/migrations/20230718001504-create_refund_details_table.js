@@ -21,9 +21,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      payment_type: {
-        allowNull: false,
-        type: Sequelize.STRING,
+      payment_type_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
       },
       qty_refund_item: {
         type: Sequelize.INTEGER,

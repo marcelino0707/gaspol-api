@@ -40,10 +40,9 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.FLOAT, 
       },
-      payment_type: {
+      payment_type_id: {
         allowNull: true,
-        type: Sequelize.STRING,
-        defaultValue: null, 
+        type: Sequelize.INTEGER,
       },
       delivery_type: {
         allowNull: true,

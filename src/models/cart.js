@@ -37,7 +37,7 @@ const Cart = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT total FROM carts WHERE id = ? AND is_paided = 0 AND deleted_at IS NULL", id, (error, results) => {
+          connection.query("SELECT total FROM carts WHERE id = ? AND deleted_at IS NULL", id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);

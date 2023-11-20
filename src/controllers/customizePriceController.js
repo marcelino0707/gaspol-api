@@ -1,14 +1,15 @@
 const CustomPrice = require("../models/custom_price");
 const ServingType = require("../models/serving_type");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
   const outletId = req.query.outlet_id;
   try {
     const allCustomPrices = await ServingType.getAllCMS(outletId);
-    const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(menuId);
+    const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(
+      menuId
+    );
     const result = {
       custom_prices: allCustomPrices,
       custom_menu_prices: customMenuPrices.map((item) => {
@@ -24,8 +25,8 @@ exports.getCustomizePriceByMenuId = async (req, res) => {
     return res.status(200).json({
       code: 200,
       message: "Custom harga menu berhasil ditampilkan!",
-      data : result,
-  });
+      data: result,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Get Customize Price Failed!",
@@ -34,52 +35,60 @@ exports.getCustomizePriceByMenuId = async (req, res) => {
 };
 
 exports.updateCustomizePrice = async (req, res) => {
-    try {
-      const menuId = req.params.id;
-      const { custom_prices } = req.body;
-      const deletedAtNow = {
-        deleted_at: indoDateTime,
-      };
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+  try {
+    const menuId = req.params.id;
+    const { custom_prices } = req.body;
+    const deletedAtNow = {
+      deleted_at: indoDateTime,
+    };
 
-      if(custom_prices) {
-        const customPrices = custom_prices;
-        const oldCustomPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(menuId);
-        const oldCustomPriceIds = oldCustomPrices.map((item) => item.id);
-        const customPriceIds = customPrices.filter((item) => item.id !== undefined).map((item) => item.id);
-        const customPriceIdsToDelete = oldCustomPriceIds.filter((id) => !customPriceIds.includes(id));
+    if (custom_prices) {
+      const customPrices = custom_prices;
+      const oldCustomPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(
+        menuId
+      );
+      const oldCustomPriceIds = oldCustomPrices.map((item) => item.id);
+      const customPriceIds = customPrices
+        .filter((item) => item.id !== undefined)
+        .map((item) => item.id);
+      const customPriceIdsToDelete = oldCustomPriceIds.filter(
+        (id) => !customPriceIds.includes(id)
+      );
 
-        for (const customPrice of customPrices) {
-          if(customPrice.id == undefined) {
-            await CustomPrice.create({
-              menu_id: menuId,
-              menu_detail_id: customPrice.menu_detail_id,
-              serving_type_id: customPrice.serving_type_id,
-              price: customPrice.price,
-            })
-          } else {
-            const updatedCustomPrice = {
-              price: customPrice.price,
-              updated_at: indoDateTime,
-            }
+      for (const customPrice of customPrices) {
+        if (customPrice.id == undefined) {
+          await CustomPrice.create({
+            menu_id: menuId,
+            menu_detail_id: customPrice.menu_detail_id,
+            serving_type_id: customPrice.serving_type_id,
+            price: customPrice.price,
+          });
+        } else {
+          const updatedCustomPrice = {
+            price: customPrice.price,
+            updated_at: indoDateTime,
+          };
 
-            await CustomPrice.update(customPrice.id, updatedCustomPrice);
-          }
-        }
-
-        if (customPriceIdsToDelete.length > 0) {
-          for (const customPriceIdToDelete of customPriceIdsToDelete) {
-            await CustomPrice.update(customPriceIdToDelete, deletedAtNow);
-          }
+          await CustomPrice.update(customPrice.id, updatedCustomPrice);
         }
       }
 
-      return res.status(200).json({
-          code: 200,
-          message: "Custom harga menu berhasil!",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: error.message || "Failed to customize menu price",
-      });
+      if (customPriceIdsToDelete.length > 0) {
+        for (const customPriceIdToDelete of customPriceIdsToDelete) {
+          await CustomPrice.update(customPriceIdToDelete, deletedAtNow);
+        }
+      }
     }
-  };
+
+    return res.status(200).json({
+      code: 200,
+      message: "Custom harga menu berhasil!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to customize menu price",
+    });
+  }
+};

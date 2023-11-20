@@ -2,10 +2,9 @@ const Transaction = require("../models/transaction");
 const RefundDetail = require("../models/refund_detail");
 const CartDetail = require("../models/cart_detail");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getReport = async (req, res) => {
+  const thisTimeNow = moment();
   const { outlet_id, start_date, end_date, is_success, is_pending } = req.query;
   try {
     let startDate,
@@ -46,6 +45,7 @@ exports.getReport = async (req, res) => {
 };
 
 exports.getPaymentReport = async (req, res) => {
+  const thisTimeNow = moment();
   const { outlet_id, start_date, end_date } = req.query;
   try {
     let startDate, endDate;

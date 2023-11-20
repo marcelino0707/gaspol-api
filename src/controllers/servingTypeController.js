@@ -1,7 +1,5 @@
 const ServingType = require("../models/serving_type");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getServingType = async (req, res) => {
   try {
@@ -56,6 +54,8 @@ exports.createServingType = async (req, res) => {
 };
 
 exports.updateServingType = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const servingTypeId = req.params.id;
     const { name, is_active } = req.body;

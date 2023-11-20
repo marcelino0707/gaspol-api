@@ -4,11 +4,6 @@ const Discount = require("../models/discount")
 const Transaction = require("../models/transaction");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
-const deletedAtNow = {
-  deleted_at: indoDateTime,
-};
 
 exports.getCart = async (req, res) => {
   try {
@@ -61,6 +56,8 @@ exports.getCartItems = async (req, res) => {
 };
 
 exports.createCart = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
   const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
   try {
     const cart = await Cart.getByOutletId(outlet_id);
@@ -138,6 +135,8 @@ exports.createCart = async (req, res) => {
 };
 
 exports.updateCart = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
   const cart_detail_id = req.params.id;
   const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
 
@@ -204,6 +203,8 @@ exports.updateCart = async (req, res) => {
 };
 
 exports.deleteCartItems = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
   try {
     const cart_detail_id = req.params.id;
     const { outlet_id } = req.query;
@@ -219,7 +220,9 @@ exports.deleteCartItems = async (req, res) => {
     };
 
     await Cart.update(cart.id, updateCost);
-    await CartDetail.update(cartDetails.cart_detail_id, deletedAtNow);
+    await CartDetail.update(cartDetails.cart_detail_id, {
+      deleted_at: indoDateTime,
+    });
 
     return res.status(200).json({
       message: "Berhasil menghapus menu dari keranjang",
@@ -232,10 +235,22 @@ exports.deleteCartItems = async (req, res) => {
 };
 
 exports.deleteCart = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
   try {
-    const { outlet_id } = req.query;
-    const cart = await Cart.getByOutletId(outlet_id);
-    await CartDetail.deleteAllByCartId(cart.id, deletedAtNow);
+    const { cancel_reason, cart_id } = req.body;
+
+    if(cancel_reason) {
+      await Cart.update(cart_id, {
+        is_canceled: 1,
+        cancel_reason: cancel_reason,
+        is_active: false,
+      });
+    }
+
+    await CartDetail.updateAllByCartId(cart_id, {
+      deleted_at: indoDateTime,
+    });
 
     const deleteCost = {
       subtotal: 0,
@@ -244,7 +259,7 @@ exports.deleteCart = async (req, res) => {
       updated_at: indoDateTime,
     };
 
-    await Cart.update(cart.id, deleteCost);
+    await Cart.update(cart_id, deleteCost);
 
     return res.status(200).json({
       message: "Berhasil menghapus data keranjang",

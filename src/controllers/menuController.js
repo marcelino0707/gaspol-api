@@ -5,8 +5,6 @@ const CustomPrice = require("../models/custom_price")
 const ServingType = require("../models/serving_type")
 const fs = require('fs');
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getMenus = async (req, res) => {
   try {
@@ -157,6 +155,8 @@ exports.getMenuDetailByMenuId = async (req, res) => {
 }
 
 exports.deleteMenu = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const menuId = req.params.id;
     const deletedAtNow = {
@@ -241,6 +241,8 @@ exports.getMenuByIdV2 = async (req, res) => {
 };
 
 exports.createMenuV2 = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   let uploadedFilePath = "";
   const { name, menu_type, price, menu_details, outlet_id, is_active } = req.body;
   const menu = {
@@ -329,6 +331,8 @@ exports.createMenuV2 = async (req, res) => {
 };
 
 exports.updateMenuV2 = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const menuId = req.params.id;
     const { name, menu_type, price, menu_details, is_active, outlet_id } = req.body;

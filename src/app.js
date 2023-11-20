@@ -4,9 +4,6 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 //const path = require("path");
 
-// Set the timezone for the entire application
-process.env.TZ = 'Asia/Jakarta';
-
 const app = express();
 dotenv.config();
 

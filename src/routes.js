@@ -18,7 +18,7 @@ const outlet = require("./controllers/outletController");
 const user = require("./controllers/userController");
 const profile = require("./controllers/profileController");
 const customPrice = require("./controllers/customizePriceController");
-
+const paymentType = require("./controllers/paymentController");
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
 route.get("/menu/:id", menu.getMenuById); // Kasir
@@ -39,6 +39,9 @@ route.post("/serving-type", servingType.createServingType); // CMS
 route.get("/serving-type/:id", servingType.getServingTypeById); // CMS
 route.patch("/serving-type/:id", servingType.updateServingType); // CMS
 route.delete("/serving-type/:id", servingType.delete); // CMS
+
+// Payment Type
+route.get("/payment-type", paymentType.getPaymentType); // Kasir 
 
 // Discount Kasir
 route.get("/discount", discount.getDiscounts); // Kasir

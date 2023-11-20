@@ -1,10 +1,10 @@
 const Outlet = require("../models/outlet");
 const User = require("../models/user");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.updateProfile = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const userId = req.params.id;
     const { name, username, password, pin, outlet_id } = req.body;

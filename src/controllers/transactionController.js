@@ -9,10 +9,10 @@ const {
   formatDate
 } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
-const thisTimeNow = moment();
-const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
 
 exports.getTransactions = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const { outlet_id, is_success } = req.query;
     let transactions = [];
@@ -54,6 +54,8 @@ exports.getTransactions = async (req, res) => {
 };
 
 exports.createTransaction = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   const {
     outlet_id,
     cart_id,
@@ -61,7 +63,7 @@ exports.createTransaction = async (req, res) => {
     customer_name,
     transaction_id,
     customer_cash,
-    payment_type,
+    payment_type_id,
     delivery_type,
     delivery_note,
   } = req.body;
@@ -90,9 +92,9 @@ exports.createTransaction = async (req, res) => {
       }
       transaction.customer_cash = customer_cash;
       transaction.customer_change = customer_cash - cart.total;
-      transaction.payment_type = payment_type;
+      transaction.payment_type_id = payment_type_id;
       transaction.invoice_number =
-        "INV-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss") + "-" + payment_type;
+        "INV-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss") + payment_type_id;
       transaction.invoice_due_date = indoDateTime;
     }
 
@@ -112,20 +114,32 @@ exports.createTransaction = async (req, res) => {
       await Transaction.update(existingTransaction.id, transaction);
     }
 
+    let cartDetails = [];
+    if(customer_cash) {
+      cartDetails = await CartDetail.getByCartId(
+        existingTransaction.cart_id
+      );
+    } else {
+      cartDetails = await CartDetail.getNotOrderedByCartId(
+        existingTransaction.cart_id
+      )
+    }
+
     await Cart.update(cart_id, {
       is_active: false,
     });
 
-    const cartDetails = await CartDetail.getByCartId(
-      existingTransaction.cart_id
-    );
-
+    await CartDetail.updateAllByCartId(cart_id, {
+      is_ordered : 1,
+    })
+    
     const result = {
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
       customer_name: existingTransaction.customer_name,
       customer_seat: existingTransaction.customer_seat,
       payment_type: existingTransaction.payment_type,
+      payment_category: existingTransaction.payment_category,
       delivery_type: existingTransaction.delivery_type,
       delivery_note: existingTransaction.delivery_note,
       cart_id: existingTransaction.cart_id,
@@ -201,6 +215,7 @@ exports.getTransactionById = async (req, res) => {
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
       payment_type: transaction.payment_type,
+      payment_category: transaction.payment_category,
       cart_id: transaction.cart_id,
       subtotal: cart.subtotal,
       total: cart.total,

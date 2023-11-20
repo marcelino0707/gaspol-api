@@ -9,7 +9,6 @@ const pool = mysql.createPool({
   waitForConnections: true, // This option ensures that new queries will wait for a connection if there are no connections available in the pool.
   connectionLimit: 200, // Adjust the connection limit as needed.
   queueLimit: 0, // No limit for the number of queued queries.
-  timezone: 'Asia/Jakarta',
 });
 
 const connectDB = () => {

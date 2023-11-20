@@ -6,12 +6,14 @@ const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
 const RefundDetail = require("../models/refund_detail");
 const ServingType = require("../models/serving_type");
+const Outlet = require("../models/outlet");
 
 exports.getCustomerStruct = async (req, res) => {
   const { id } = req.params;
   // const { outlet_id } = req.query;
   try {
     const transaction = await Transaction.getById(id);
+    const outlet = await Outlet.getByOutletId(transaction.outlet_id);
     const cart = await Cart.getByCartId(transaction.cart_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
     const refund = await Refund.getByTransactionId(id);
@@ -25,7 +27,8 @@ exports.getCustomerStruct = async (req, res) => {
     });
 
     const result = {
-      outlet_name: "Jempolan",
+      outlet_name: outlet.name,
+      outlet_address: outlet.address,
       date_time: transaction.invoice_due_date.toGMTString(),
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
@@ -64,6 +67,7 @@ exports.getKitchenStruct = async (req, res) => {
   const { id } = req.params;
   try {
     const transaction = await Transaction.getById(id);
+    const outlet = await Outlet.getByOutletId(transaction.outlet_id);
     const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
 
     let updatedCartDetails = [];
@@ -84,7 +88,8 @@ exports.getKitchenStruct = async (req, res) => {
     }
 
     const result = {
-      outlet_name: "Jempolan",
+      outlet_name: outlet.name,
+      outlet_address: outlet.address,
       date_time: transaction.invoice_due_date.toGMTString(),
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
@@ -102,6 +107,36 @@ exports.getKitchenStruct = async (req, res) => {
     return res.status(200).json({
       code: 200,
       message: "Cart Kitchen berhasil ditampilkan!",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Some error occurred while get the transaction",
+    });
+  }
+};
+
+exports.getShiftStruct = async (req, res) => {
+  const { start_time, end_time, outlet_id } = req.body;
+  try {
+    const transaction = await Transaction.getById(id);
+    const outlet = await Outlet.getByOutletId(outlet_id);
+
+    const result = {
+      outlet_name: outlet.name,
+      outlet_address: outlet.address,
+      date_time: transaction.invoice_due_date.toGMTString(),
+      receipt_number: transaction.receipt_number,
+      customer_name: transaction.customer_name,
+      customer_seat: transaction.customer_seat,
+      delivery_type: transaction.delivery_type,
+      delivery_note: transaction.delivery_note,
+      cart_details: updatedCartDetails,
+    };
+
+    return res.status(200).json({
+      code: 200,
+      message: "Struk shift berhasil ditampilkan!",
       data: result,
     });
   } catch (error) {

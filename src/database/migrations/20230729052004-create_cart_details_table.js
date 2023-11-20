@@ -54,6 +54,11 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: null, 
       },
+      is_ordered: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

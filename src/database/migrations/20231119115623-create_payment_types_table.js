@@ -2,28 +2,22 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('carts', {
+    await queryInterface.createTable('payment_types', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      outlet_id: {
+      name: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      payment_category_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      subtotal: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT,
-      },
-      total: {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.FLOAT,
-      },
-      discount_id: {
+      outlet_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
@@ -31,15 +25,6 @@ module.exports = {
         allowNull: true,
         defaultValue: 1,
         type: Sequelize.TINYINT,
-      },
-      is_canceled: {
-        allowNull: true,
-        defaultValue: 0,
-        type: Sequelize.TINYINT,
-      },
-      cancel_reason: {
-        allowNull: true,
-        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,
@@ -50,7 +35,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
+      }, 
       deleted_at: {
         allowNull: true,
         type: Sequelize.DATE,
@@ -60,6 +45,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('carts');
+    await queryInterface.dropTable('payment_types');
   }
 };
