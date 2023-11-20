@@ -2,6 +2,7 @@ const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
 const Discount = require("../models/discount")
 const Transaction = require("../models/transaction");
+const Outlet = require("../models/outlet");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 
@@ -238,32 +239,43 @@ exports.deleteCart = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
   try {
-    const { cancel_reason, cart_id } = req.body;
-
-    if(cancel_reason) {
-      await Cart.update(cart_id, {
-        is_canceled: 1,
-        cancel_reason: cancel_reason,
-        is_active: false,
+    const { outlet_id, cart_id, pin, cancel_reason } = req.body;
+    const outlet = await Outlet.getByOutletId(outlet_id);
+    if (outlet.pin != pin) {
+      return res.status(401).json({
+        code: 401,
+        message: "Pin Salah!",
+      });
+    } else {
+      if(cancel_reason) {
+        if(cart_id) {
+          await Cart.update(cart_id, {
+            is_canceled: 1,
+            cancel_reason: cancel_reason,
+            is_active: false,
+            updated_at: indoDateTime,
+          });
+        } else {
+          await CartDetail.updateAllByCartId(cart_id, {
+            deleted_at: indoDateTime,
+          });
+      
+          const deleteCost = {
+            subtotal: 0,
+            total: 0,
+            discount_id: null,
+            updated_at: indoDateTime,
+          };
+      
+          await Cart.update(cart_id, deleteCost);
+        }
+      }
+  
+      return res.status(200).json({
+        code: 200,
+        message: "Berhasil menghapus data keranjang",
       });
     }
-
-    await CartDetail.updateAllByCartId(cart_id, {
-      deleted_at: indoDateTime,
-    });
-
-    const deleteCost = {
-      subtotal: 0,
-      total: 0,
-      discount_id: null,
-      updated_at: indoDateTime,
-    };
-
-    await Cart.update(cart_id, deleteCost);
-
-    return res.status(200).json({
-      message: "Berhasil menghapus data keranjang",
-    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting cart",
