@@ -12,7 +12,12 @@ module.exports = {
       {
         name: "Sambel Colek Condong Catur",
         address: "Jl. Candi Gebang No.199 CC, Dero, Condongcatur, Depok, Sleman Regency, Special Region of Yogyakarta 55281",
-        pin: 123456,
+        pin: 12346,
+      },
+      {
+        name: "Sambel Nyah Ti",
+        address: "Jl. glagahsari",
+        pin: 12345,
       },
     ],{});
   },

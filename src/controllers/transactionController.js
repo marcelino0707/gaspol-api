@@ -6,7 +6,7 @@ const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
 const {
   applyDiscountAndUpdateTotal,
-  formatDate
+  formatDate,
 } = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 
@@ -94,35 +94,39 @@ exports.createTransaction = async (req, res) => {
       transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type_id = payment_type_id;
       transaction.invoice_number =
-        "INV-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss") + payment_type_id;
+        "INV-" +
+        thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss") +
+        payment_type_id;
       transaction.invoice_due_date = indoDateTime;
     }
 
     let existingTransaction = await Transaction.getByCartId(cart_id);
     if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
-        "AT-" + customer_name + "-" + customer_seat + "-" + thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss");
+        "AT-" +
+        customer_name +
+        "-" +
+        customer_seat +
+        "-" +
+        thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss");
       transaction.outlet_id = outlet_id;
       transaction.cart_id = cart_id;
       const createdTransaction = await Transaction.create(transaction);
       existingTransaction = await Transaction.getById(
         createdTransaction.insertId
       );
-    } else if (transaction_id) {
-      await Transaction.update(transaction_id, transaction);
-    } else if (existingTransaction) {
-      await Transaction.update(existingTransaction.id, transaction);
-    }
+    } else {
+      await Transaction.update(transaction_id?transaction_id:existingTransaction.id, transaction);
+      existingTransaction = await Transaction.getById(transaction_id);
+    } 
 
     let cartDetails = [];
-    if(customer_cash) {
-      cartDetails = await CartDetail.getByCartId(
-        existingTransaction.cart_id
-      );
+    if (customer_cash) {
+      cartDetails = await CartDetail.getByCartId(existingTransaction.cart_id);
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(
         existingTransaction.cart_id
-      )
+      );
     }
 
     await Cart.update(cart_id, {
@@ -130,9 +134,9 @@ exports.createTransaction = async (req, res) => {
     });
 
     await CartDetail.updateAllByCartId(cart_id, {
-      is_ordered : 1,
-    })
-    
+      is_ordered: 1,
+    });
+
     const result = {
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
