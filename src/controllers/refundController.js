@@ -79,7 +79,7 @@ exports.createRefund = async (req, res) => {
           cart_detail_id: cartDetail.cart_detail_id,
           qty_refund_item: cartDetail.qty_refund,
           total_refund_price: cartDetail.qty_refund * oldCartDetail.price,
-          refund_reason_item: cartDetail.refund_reason_item,
+          refund_reason_item: refund_reason,
           payment_type_id: payment_type_id,
         });
         totalRefund = totalRefund + totalRefundPrice;

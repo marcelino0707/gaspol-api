@@ -19,6 +19,8 @@ const user = require("./controllers/userController");
 const profile = require("./controllers/profileController");
 const customPrice = require("./controllers/customizePriceController");
 const paymentType = require("./controllers/paymentController");
+const expenditure = require("./controllers/expenditureController");
+
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
 route.get("/menu/:id", menu.getMenuById); // Kasir
@@ -107,5 +109,8 @@ route.patch("/profile/:id", profile.updateProfile);
 // Custom Menu Price
 route.get("/custom-menu-price/:id", customPrice.getCustomizePriceByMenuId);
 route.patch("/custom-menu-price/:id", customPrice.updateCustomizePrice);
+
+// Expenditure
+route.post("/expenditure", expenditure.createExpense);
 
 module.exports = route;
