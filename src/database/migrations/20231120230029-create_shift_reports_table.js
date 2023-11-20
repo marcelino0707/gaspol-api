@@ -2,32 +2,35 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('outlets', {
+    await queryInterface.createTable('shift_reports', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      name: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
-      address: {
+      outlet_id: {
         allowNull: true,
-        type: Sequelize.TEXT,
-      },
-      phone_number :{
-        allowNull: true,
-        type: Sequelize.STRING,
-      },
-      pin: {
-        allowNull: false,
         type: Sequelize.INTEGER,
       },
-      footer: {
+      actual_ending_cash: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
+      cash_difference: {
+        type: Sequelize.FLOAT,
         allowNull: true,
-        type: Sequelize.STRING,
+        defaultValue: 0,
+      },
+      start_date: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null, 
+      },
+      end_date: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null, 
       },
       created_at: {
         allowNull: false,
@@ -38,7 +41,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
+      }, 
       deleted_at: {
         allowNull: true,
         type: Sequelize.DATE,
@@ -48,6 +51,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('outlets');
+    await queryInterface.dropTable('shift_reports');
   }
 };

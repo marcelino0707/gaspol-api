@@ -8,6 +8,8 @@ module.exports = {
         name: "Jempolan Coffee & Eatery",
         address: "Tiyosan, Condongcatur, Kec. Depok, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281",
         pin: 13456,
+        phone_number: "085869555446",
+        footer: "Password Wiffi : akucintajempolan",
       },
       {
         name: "Sambel Colek Condong Catur",
