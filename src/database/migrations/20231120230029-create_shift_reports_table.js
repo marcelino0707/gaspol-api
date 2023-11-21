@@ -17,7 +17,22 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      expected_ending_cash: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+        defaultValue: 0,
+      },
       cash_difference: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+        defaultValue: 0,
+      },
+      total_amount: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+        defaultValue: 0,
+      },
+      total_discount: {
         type: Sequelize.FLOAT,
         allowNull: true,
         defaultValue: 0,

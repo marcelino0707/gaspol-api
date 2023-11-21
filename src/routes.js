@@ -51,7 +51,7 @@ route.get("/discount", discount.getDiscounts); // Kasir
 // Cart
 route.get("/cart", cart.getCart); // Kasir
 route.post("/cart", cart.createCart); // Kasir
-route.delete("/cart", cart.deleteCart); // Kasir
+route.post("/delete-cart", cart.deleteCart); // Kasir
 route.get("/cart/:id", cart.getCartItems); // Kasir by cart_detail_id
 route.patch("/cart/:id", cart.updateCart); // Kasir by cart_detail_id
 route.delete("/cart/:id", cart.deleteCartItems); // Kasir
@@ -68,6 +68,7 @@ route.post("/refund", refund.createRefund);
 // Struct
 route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 route.get("/struct-kitchen/:id", struct.getKitchenStruct);
+route.post("/struct-shift", struct.getShiftStruct);
 
 // Report 
 route.get("/report", report.getReport);

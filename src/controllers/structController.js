@@ -7,6 +7,8 @@ const MenuDetail = require("../models/menu_detail");
 const RefundDetail = require("../models/refund_detail");
 const ServingType = require("../models/serving_type");
 const Outlet = require("../models/outlet");
+const Expenditure = require("../models/expenditure");
+const moment = require("moment-timezone");
 
 exports.getCustomerStruct = async (req, res) => {
   const { id } = req.params;
@@ -117,21 +119,27 @@ exports.getKitchenStruct = async (req, res) => {
 };
 
 exports.getShiftStruct = async (req, res) => {
-  const { start_time, end_time, outlet_id } = req.body;
+  const thisTimeNow = moment();
+  const { start_time, end_time, outlet_id, actual_ending_cash } = req.body;
   try {
-    const transaction = await Transaction.getById(id);
     const outlet = await Outlet.getByOutletId(outlet_id);
 
+    const startDateString = moment(thisTimeNow).format("YYYY-MM-DD") + " " + start_time;
+    const endDateString = moment(thisTimeNow).format("YYYY-MM-DD") + " " + end_time;
+
+    const startDate = moment.tz(startDateString, "Asia/Jakarta").toDate();
+    const endDate = moment.tz(endDateString, "Asia/Jakarta").toDate();
+
+    const transactions = await Transaction.getShiftReport(outlet_id, startDate, endDate);
+    // const expenditure = await Expenditure.getExpense
     const result = {
       outlet_name: outlet.name,
       outlet_address: outlet.address,
-      date_time: transaction.invoice_due_date.toGMTString(),
-      receipt_number: transaction.receipt_number,
-      customer_name: transaction.customer_name,
-      customer_seat: transaction.customer_seat,
-      delivery_type: transaction.delivery_type,
-      delivery_note: transaction.delivery_note,
-      cart_details: updatedCartDetails,
+      phone_number: outlet.phone_number,
+      start_date: startDateString,
+      end_date: endDate,
+
+      transactions: transactions,
     };
 
     return res.status(200).json({
