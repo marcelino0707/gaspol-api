@@ -273,6 +273,8 @@ exports.getTransactionById = async (req, res) => {
 };
 
 exports.createDiscountTransaction = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   const { cart_id, discount_id } = req.body;
   try {
     const cart = await Cart.getByCartId(cart_id);
