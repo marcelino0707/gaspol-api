@@ -245,107 +245,98 @@ exports.getShiftStruct = async (req, res) => {
     } = calculateSummary(cartDetails, refundDetails, transactions);
 
     const payment_details = [];
+    const totalCashSales = cartDetailsSuccess.reduce(
+      (total, cart) => total + cart.total_price,
+      0
+    );
+    const paymentDetailsCash = {
+      payment_category: "Cash Payment",
+      payment_type_detail: [
+        {
+          payment_type: "Cash Sales",
+          total_payment: totalCashSales,
+        },
+        {
+          payment_type: "Cash from Invoice",
+          total_payment: cartDetailsPending.reduce(
+            (total, cart) => total + cart.total_price,
+            0
+          ),
+        },
+        {
+          payment_type: "Cash Refund",
+          total_payment: refundDetails.reduce(
+            (total, refund) => total + refund.total_refund_price,
+            0
+          ),
+        },
+      ],
+    };
+    payment_details.push(paymentDetailsCash);
 
     // Iterate through each payment type
     for (const paymentType of payment_types) {
-      // Get transactions related to the current payment type
-      const transactionsByPaymentType = transactions.filter(
-        (transaction) => transaction.payment_type_id === paymentType.id
-      );
+      if (paymentType.id != 1) {
+        // Get transactions related to the current payment type
+        const transactionsByPaymentType = transactions.filter(
+          (transaction) => transaction.payment_type_id === paymentType.id
+        );
 
-      // Calculate total amount for the current payment type
-      const totalPayment = transactionsByPaymentType.reduce(
-        (total, transaction) => total + transaction.total,
-        0
-      );
+        // Calculate total amount for the current payment type
+        const totalPayment = transactionsByPaymentType.reduce(
+          (total, transaction) => total + transaction.total,
+          0
+        );
 
-      // Create payment type detail object
-      const paymentTypeDetail = {
-        payment_type: paymentType.name,
-        total_payment: totalPayment,
-      };
-
-      // Find the payment category name
-      const paymentCategoryName = payment_types.find(
-        (pt) => pt.id === paymentType.payment_category_id
-      ).name;
-
-      // Check if a payment category with the same name already exists
-      const existingPaymentCategory = payment_details.find(
-        (pd) => pd.payment_category === paymentCategoryName
-      );
-
-      // If exists, push the payment type detail to existing payment category
-      if (existingPaymentCategory) {
-        existingPaymentCategory.payment_type_detail.push(paymentTypeDetail);
-      } else {
-        // If not exists, create a new payment category
-        const newPaymentCategory = {
-          payment_category: paymentCategoryName,
-          payment_type_detail: [paymentTypeDetail],
+        // Create payment type detail object
+        const paymentTypeDetail = {
+          payment_type: paymentType.name,
+          total_payment: totalPayment,
         };
-        payment_details.push(newPaymentCategory);
-      }
 
-      // Additional information for payment_category_id 1
-      if (paymentType.payment_category_id === 1) {
-        const cashSalesTotal = cartDetailsSuccess
-          .filter((cart) => {
-            const associatedTransaction = transactions.find(
-              (transaction) =>
-                transaction.cart_id === cart.cart_id &&
-                transaction.payment_type_id === 1
-            );
-            return !!associatedTransaction;
-          })
-          .reduce((total, cart) => total + cart.total_price, 0);
-    
-        const cashFromInvoiceTotal = cartDetailsPending
-          .filter((cart) => {
-            const associatedTransaction = transactions.find(
-              (transaction) =>
-                transaction.cart_id === cart.cart_id &&
-                transaction.payment_type_id === 1
-            );
-            return !!associatedTransaction;
-          })
-          .reduce((total, cart) => total + cart.total_price, 0);
-    
-        const cashRefundTotal = refundDetails
-          .filter((refund) => refund.payment_type_id === 1)
-          .reduce((total, refund) => total + refund.total_refund_price, 0);
-    
-        const additionalPaymentTypeDetails = [
-          {
-            payment_type: "Cash Sales",
-            total_payment: cashSalesTotal,
-          },
-          {
-            payment_type: "Cash from Invoice",
-            total_payment: cashFromInvoiceTotal, // This is where the issue may be
-          },
-          {
-            payment_type: "Cash Refund",
-            total_payment: cashRefundTotal,
-          },
-        ];
-    
-        // If exists, push the additional payment type details to existing payment category
-        if (existingPaymentCategory) {
-          existingPaymentCategory.payment_type_detail = [
-            ...existingPaymentCategory.payment_type_detail,
-            ...additionalPaymentTypeDetails,
-          ];
-        } else {
-          // If not exists, create a new payment category with additional details
-          const newPaymentCategory = {
-            payment_category: paymentCategoryName,
-            payment_type_detail: additionalPaymentTypeDetails,
-          };
-          payment_details.push(newPaymentCategory);
+        if (paymentTypeDetail.total_payment > 0) {
+          // Find the payment category name
+          const paymentCategoryName = payment_types.find(
+            (pt) => pt.id === paymentType.payment_category_id
+          ).payment_category_name;
+
+          // Check if a payment category with the same name already exists
+          const existingPaymentCategory = payment_details.find(
+            (pd) => pd.payment_category === paymentCategoryName
+          );
+
+          // If exists, push the payment type detail to existing payment category
+          if (existingPaymentCategory) {
+            existingPaymentCategory.payment_type_detail.push(paymentTypeDetail);
+          } else {
+            // If not exists, create a new payment category
+            const newPaymentCategory = {
+              payment_category: paymentCategoryName,
+              payment_type_detail: [paymentTypeDetail],
+            };
+            payment_details.push(newPaymentCategory);
+          }
         }
       }
     }
+
+    // Calculate and add total_amount to each object in payment_details
+    for (const paymentCategory of payment_details) {
+      paymentCategory.total_amount = paymentCategory.payment_type_detail.reduce(
+        (total, paymentType) => total + paymentType.total_payment,
+        0
+      );
+    }
+
+    // Calculate subtotal_transaction
+    const subtotal_transaction = payment_details.reduce(
+      (total, paymentCategory) => total + paymentCategory.total_amount,
+      0
+    );
+
+    const discount_total_amount =
+      discount_amount_per_items + discount_amount_transactions;
+    const ending_cash_expected = totalCashSales - expenditure.totalExpense;
 
     const result = {
       outlet_name: outlet.name,
@@ -355,22 +346,19 @@ exports.getShiftStruct = async (req, res) => {
       end_date: endDateString,
       expenditures: expenditure.lists,
       expenditures_total: expenditure.totalExpense,
-      // ending_cash_expected : total tunai - expenditures_total,
+      ending_cash_expected : ending_cash_expected,
       ending_cash_actual: actual_ending_cash,
-      // cash_difference: ending_cash_expected - ending_cash_actual,
+      cash_difference: ending_cash_expected - actual_ending_cash,
       items_sold,
       items_total_amount,
       discount_amount_transactions,
       discount_amount_per_items,
-      discount_total_amount:
-        discount_amount_per_items + discount_amount_transactions,
+      discount_total_amount: discount_total_amount,
       cart_details_success: cartDetailsSuccess,
       cart_details_pending: cartDetailsPending,
       refund_details: refundDetails,
       payment_details,
-      // total_transaction: total amount semua - total amount diskon
-      transactions: transactions,
-      payment_types,
+      total_transaction: subtotal_transaction - discount_total_amount,
     };
 
     return res.status(200).json({
