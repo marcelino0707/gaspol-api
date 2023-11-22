@@ -161,7 +161,7 @@ exports.updateCart = async (req, res) => {
     }
 
     if(cartDetail.discount_id != 0) {
-      if(discount_id == 0) {
+      if(discount_id == 0 || discount_id == null) {
         updatedCartItems.discount_id = 0;
         updatedCartItems.discounted_price = 0;
       } else {
