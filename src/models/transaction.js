@@ -131,7 +131,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           let query =
-            "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, DATE_FORMAT(transactions.invoice_due_date, '%Y-%m-%d %H:%i') as invoice_due_date, DATE_FORMAT(transactions.updated_at, '%Y-%m-%d %H:%i') as updated_at FROM transactions WHERE transactions.outlet_id = ? AND transactions.deleted_at IS NULL";
+            "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, DATE_FORMAT(transactions.invoice_due_date, '%Y-%m-%d %H:%i') as invoice_due_date, DATE_FORMAT(transactions.updated_at, '%Y-%m-%d %H:%i') as updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE transactions.outlet_id = ? AND transactions.deleted_at IS NULL";
           if (
             (start_date != undefined || start_date != null) &&
             (end_date != undefined || end_date != null)
@@ -184,18 +184,13 @@ const Transaction = {
         })
         .catch((error) => reject(error));
     });
-  },
+  },  
   getShiftReport: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          let query =
-            "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, DATE_FORMAT(transactions.invoice_due_date, '%Y-%m-%d %H:%i') as invoice_due_date, DATE_FORMAT(transactions.updated_at, '%Y-%m-%d %H:%i') as updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE transactions.outlet_id = ? AND transactions.deleted_at IS NULL";
-
-          if (start_date && end_date) {
-            query += " AND transactions.invoice_due_date BETWEEN ? AND ?";
-          }
-
+          const query =
+            "SELECT carts.id AS cart_id, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, (carts.subtotal - carts.total) AS total_discount, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_id FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND transactions.updated_at BETWEEN ? AND ?";
           connection.query(
             query,
             [outlet_id, start_date, end_date],
