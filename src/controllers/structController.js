@@ -213,6 +213,7 @@ exports.getShiftStruct = async (req, res) => {
       );
 
       const items_sold = totalCartQty + totalRefundQty;
+      const items_refunded = totalRefundQty;
       const items_total_amount = totalCartAmount + totalRefundAmount;
 
       const discount_amount_transactions = transactions.reduce(
@@ -231,6 +232,7 @@ exports.getShiftStruct = async (req, res) => {
 
       return {
         items_sold,
+        items_refunded,
         items_total_amount,
         discount_amount_transactions,
         discount_amount_per_items,
@@ -239,6 +241,7 @@ exports.getShiftStruct = async (req, res) => {
 
     const {
       items_sold,
+      items_refunded,
       items_total_amount,
       discount_amount_transactions,
       discount_amount_per_items,
@@ -350,6 +353,7 @@ exports.getShiftStruct = async (req, res) => {
       ending_cash_actual: actual_ending_cash,
       cash_difference: ending_cash_expected - actual_ending_cash,
       items_sold,
+      items_refunded,
       items_total_amount,
       discount_amount_transactions,
       discount_amount_per_items,
