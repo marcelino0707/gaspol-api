@@ -160,7 +160,7 @@ exports.updateCart = async (req, res) => {
       updatedCartItems.deleted_at = indoDateTime;
     }
 
-    if(cartDetail.discount_id != 0) {
+    // if(cartDetail.discount_id != 0) {
       if(discount_id == 0 || discount_id == null) {
         updatedCartItems.discount_id = 0;
         updatedCartItems.discounted_price = 0;
@@ -172,7 +172,7 @@ exports.updateCart = async (req, res) => {
         updatedCartItems.discounted_price = Math.max(100, Math.ceil(discountedPricePercent / 100) * 100);
         updatedCartItems.discount_id = discount_id;
       }
-    }
+    // }
 
     updatedCartItems.total_price = cartDetailTotalPrice;
   
