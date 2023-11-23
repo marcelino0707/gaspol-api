@@ -60,15 +60,18 @@ exports.createRefund = async (req, res) => {
       for (const cartDetail of cart_details) {
         const oldCartDetail = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
         
-        let totalRefundPrice = 0
-        if (oldCartDetail.discount_id === null || oldCartDetail.discount_id === 0) {
+        let totalRefundPrice = 0;
+        let oldCartDetailPrice;
+        if (oldCartDetail.discount_id == null || oldCartDetail.discount_id == 0) {
+          oldCartDetailPrice = oldCartDetail.price;
           totalRefundPrice = cartDetail.qty_refund * oldCartDetail.price;
         } else {
+          oldCartDetailPrice = oldCartDetail.discounted_price;
           totalRefundPrice = cartDetail.qty_refund * oldCartDetail.discounted_price;
         }
         
         const qtyUpdate = oldCartDetail.qty - cartDetail.qty_refund;
-        const totalPriceUpdate = qtyUpdate * oldCartDetail.price;
+        const totalPriceUpdate = qtyUpdate * oldCartDetailPrice;
         await CartDetail.update(cartDetail.cart_detail_id, {
           qty: qtyUpdate,
           total_price: totalPriceUpdate,
@@ -78,7 +81,7 @@ exports.createRefund = async (req, res) => {
           refund_id: refundId,
           cart_detail_id: cartDetail.cart_detail_id,
           qty_refund_item: cartDetail.qty_refund,
-          total_refund_price: cartDetail.qty_refund * oldCartDetail.price,
+          total_refund_price: totalRefundPrice,
           refund_reason_item: refund_reason,
           payment_type_id: payment_type_id,
         });
