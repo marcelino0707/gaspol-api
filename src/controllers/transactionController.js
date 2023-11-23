@@ -116,17 +116,19 @@ exports.createTransaction = async (req, res) => {
         createdTransaction.insertId
       );
     } else {
-      await Transaction.update(transaction_id?transaction_id:existingTransaction.id, transaction);
-      existingTransaction = await Transaction.getById(transaction_id);
-    } 
+      const transactionId = transaction_id
+        ? transaction_id
+        : existingTransaction.id;
+      await Transaction.update(transactionId, transaction);
+      existingTransaction = await Transaction.getById(transactionId);
+    }
 
     let cartDetails = [];
+    const cartId = cart_id ? cart_id : existingTransaction.cart_id;
     if (customer_cash) {
-      cartDetails = await CartDetail.getByCartId(existingTransaction.cart_id);
+      cartDetails = await CartDetail.getByCartId(cartId);
     } else {
-      cartDetails = await CartDetail.getNotOrderedByCartId(
-        existingTransaction.cart_id
-      );
+      cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
     }
 
     await Cart.update(cart_id, {
@@ -254,7 +256,10 @@ exports.getTransactionById = async (req, res) => {
       result.refund_details = refundDetailsWithoutId;
     }
 
-    if (transaction.invoice_number == null && (is_struct != true || is_struct != 1)) {
+    if (
+      transaction.invoice_number == null &&
+      (is_struct != true || is_struct != 1)
+    ) {
       // Activate cart
       await Cart.update(transaction.cart_id, {
         is_active: true,
