@@ -204,6 +204,7 @@ exports.createTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
+  const { is_struct } = req.query;
   try {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
@@ -253,7 +254,7 @@ exports.getTransactionById = async (req, res) => {
       result.refund_details = refundDetailsWithoutId;
     }
 
-    if (transaction.invoice_number == null) {
+    if (transaction.invoice_number == null && (is_struct != true || is_struct != 1)) {
       // Activate cart
       await Cart.update(transaction.cart_id, {
         is_active: true,
