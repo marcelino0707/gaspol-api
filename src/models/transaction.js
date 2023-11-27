@@ -190,7 +190,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           const query =
-            "SELECT carts.id AS cart_id, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, (carts.subtotal - carts.total) AS total_discount, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_id FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND transactions.updated_at BETWEEN ? AND ?";
+            "SELECT carts.id AS cart_id, carts.is_canceled, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, (carts.subtotal - carts.total) AS total_discount, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_id FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND transactions.updated_at BETWEEN ? AND ?";
           connection.query(
             query,
             [outlet_id, start_date, end_date],

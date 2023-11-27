@@ -148,16 +148,24 @@ exports.getShiftStruct = async (req, res) => {
       endDateString
     );
     const payment_types = await PaymentType.getAll(outlet_id);
-    const transactions = await Transaction.getShiftReport(
+    const transactionsNotFiltered = await Transaction.getShiftReport(
       outlet_id,
       startDateString,
       endDateString
     );
     let cartDetails = [];
     let refundDetails = [];
+    const transactions = transactionsNotFiltered.filter(
+      (transaction) => transaction.is_canceled === 0
+    );
+    const transactionsCanceled = transactionsNotFiltered.filter(
+      (transaction) => transaction.is_canceled === 1
+    );
     if (transactions.length > 0) {
       const cartIds = [
-        ...new Set(transactions.map((transaction) => transaction.cart_id)),
+        ...new Set(
+          transactionsNotFiltered.map((transaction) => transaction.cart_id)
+        ),
       ];
       cartDetails = await CartDetail.getByCartIdsShift(cartIds);
 
@@ -194,70 +202,34 @@ exports.getShiftStruct = async (req, res) => {
       return !!associatedTransaction;
     });
 
-    // Function to calculate sold_items, total_amount, discount_amount_transactions, and discount_amount_per_items
-    function calculateSummary(cartDetails, refundDetails, transactions) {
-      const totalCartQty = cartDetails.reduce(
-        (total, cart) => total + cart.qty,
-        0
+    // Extract cart details for cancelled transactions
+    const cartDetailsCancelled = cartDetails.filter((cart) => {
+      const associatedCancelledTransaction = transactionsCanceled.find(
+        (transaction) => transaction.cart_id === cart.cart_id
       );
-      const totalRefundQty = refundDetails.reduce(
-        (total, refund) => total + refund.qty_refund_item,
-        0
-      );
-
-      const totalCartAmount = cartDetails.reduce(
-        (total, cart) => total + cart.total_price,
-        0
-      );
-      const totalRefundAmount = refundDetails.reduce(
-        (total, refund) => total + refund.total_refund_price,
-        0
-      );
-
-      const items_sold = totalCartQty + totalRefundQty;
-      const items_refunded = totalRefundQty;
-      const items_total_amount = totalCartAmount + totalRefundAmount;
-
-      const discount_amount_transactions = transactions.reduce(
-        (total, transaction) => total + transaction.total_discount,
-        0
-      );
-
-      const totalDiscountedPrice =
-        cartDetails.reduce((total, cart) => total + cart.discounted_price, 0) +
-        refundDetails.reduce(
-          (total, refund) => total + refund.discounted_price,
-          0
-        );
-
-      const discount_amount_per_items = totalDiscountedPrice;
-
-      return {
-        items_sold,
-        items_refunded,
-        items_total_amount,
-        discount_amount_transactions,
-        discount_amount_per_items,
-      };
-    }
-
-    const {
-      items_sold,
-      items_refunded,
-      items_total_amount,
-      discount_amount_transactions,
-      discount_amount_per_items,
-    } = calculateSummary(cartDetails, refundDetails, transactions);
+      return !!associatedCancelledTransaction;
+    });
 
     const payment_details = [];
-    const totalCashSales = cartDetailsSuccess.reduce(
+    const cartDetailsSuccessCash = cartDetails
+      .filter((cart) => {
+        const associatedTransaction = transactions.find(
+          (transaction) =>
+            transaction.cart_id === cart.cart_id &&
+            transaction.invoice_number !== null &&
+            transaction.payment_type_id == 1
+        );
+        return !!associatedTransaction;
+      })
+      .filter((cart) => cart.total_price > 0);
+    const totalCashSales = cartDetailsSuccessCash.reduce(
       (total, cart) => total + cart.total_price,
       0
     );
 
     const cashRefundDetails = refundDetails.filter(
       (refund) => refund.payment_type_id == 1
-    )
+    );
 
     const paymentDetailsCash = {
       payment_category: "Cash Payment",
@@ -265,6 +237,9 @@ exports.getShiftStruct = async (req, res) => {
         {
           payment_type: "Cash Sales",
           total_payment: totalCashSales,
+          is_success: 1,
+          is_refund: 0,
+          is_pending: 0,
         },
         {
           payment_type: "Cash from Invoice",
@@ -272,6 +247,9 @@ exports.getShiftStruct = async (req, res) => {
             (total, cart) => total + cart.total_price,
             0
           ),
+          is_success: 0,
+          is_refund: 0,
+          is_pending: 1,
         },
         {
           payment_type: "Cash Refund",
@@ -279,6 +257,19 @@ exports.getShiftStruct = async (req, res) => {
             (total, refund) => total + refund.total_refund_price,
             0
           ),
+          is_success: 0,
+          is_refund: 1,
+          is_pending: 0,
+        },
+        {
+          payment_type: "Cash Cancelled",
+          total_payment: transactionsCanceled.reduce(
+            (total, transaction) => total + transaction.total,
+            0
+          ),
+          is_success: 0,
+          is_refund: 0,
+          is_pending: 0,
         },
       ],
       payment_category_id: 1,
@@ -290,7 +281,7 @@ exports.getShiftStruct = async (req, res) => {
       if (paymentType.id != 1) {
         // Get transactions related to the current payment type
         const transactionsByPaymentType = transactions.filter(
-          (transaction) => transaction.payment_type_id === paymentType.id
+          (transaction) => transaction.payment_type_id === paymentType.id && transaction.refund_id == null
         );
 
         // Calculate total amount for the current payment type
@@ -303,30 +294,61 @@ exports.getShiftStruct = async (req, res) => {
         const paymentTypeDetail = {
           payment_type: paymentType.name,
           total_payment: totalPayment,
+          is_success: 1,
+          is_refund: 0,
         };
 
-        if (paymentTypeDetail.total_payment > 0) {
-          // Find the payment category name
-          const paymentCategoryName = payment_types.find(
-            (pt) => pt.payment_category_id === paymentType.payment_category_id
-          ).payment_category_name;
+        // Filter refund details for the current payment type
+        const refundDetailsByPaymentType = refundDetails.filter(
+          (refund) => refund.payment_type_id === paymentType.id
+        );
 
-          // Check if a payment category with the same name already exists
-          const existingPaymentCategory = payment_details.find(
-            (pd) => pd.payment_category === paymentCategoryName
-          );
+        // Calculate total refund amount for the current payment type
+        const totalRefund = refundDetailsByPaymentType.reduce(
+          (total, refund) => total + refund.total_refund_price,
+          0
+        );
 
-          // If exists, push the payment type detail to existing payment category
-          if (existingPaymentCategory) {
-            existingPaymentCategory.payment_type_detail.push(paymentTypeDetail);
-          } else {
-            // If not exists, create a new payment category
-            const newPaymentCategory = {
-              payment_category: paymentCategoryName,
-              payment_type_detail: [paymentTypeDetail],
-              payment_category_id: paymentType.payment_category_id,
-            };
-            payment_details.push(newPaymentCategory);
+        // If there are refunds, add a new payment type detail for refunds
+        if (totalRefund > 0) {
+          const refundPaymentTypeDetail = {
+            payment_type: `${paymentType.name} Refund`,
+            total_payment: totalRefund,
+            is_success: 0,
+            is_refund: 1,
+          };
+          payment_details.push({
+            payment_category: paymentType.payment_category_name,
+            payment_type_detail: [paymentTypeDetail, refundPaymentTypeDetail],
+            payment_category_id: paymentType.payment_category_id,
+            total_amount: totalPayment - totalRefund,
+          });
+        } else {
+          if (paymentTypeDetail.total_payment > 0) {
+            // Find the payment category name
+            const paymentCategoryName = payment_types.find(
+              (pt) => pt.payment_category_id === paymentType.payment_category_id
+            ).payment_category_name;
+
+            // Check if a payment category with the same name already exists
+            const existingPaymentCategory = payment_details.find(
+              (pd) => pd.payment_category === paymentCategoryName
+            );
+
+            // If exists, push the payment type detail to existing payment category
+            if (existingPaymentCategory) {
+              existingPaymentCategory.payment_type_detail.push(
+                paymentTypeDetail
+              );
+            } else {
+              // If not exists, create a new payment category
+              const newPaymentCategory = {
+                payment_category: paymentCategoryName,
+                payment_type_detail: [paymentTypeDetail],
+                payment_category_id: paymentType.payment_category_id,
+              };
+              payment_details.push(newPaymentCategory);
+            }
           }
         }
       }
@@ -334,20 +356,108 @@ exports.getShiftStruct = async (req, res) => {
 
     // Calculate and add total_amount to each object in payment_details
     for (const paymentCategory of payment_details) {
-      paymentCategory.total_amount = paymentCategory.payment_type_detail.reduce(
-        (total, paymentType) => total + paymentType.total_payment,
-        0
-      );
+      const totalSuccessPayment = paymentCategory.payment_type_detail
+        .filter((pt) => pt.is_success === 1)
+        .reduce((total, paymentType) => total + paymentType.total_payment, 0);
+
+      const totalRefundPayment = paymentCategory.payment_type_detail
+        .filter((pt) => pt.is_refund === 1)
+        .reduce((total, paymentType) => total + paymentType.total_payment, 0);
+
+      paymentCategory.total_amount = totalSuccessPayment - totalRefundPayment;
     }
 
     // Calculate subtotal_transaction
-    const subtotal_transaction = payment_details.reduce(
+    const total_transaction = payment_details.reduce(
       (total, paymentCategory) => total + paymentCategory.total_amount,
       0
     );
 
-    const discount_total_amount =
-      discount_amount_per_items + discount_amount_transactions;
+    // Function to calculate sold_items, total_amount, discount_amount_transactions, and discount_amount_per_items
+    function calculateSummary(cartDetailsSuccess, cartDetailsPending, cartDetailsCancelled, refundDetails, transactions) {
+      const totalSuccessQty = cartDetailsSuccess.reduce(
+        (total, cart) => total + cart.qty,
+        0
+      );
+
+      const totalPendingQty = cartDetailsPending.reduce(
+        (total, cart) => total + cart.qty,
+        0
+      );
+
+      const totalCancelledQty = cartDetailsCancelled.reduce(
+        (total, cart) => total + cart.qty,
+        0
+      );
+
+      const totalRefundQty = refundDetails.reduce(
+        (total, refund) => total + refund.qty_refund_item,
+        0
+      );
+
+      const totalCartSuccessAmount = cartDetailsSuccess.reduce(
+        (total, cart) => total + cart.total_price,
+        0
+      );
+
+      const totalCartPendingAmount = cartDetailsPending.reduce(
+        (total, cart) => total + cart.total_price,
+        0
+      );
+
+      const totalCartCancelledAmount = cartDetailsCancelled.reduce(
+        (total, cart) => total + cart.total_price,
+        0
+      );
+
+      const totalCartRefundAmount = refundDetails.reduce(
+        (total, refund) => total + refund.total_refund_price,
+        0
+      );
+
+      // const discount_amount_transactions = cartDetailsSuccess.reduce(
+      //   (total, transaction) => total + transaction.total_discount,
+      //   0
+      // );
+
+      // const totalDiscountedPrice =
+      //   cartDetails.reduce((total, cart) => total + cart.discounted_price, 0) +
+      //   refundDetails.reduce(
+      //     (total, refund) => total + refund.discounted_price,
+      //     0
+      //   );
+
+      // const discount_amount_per_items = totalDiscountedPrice;
+
+      return {
+        totalSuccessQty,
+        totalPendingQty,
+        totalCancelledQty,
+        totalRefundQty,
+        totalCartSuccessAmount,
+        totalCartPendingAmount,
+        totalCartCancelledAmount,
+        totalCartRefundAmount,
+        // discount_amount_transactions,
+        // discount_amount_per_items,
+      };
+    }
+
+    const {
+      totalSuccessQty,
+      totalPendingQty,
+      totalCancelledQty,
+      totalRefundQty,
+      totalCartSuccessAmount,
+      totalCartPendingAmount,
+      totalCartCancelledAmount,
+      totalCartRefundAmount,
+      // discount_amount_transactions,
+      // discount_amount_per_items,
+    } = calculateSummary(cartDetailsSuccess, cartDetailsPending, cartDetailsCancelled, refundDetails, transactions);
+
+    // const discount_total_amount =
+    //   discount_amount_per_items + discount_amount_transactions;
     const ending_cash_expected = totalCashSales - expenditure.totalExpense;
 
     const result = {
@@ -359,19 +469,32 @@ exports.getShiftStruct = async (req, res) => {
       expenditures: expenditure.lists,
       expenditures_total: expenditure.totalExpense,
       ending_cash_expected: ending_cash_expected,
-      ending_cash_actual: actual_ending_cash,
-      cash_difference: ending_cash_expected - actual_ending_cash,
-      items_sold,
-      items_refunded,
-      items_total_amount,
-      discount_amount_transactions,
-      discount_amount_per_items,
-      discount_total_amount: discount_total_amount,
+      ending_cash_actual: actual_ending_cash ? actual_ending_cash : 0,
+      cash_difference: actual_ending_cash? ending_cash_expected - actual_ending_cash : 0,
+      // discount_amount_transactions,
+      // discount_amount_per_items,
+      // discount_total_amount: discount_total_amount,
       cart_details_success: cartDetailsSuccess,
+      totalSuccessQty,
+      totalCartSuccessAmount,
+
+
       cart_details_pending: cartDetailsPending,
+      totalPendingQty,
+      totalCartPendingAmount,
+
+      cart_details_cancelled: cartDetailsCancelled,
+      totalCancelledQty,
+      totalCartCancelledAmount,
+
+
       refund_details: refundDetails,
+      totalRefundQty,
+      totalCartRefundAmount,
+
+
       payment_details,
-      total_transaction: subtotal_transaction - discount_total_amount,
+      total_transaction: total_transaction,
     };
 
     return res.status(200).json({
