@@ -8,11 +8,20 @@ const moment = require("moment-timezone");
 
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.getByOutletId(req.query.outlet_id);
+    let cart = await Cart.getByOutletId(req.query.outlet_id);
+    let isQueuing = false;
     if (!cart) {
-      return res.status(404).json({
-        message: "Keranjang di Outlet ini sedang kosong",
-      });
+      cart = await Cart.getQueuingByOutletId(req.query.outlet_id);
+      if(!cart) {
+        return res.status(404).json({
+          message: "Keranjang di Outlet ini sedang kosong",
+        });
+      } else {
+        isQueuing = true;
+        await Cart.update(cart.id, {
+          is_queuing: true,
+        })
+      }
     }
 
     const cartDetails = await CartDetail.getByCartId(cart.id);
@@ -26,10 +35,12 @@ exports.getCart = async (req, res) => {
       cart_details: cartDetails,
     };
 
-    const transaction = await Transaction.getByCartId(cart.id);
-    if(transaction) {
-      result.customer_name = transaction.customer_name;
-      result.customer_seat = transaction.customer_seat;
+    if(!isQueuing) {
+      const transaction = await Transaction.getByCartId(cart.id);
+      if(transaction) {
+        result.customer_name = transaction.customer_name;
+        result.customer_seat = transaction.customer_seat;
+      }
     }
 
     return res.status(200).json({

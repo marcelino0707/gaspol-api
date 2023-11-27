@@ -133,6 +133,7 @@ exports.createTransaction = async (req, res) => {
 
     await Cart.update(cart_id, {
       is_active: false,
+      is_queuing: false,
     });
 
     await CartDetail.updateAllByCartId(cart_id, {
@@ -260,6 +261,18 @@ exports.getTransactionById = async (req, res) => {
       transaction.invoice_number == null &&
       (is_struct != true || is_struct != 1)
     ) {
+      const isActivedCart = await Cart.getActiveCartId(cart.outlet_id);
+      if (isActivedCart && isActivedCart.id != transaction.cart_id) {
+        const isSavedTransaction = await Transaction.getByCartId(isActivedCart.id)
+        if(isSavedTransaction == undefined || isSavedTransaction == null) {
+          await Cart.update(isActivedCart.id, {
+            is_queuing: true,
+          })
+        }
+        await Cart.update(isActivedCart.id, {
+          is_active: false,
+        });
+      }
       // Activate cart
       await Cart.update(transaction.cart_id, {
         is_active: true,

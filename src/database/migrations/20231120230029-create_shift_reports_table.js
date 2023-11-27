@@ -15,7 +15,7 @@ module.exports = {
       },
       actual_ending_cash: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       expected_ending_cash: {
         type: Sequelize.FLOAT,
@@ -46,6 +46,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE,
         defaultValue: null, 
+      },
+      casher_name: {
+        allowNull: true,
+        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,

@@ -174,14 +174,16 @@ exports.getShiftStruct = async (req, res) => {
     }
 
     // Separate cartDetails into cartDetailsSuccess and cartDetailsPending
-    const cartDetailsSuccess = cartDetails.filter((cart) => {
-      const associatedTransaction = transactions.find(
-        (transaction) =>
-          transaction.cart_id === cart.cart_id &&
-          transaction.invoice_number !== null
-      );
-      return !!associatedTransaction;
-    });
+    const cartDetailsSuccess = cartDetails
+      .filter((cart) => {
+        const associatedTransaction = transactions.find(
+          (transaction) =>
+            transaction.cart_id === cart.cart_id &&
+            transaction.invoice_number !== null
+        );
+        return !!associatedTransaction;
+      })
+      .filter((cart) => cart.total_price > 0);
 
     const cartDetailsPending = cartDetails.filter((cart) => {
       const associatedTransaction = transactions.find(
@@ -252,6 +254,11 @@ exports.getShiftStruct = async (req, res) => {
       (total, cart) => total + cart.total_price,
       0
     );
+
+    const cashRefundDetails = refundDetails.filter(
+      (refund) => refund.payment_type_id == 1
+    )
+
     const paymentDetailsCash = {
       payment_category: "Cash Payment",
       payment_type_detail: [
@@ -268,12 +275,13 @@ exports.getShiftStruct = async (req, res) => {
         },
         {
           payment_type: "Cash Refund",
-          total_payment: refundDetails.reduce(
+          total_payment: cashRefundDetails.reduce(
             (total, refund) => total + refund.total_refund_price,
             0
           ),
         },
       ],
+      payment_category_id: 1,
     };
     payment_details.push(paymentDetailsCash);
 
@@ -300,7 +308,7 @@ exports.getShiftStruct = async (req, res) => {
         if (paymentTypeDetail.total_payment > 0) {
           // Find the payment category name
           const paymentCategoryName = payment_types.find(
-            (pt) => pt.id === paymentType.payment_category_id
+            (pt) => pt.payment_category_id === paymentType.payment_category_id
           ).payment_category_name;
 
           // Check if a payment category with the same name already exists
@@ -316,6 +324,7 @@ exports.getShiftStruct = async (req, res) => {
             const newPaymentCategory = {
               payment_category: paymentCategoryName,
               payment_type_detail: [paymentTypeDetail],
+              payment_category_id: paymentType.payment_category_id,
             };
             payment_details.push(newPaymentCategory);
           }
@@ -349,7 +358,7 @@ exports.getShiftStruct = async (req, res) => {
       end_date: endDateString,
       expenditures: expenditure.lists,
       expenditures_total: expenditure.totalExpense,
-      ending_cash_expected : ending_cash_expected,
+      ending_cash_expected: ending_cash_expected,
       ending_cash_actual: actual_ending_cash,
       cash_difference: ending_cash_expected - actual_ending_cash,
       items_sold,

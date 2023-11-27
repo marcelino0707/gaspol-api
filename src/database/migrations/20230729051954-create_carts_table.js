@@ -37,6 +37,11 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.TINYINT,
       },
+      is_queuing: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       cancel_reason: {
         allowNull: true,
         type: Sequelize.STRING,
