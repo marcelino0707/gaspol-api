@@ -13,6 +13,14 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      shift_number: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
+      casher_name: {
+        allowNull: true,
+        type: Sequelize.STRING,
+      },
       actual_ending_cash: {
         type: Sequelize.FLOAT,
         allowNull: true,

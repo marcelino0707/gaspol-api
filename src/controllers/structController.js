@@ -9,6 +9,7 @@ const ServingType = require("../models/serving_type");
 const Outlet = require("../models/outlet");
 const Expenditure = require("../models/expenditure");
 const PaymentType = require("../models/payment_type");
+const ShiftReport = require("../models/shift_report");
 const moment = require("moment-timezone");
 
 exports.getCustomerStruct = async (req, res) => {
@@ -133,15 +134,77 @@ exports.getKitchenStruct = async (req, res) => {
 
 exports.getShiftStruct = async (req, res) => {
   const thisTimeNow = moment();
-  const { start_time, end_time, outlet_id, actual_ending_cash } = req.body;
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+
+  const { outlet_id, actual_ending_cash, casher_name } = req.body;
   try {
+    const shiftReports = await ShiftReport.getLastCreated(outlet_id);
+    function getStartDate() {
+      const today = moment().tz("Asia/Jakarta");
+      const startDate = today.set({
+        hour: 6,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+      });
+      return startDate.toDate();
+    }
+
+    let startDate = getStartDate();
+    let shiftNumber = 1;
+
+    if (!shiftReports) {
+      await ShiftReport.create({
+        outlet_id: outlet_id,
+        start_date: getStartDate(),
+        shift_number: 1,
+        end_date: indoDateTime,
+        casher_name: casher_name,
+        actual_ending_cash: actual_ending_cash,
+      });
+    } else {
+      const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
+
+      if (
+        shiftStartDate.isAfter(moment().tz("Asia/Jakarta").startOf("day")) &&
+        shiftStartDate.isBefore(
+          moment()
+            .tz("Asia/Jakarta")
+            .set({ hour: 5, minute: 0, second: 0, millisecond: 0 })
+        )
+      ) {
+        await ShiftReport.update(shiftReports.id, {
+          shift_number: 1,
+          start_date: getStartDate(),
+          end_date: indoDateTime,
+          casher_name: casher_name,
+          actual_ending_cash: actual_ending_cash,
+          updated_at: indoDateTime,
+        });
+      } else {
+        await ShiftReport.update(shiftReports.id, {
+          end_date: indoDateTime,
+          casher_name: casher_name,
+          actual_ending_cash: actual_ending_cash,
+          updated_at: indoDateTime,
+        });
+        startDate = shiftReports.start_date;
+        shiftNumber = shiftReports.shift_number;
+      }
+    }
+
+    // generate start_date for next shift
+    const nextShiftStartDate = moment(indoDateTime).add(1, "seconds").toDate();
+    await ShiftReport.create({
+      outlet_id: outlet_id,
+      start_date: nextShiftStartDate,
+      shift_number: shiftNumber + 1,
+    });
+
+    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
+
     const outlet = await Outlet.getByOutletId(outlet_id);
-
-    const startDateString =
-      moment(thisTimeNow).format("YYYY-MM-DD") + " " + start_time;
-    const endDateString =
-      moment(thisTimeNow).format("YYYY-MM-DD") + " " + end_time;
-
     const expenditure = await Expenditure.getExpenseReport(
       outlet_id,
       startDateString,
@@ -202,12 +265,12 @@ exports.getShiftStruct = async (req, res) => {
       return !!associatedTransaction;
     });
 
-    // Extract cart details for cancelled transactions
-    const cartDetailsCancelled = cartDetails.filter((cart) => {
-      const associatedCancelledTransaction = transactionsCanceled.find(
+    // Extract cart details for canceled transactions
+    const cartDetailsCanceled = cartDetails.filter((cart) => {
+      const associatedCanceledTransaction = transactionsCanceled.find(
         (transaction) => transaction.cart_id === cart.cart_id
       );
-      return !!associatedCancelledTransaction;
+      return !!associatedCanceledTransaction;
     });
 
     const payment_details = [];
@@ -262,7 +325,7 @@ exports.getShiftStruct = async (req, res) => {
           is_pending: 0,
         },
         {
-          payment_type: "Cash Cancelled",
+          payment_type: "Cash Canceled",
           total_payment: transactionsCanceled.reduce(
             (total, transaction) => total + transaction.total,
             0
@@ -281,7 +344,9 @@ exports.getShiftStruct = async (req, res) => {
       if (paymentType.id != 1) {
         // Get transactions related to the current payment type
         const transactionsByPaymentType = transactions.filter(
-          (transaction) => transaction.payment_type_id === paymentType.id && transaction.refund_id == null
+          (transaction) =>
+            transaction.payment_type_id === paymentType.id &&
+            transaction.refund_id == null
         );
 
         // Calculate total amount for the current payment type
@@ -374,7 +439,13 @@ exports.getShiftStruct = async (req, res) => {
     );
 
     // Function to calculate sold_items, total_amount, discount_amount_transactions, and discount_amount_per_items
-    function calculateSummary(cartDetailsSuccess, cartDetailsPending, cartDetailsCancelled, refundDetails, transactions) {
+    function calculateSummary(
+      cartDetailsSuccess,
+      cartDetailsPending,
+      cartDetailsCanceled,
+      refundDetails,
+      transactions
+    ) {
       const totalSuccessQty = cartDetailsSuccess.reduce(
         (total, cart) => total + cart.qty,
         0
@@ -385,7 +456,7 @@ exports.getShiftStruct = async (req, res) => {
         0
       );
 
-      const totalCancelledQty = cartDetailsCancelled.reduce(
+      const totalCanceledQty = cartDetailsCanceled.reduce(
         (total, cart) => total + cart.qty,
         0
       );
@@ -405,7 +476,7 @@ exports.getShiftStruct = async (req, res) => {
         0
       );
 
-      const totalCartCancelledAmount = cartDetailsCancelled.reduce(
+      const totalCartCanceledAmount = cartDetailsCanceled.reduce(
         (total, cart) => total + cart.total_price,
         0
       );
@@ -432,11 +503,11 @@ exports.getShiftStruct = async (req, res) => {
       return {
         totalSuccessQty,
         totalPendingQty,
-        totalCancelledQty,
+        totalCanceledQty,
         totalRefundQty,
         totalCartSuccessAmount,
         totalCartPendingAmount,
-        totalCartCancelledAmount,
+        totalCartCanceledAmount,
         totalCartRefundAmount,
         // discount_amount_transactions,
         // discount_amount_per_items,
@@ -446,31 +517,50 @@ exports.getShiftStruct = async (req, res) => {
     const {
       totalSuccessQty,
       totalPendingQty,
-      totalCancelledQty,
+      totalCanceledQty,
       totalRefundQty,
       totalCartSuccessAmount,
       totalCartPendingAmount,
-      totalCartCancelledAmount,
+      totalCartCanceledAmount,
       totalCartRefundAmount,
       // discount_amount_transactions,
       // discount_amount_per_items,
-    } = calculateSummary(cartDetailsSuccess, cartDetailsPending, cartDetailsCancelled, refundDetails, transactions);
+    } = calculateSummary(
+      cartDetailsSuccess,
+      cartDetailsPending,
+      cartDetailsCanceled,
+      refundDetails,
+      transactions
+    );
 
     // const discount_total_amount =
     //   discount_amount_per_items + discount_amount_transactions;
     const ending_cash_expected = totalCashSales - expenditure.totalExpense;
 
+    await ShiftReport.update(shiftReports.id, {
+      cash_difference: actual_ending_cash
+        ? ending_cash_expected - actual_ending_cash
+        : 0,
+      expected_ending_cash: ending_cash_expected,
+      total_amount: total_transaction,
+      updated_at: indoDateTime,
+    });
+
     const result = {
       outlet_name: outlet.name,
       outlet_address: outlet.address,
       outlet_phone_number: outlet.phone_number,
+      casher_name: casher_name,
+      shift_number: shiftNumber,
       start_date: startDateString,
       end_date: endDateString,
       expenditures: expenditure.lists,
       expenditures_total: expenditure.totalExpense,
       ending_cash_expected: ending_cash_expected,
       ending_cash_actual: actual_ending_cash ? actual_ending_cash : 0,
-      cash_difference: actual_ending_cash? ending_cash_expected - actual_ending_cash : 0,
+      cash_difference: actual_ending_cash
+        ? ending_cash_expected - actual_ending_cash
+        : 0,
       // discount_amount_transactions,
       // discount_amount_per_items,
       // discount_total_amount: discount_total_amount,
@@ -478,20 +568,17 @@ exports.getShiftStruct = async (req, res) => {
       totalSuccessQty,
       totalCartSuccessAmount,
 
-
       cart_details_pending: cartDetailsPending,
       totalPendingQty,
       totalCartPendingAmount,
 
-      cart_details_cancelled: cartDetailsCancelled,
-      totalCancelledQty,
-      totalCartCancelledAmount,
-
+      cart_details_canceled: cartDetailsCanceled,
+      totalCanceledQty,
+      totalCartCanceledAmount,
 
       refund_details: refundDetails,
       totalRefundQty,
       totalCartRefundAmount,
-
 
       payment_details,
       total_transaction: total_transaction,
