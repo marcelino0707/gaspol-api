@@ -258,6 +258,7 @@ exports.deleteCart = async (req, res) => {
             is_canceled: 1,
             cancel_reason: cancel_reason,
             is_active: false,
+            is_queuing: false,
             updated_at: indoDateTime,
           });
         } else {
