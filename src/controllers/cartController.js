@@ -339,6 +339,11 @@ exports.splitCart = async (req, res) => {
         if(oldCartDetail.discount_id != 0) {
           subtotalCartDetail = oldCartDetail.total_price;
         }
+        if(oldCartDetail.qty == 0) {
+          await CartDetail.update(oldCartDetail.cart_detail_id, {
+            deleted_at: indoDateTime,
+          })
+        }
         subtotalCart = subtotalCart + subtotalCartDetail;
       }
 
