@@ -106,7 +106,16 @@ exports.createRefund = async (req, res) => {
         updated_at: indoDateTime,
       })
     } else {
-      if(transaction.total == refundResult.total_refund) {
+      let refundAll = false;
+      for ( const cartDetail of cartDetails){
+        if (cartDetail.qty == 0) {
+          refundAll = true;
+        } else {
+          refundAll = false;
+        }
+      }
+
+      if(refundAll) {
         await Transaction.update(transaction_id, {
           is_refunded : 1,
           updated_at: indoDateTime,
