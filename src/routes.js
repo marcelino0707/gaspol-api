@@ -114,4 +114,7 @@ route.patch("/custom-menu-price/:id", customPrice.updateCustomizePrice);
 // Expenditure
 route.post("/expenditure", expenditure.createExpense);
 
+// Split Cart
+route.post("/split-cart", cart.splitCart);
+
 module.exports = route;

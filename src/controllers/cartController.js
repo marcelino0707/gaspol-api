@@ -18,9 +18,6 @@ exports.getCart = async (req, res) => {
         });
       } else {
         isQueuing = true;
-        await Cart.update(cart.id, {
-          is_queuing: true,
-        })
       }
     }
 
@@ -287,6 +284,91 @@ exports.deleteCart = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Error while deleting cart",
+    });
+  }
+};
+
+exports.splitCart = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
+  const { outlet_id, cart_id, cart_details } = req.body;
+  try {
+    const newCart = await Cart.create({
+      outlet_id: outlet_id,
+    });
+    const newCartID = newCart.insertId;
+    let subtotalNewCart = 0;
+    for (const cartDetail of cart_details) {
+      const oldCartDetail = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
+      const oldTotalPriceItem = oldCartDetail.price * (oldCartDetail.qty - cartDetail.qty_to_split);
+      const newTotalPriceItem = oldCartDetail.price * cartDetail.qty_to_split;
+      
+      const newCartDetail = {
+        cart_id: newCartID,
+        menu_id: oldCartDetail.menu_id,
+        serving_type_id: oldCartDetail.serving_type_id,
+        qty: cartDetail.qty_to_split,
+        total_price: newTotalPriceItem,
+      }
+
+      if(oldCartDetail.menu_detail_id != null) {
+        newCartDetail.menu_detail_id = oldCartDetail.menu_detail_id;
+      }
+
+      if(oldCartDetail.note_item) {
+        newCartDetail.note_item = oldCartDetail.note_item;
+      }
+
+      await CartDetail.create(newCartDetail);
+
+      await CartDetail.update(cartDetail.cart_detail_id,{
+        discount_id: 0,
+        discounted_price: null,
+        qty: oldCartDetail.qty - cartDetail.qty_to_split,
+        total_price: oldTotalPriceItem,
+      });
+
+      subtotalNewCart = subtotalNewCart + newTotalPriceItem;
+    }
+
+    const oldCartDetails = await CartDetail.getByCartId(cart_id);
+    if(oldCartDetails) {
+      let subtotalCart = 0;
+      for(const oldCartDetail of oldCartDetails) {
+        let subtotalCartDetail = oldCartDetail.qty * oldCartDetail.price;
+        if(oldCartDetail.discount_id != 0) {
+          subtotalCartDetail = oldCartDetail.total_price;
+        }
+        subtotalCart = subtotalCart + subtotalCartDetail;
+      }
+
+      await Cart.update(cart_id, {
+        subtotal: subtotalCart,
+        total: subtotalCart,
+        discount_id: null,
+        updated_at: indoDateTime,
+        is_active: 0, 
+        is_queuing: 1,
+      })
+    }
+
+    await Cart.update(newCartID, {
+      subtotal: subtotalNewCart,
+      total: subtotalNewCart,
+      updated_at: indoDateTime,
+      is_active: 1, 
+      is_queuing: 0,
+    })
+
+    return res.status(201).json({
+      message: "Cart berhasil dipisah!",
+    });
+  } catch (error) {
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || "Some error occurred while separate the cart";
+
+    return res.status(statusCode).json({
+      message: errorMessage,
     });
   }
 };

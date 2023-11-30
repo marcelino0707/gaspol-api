@@ -5,7 +5,7 @@ const Cart = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, outlet_id, subtotal, total, discount_id FROM carts WHERE outlet_id = ? AND is_queuing = 1 AND deleted_at IS NULL", outlet_id, (error, results) => {
+          connection.query("SELECT id, outlet_id, subtotal, total, discount_id FROM carts WHERE outlet_id = ? AND is_queuing = 1 AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 1", outlet_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
