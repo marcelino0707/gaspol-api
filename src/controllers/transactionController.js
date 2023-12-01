@@ -246,9 +246,11 @@ exports.getTransactionById = async (req, res) => {
       result.invoice_due_date = formatDate(transaction.invoice_due_date);
     }
 
+    result.is_refund_all = null;
+    result.total_refund = null;
+    result.refund_details = [];
     if (refund) {
       result.is_refund_all = refund.is_refund_all;
-      result.refund_reason = refund.refund_reason;
       result.total_refund = refund.total_refund;
       const refundDetailsWithoutId = refundDetails.map((detail) => {
         const { id, ...detailWithoutId } = detail;
