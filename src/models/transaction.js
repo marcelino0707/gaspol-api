@@ -32,7 +32,7 @@ const Transaction = {
               outlet_id +
               " AND DATE(transactions.updated_at) = '" +
               date +
-              "' AND transactions.invoice_due_date IS NOT NULL AND transactions.is_refunded = 0 AND transactions.deleted_at IS NULL",
+              "' AND transactions.invoice_due_date IS NOT NULL AND transactions.deleted_at IS NULL",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
