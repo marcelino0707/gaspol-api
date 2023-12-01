@@ -309,6 +309,7 @@ exports.splitCart = async (req, res) => {
         menu_id: oldCartDetail.menu_id,
         serving_type_id: oldCartDetail.serving_type_id,
         qty: cartDetail.qty_to_split,
+        price: oldCartDetail.price,
         total_price: newTotalPriceItem,
       }
 
