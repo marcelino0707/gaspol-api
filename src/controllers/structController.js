@@ -201,7 +201,9 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    // const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
+
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
     const outlet = await Outlet.getByOutletId(outlet_id);
@@ -345,8 +347,7 @@ exports.getShiftStruct = async (req, res) => {
         // Get transactions related to the current payment type
         const transactionsByPaymentType = transactions.filter(
           (transaction) =>
-            transaction.payment_type_id === paymentType.id &&
-            transaction.refund_id == null
+            transaction.payment_type_id === paymentType.id
         );
 
         // Calculate total amount for the current payment type
@@ -539,7 +540,7 @@ exports.getShiftStruct = async (req, res) => {
 
     await ShiftReport.update(shiftReports.id, {
       cash_difference: actual_ending_cash
-        ? ending_cash_expected - actual_ending_cash
+        ? actual_ending_cash - ending_cash_expected
         : 0,
       expected_ending_cash: ending_cash_expected,
       total_amount: total_transaction,
