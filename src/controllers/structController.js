@@ -201,8 +201,7 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    // const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
 
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
@@ -218,6 +217,7 @@ exports.getShiftStruct = async (req, res) => {
       startDateString,
       endDateString
     );
+
     let cartDetails = [];
     let refundDetails = [];
     const transactions = transactionsNotFiltered.filter(
@@ -280,13 +280,14 @@ exports.getShiftStruct = async (req, res) => {
       .filter((cart) => {
         const associatedTransaction = transactions.find(
           (transaction) =>
-            transaction.cart_id === cart.cart_id &&
+            transaction.cart_id == cart.cart_id &&
             transaction.invoice_number !== null &&
             transaction.payment_type_id == 1
         );
         return !!associatedTransaction;
       })
       .filter((cart) => cart.total_price > 0);
+
     const totalCashSales = cartDetailsSuccessCash.reduce(
       (total, cart) => total + cart.total_price,
       0
@@ -346,8 +347,7 @@ exports.getShiftStruct = async (req, res) => {
       if (paymentType.id != 1) {
         // Get transactions related to the current payment type
         const transactionsByPaymentType = transactions.filter(
-          (transaction) =>
-            transaction.payment_type_id === paymentType.id
+          (transaction) => transaction.payment_type_id === paymentType.id
         );
 
         // Calculate total amount for the current payment type
@@ -467,6 +467,11 @@ exports.getShiftStruct = async (req, res) => {
         0
       );
 
+      const subtotalCartSuccessAmount = cartDetailsSuccess.reduce(
+        (total, cart) => total + cart.price * cart.qty,
+        0
+      );
+
       const totalCartSuccessAmount = cartDetailsSuccess.reduce(
         (total, cart) => total + cart.total_price,
         0
@@ -482,24 +487,29 @@ exports.getShiftStruct = async (req, res) => {
         0
       );
 
+      const subtotalCartRefundAmount = refundDetails.reduce(
+        (total, cart) => total + cart.price * cart.qty_refund_item,
+        0
+      );
+
       const totalCartRefundAmount = refundDetails.reduce(
         (total, refund) => total + refund.total_refund_price,
         0
       );
 
-      // const discount_amount_transactions = cartDetailsSuccess.reduce(
-      //   (total, transaction) => total + transaction.total_discount,
-      //   0
-      // );
+      const discount_amount_transactions = transactions.reduce(
+        (total, transaction) => total + transaction.total_discount,
+        0
+      );
 
-      // const totalDiscountedPrice =
-      //   cartDetails.reduce((total, cart) => total + cart.discounted_price, 0) +
-      //   refundDetails.reduce(
-      //     (total, refund) => total + refund.discounted_price,
-      //     0
-      //   );
+      const discountAmountCashTransactions = transactions
+        .filter((transaction) => transaction.payment_type_id == 1)
+        .reduce((total, transaction) => total + transaction.total_discount, 0);
 
-      // const discount_amount_per_items = totalDiscountedPrice;
+      const discount_amount_per_items =
+        subtotalCartSuccessAmount -
+        totalCartSuccessAmount +
+        (subtotalCartRefundAmount - totalCartRefundAmount);
 
       return {
         totalSuccessQty,
@@ -510,8 +520,9 @@ exports.getShiftStruct = async (req, res) => {
         totalCartPendingAmount,
         totalCartCanceledAmount,
         totalCartRefundAmount,
-        // discount_amount_transactions,
-        // discount_amount_per_items,
+        discount_amount_transactions,
+        discount_amount_per_items,
+        discountAmountCashTransactions,
       };
     }
 
@@ -524,8 +535,9 @@ exports.getShiftStruct = async (req, res) => {
       totalCartPendingAmount,
       totalCartCanceledAmount,
       totalCartRefundAmount,
-      // discount_amount_transactions,
-      // discount_amount_per_items,
+      discount_amount_transactions,
+      discount_amount_per_items,
+      discountAmountCashTransactions,
     } = calculateSummary(
       cartDetailsSuccess,
       cartDetailsPending,
@@ -534,16 +546,15 @@ exports.getShiftStruct = async (req, res) => {
       transactions
     );
 
-    // const discount_total_amount =
-    //   discount_amount_per_items + discount_amount_transactions;
-    const ending_cash_expected = totalCashSales - expenditure.totalExpense;
-
+    const discount_total_amount =
+      discount_amount_per_items + discount_amount_transactions;
+    const ending_cash_expected = (totalCashSales - discountAmountCashTransactions) - expenditure.totalExpense;
+    const cash_difference = actual_ending_cash - ending_cash_expected;
     await ShiftReport.update(shiftReports.id, {
-      cash_difference: actual_ending_cash
-        ? actual_ending_cash - ending_cash_expected
-        : 0,
+      cash_difference: cash_difference,
       expected_ending_cash: ending_cash_expected,
-      total_amount: total_transaction,
+      total_discount: discount_total_amount,
+      total_amount: total_transaction - discount_amount_transactions,
       updated_at: indoDateTime,
     });
 
@@ -559,12 +570,10 @@ exports.getShiftStruct = async (req, res) => {
       expenditures_total: expenditure.totalExpense,
       ending_cash_expected: ending_cash_expected,
       ending_cash_actual: actual_ending_cash ? actual_ending_cash : 0,
-      cash_difference: actual_ending_cash
-        ? ending_cash_expected - actual_ending_cash
-        : 0,
-      // discount_amount_transactions,
-      // discount_amount_per_items,
-      // discount_total_amount: discount_total_amount,
+      cash_difference,
+      discount_amount_transactions,
+      discount_amount_per_items,
+      discount_total_amount,
       cart_details_success: cartDetailsSuccess,
       totalSuccessQty,
       totalCartSuccessAmount,
