@@ -201,9 +201,10 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    // const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
 
-    const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
+    const endDateString = moment(indoDateTime).add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
 
     const outlet = await Outlet.getByOutletId(outlet_id);
     const expenditure = await Expenditure.getExpenseReport(
