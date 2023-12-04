@@ -1,6 +1,6 @@
 const Cart = require("../models/cart");
 const CartDetail = require("../models/cart_detail");
-const Discount = require("../models/discount")
+const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Outlet = require("../models/outlet");
 const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
@@ -12,7 +12,7 @@ exports.getCart = async (req, res) => {
     let isQueuing = false;
     if (!cart) {
       cart = await Cart.getQueuingByOutletId(req.query.outlet_id);
-      if(!cart) {
+      if (!cart) {
         return res.status(404).json({
           message: "Keranjang di Outlet ini sedang kosong",
         });
@@ -22,7 +22,7 @@ exports.getCart = async (req, res) => {
     }
 
     const cartDetails = await CartDetail.getByCartId(cart.id);
-    
+
     const result = {
       customer_name: "",
       customer_seat: "",
@@ -32,9 +32,9 @@ exports.getCart = async (req, res) => {
       cart_details: cartDetails,
     };
 
-    if(!isQueuing) {
+    if (!isQueuing) {
       const transaction = await Transaction.getByCartId(cart.id);
-      if(transaction) {
+      if (transaction) {
         result.customer_name = transaction.customer_name;
         result.customer_seat = transaction.customer_seat;
       }
@@ -66,17 +66,36 @@ exports.getCartItems = async (req, res) => {
 
 exports.createCart = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
-  const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+  const {
+    outlet_id,
+    menu_id,
+    menu_detail_id,
+    serving_type_id,
+    discount_id,
+    price,
+    qty,
+    note_item,
+  } = req.body;
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     let cartDetailTotalPrice = price * qty;
-    
-    let cartId, subTotalPrice = 0;
-    
+
+    let cartId,
+      subTotalPrice = 0;
+
     const discount = await Discount.getById(discount_id);
-    if(discount_id != 0) {
-      discountedPrice = await applyDiscountAndUpdateTotal(price, qty, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, null);
+    if (discount_id != 0) {
+      discountedPrice = await applyDiscountAndUpdateTotal(
+        price,
+        qty,
+        discount.is_percent,
+        discount.value,
+        discount.min_purchase,
+        discount.max_discount,
+        discount.is_discount_cart,
+        null
+      );
       cartDetailTotalPrice = discountedPrice;
     }
 
@@ -102,7 +121,10 @@ exports.createCart = async (req, res) => {
     if (discount_id != 0) {
       newCartDetail.discount_id = discount_id;
       const discountedPricePercent = discountedPrice / qty;
-      newCartDetail.discounted_price = Math.max(100, Math.ceil(discountedPricePercent / 100) * 100);
+      newCartDetail.discounted_price = Math.max(
+        100,
+        Math.ceil(discountedPricePercent / 100) * 100
+      );
     }
 
     if (menu_detail_id) {
@@ -129,7 +151,8 @@ exports.createCart = async (req, res) => {
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Some error occurred while creating the cart";
+    const errorMessage =
+      error.message || "Some error occurred while creating the cart";
 
     return res.status(statusCode).json({
       message: errorMessage,
@@ -139,9 +162,18 @@ exports.createCart = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   const cart_detail_id = req.params.id;
-  const { outlet_id, menu_id, menu_detail_id, serving_type_id, discount_id, price, qty, note_item } = req.body;
+  const {
+    outlet_id,
+    menu_id,
+    menu_detail_id,
+    serving_type_id,
+    discount_id,
+    price,
+    qty,
+    note_item,
+  } = req.body;
 
   const updatedCartItems = {
     menu_id,
@@ -158,7 +190,7 @@ exports.updateCart = async (req, res) => {
     updatedCartItems.menu_detail_id = null;
   }
 
-  try {  
+  try {
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
     const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
@@ -169,21 +201,33 @@ exports.updateCart = async (req, res) => {
     }
 
     // if(cartDetail.discount_id != 0) {
-      if(discount_id == 0 || discount_id == null) {
-        updatedCartItems.discount_id = 0;
-        updatedCartItems.discounted_price = 0;
-      } else {
-        const discount = await Discount.getById(discount_id);
-        discountedPrice = await applyDiscountAndUpdateTotal(price, qty, discount.is_percent, discount.value, discount.min_purchase, discount.max_discount, discount.is_discount_cart, null);
-        cartDetailTotalPrice = discountedPrice * qty;
-        const discountedPricePercent = discountedPrice / qty;
-        updatedCartItems.discounted_price = Math.max(100, Math.ceil(discountedPricePercent / 100) * 100);
-        updatedCartItems.discount_id = discount_id;
-      }
+    if (discount_id == 0 || discount_id == null) {
+      updatedCartItems.discount_id = 0;
+      updatedCartItems.discounted_price = 0;
+    } else {
+      const discount = await Discount.getById(discount_id);
+      discountedPrice = await applyDiscountAndUpdateTotal(
+        price,
+        qty,
+        discount.is_percent,
+        discount.value,
+        discount.min_purchase,
+        discount.max_discount,
+        discount.is_discount_cart,
+        null
+      );
+      cartDetailTotalPrice = discountedPrice * qty;
+      const discountedPricePercent = discountedPrice / qty;
+      updatedCartItems.discounted_price = Math.max(
+        100,
+        Math.ceil(discountedPricePercent / 100) * 100
+      );
+      updatedCartItems.discount_id = discount_id;
+    }
     // }
 
     updatedCartItems.total_price = cartDetailTotalPrice;
-  
+
     await CartDetail.update(cart_detail_id, updatedCartItems);
 
     const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
@@ -200,7 +244,8 @@ exports.updateCart = async (req, res) => {
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Some error occurred while updating the cart";
+    const errorMessage =
+      error.message || "Some error occurred while updating the cart";
 
     return res.status(statusCode).json({
       message: errorMessage,
@@ -210,10 +255,10 @@ exports.updateCart = async (req, res) => {
 
 exports.deleteCartItems = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const cart_detail_id = req.params.id;
-    const { outlet_id } = req.query;
+    const { outlet_id, cancel_reason } = req.query;
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetails = await CartDetail.getByCartDetailId(cart_detail_id);
     totalCart = cart.subtotal - cartDetails.total_price;
@@ -225,9 +270,20 @@ exports.deleteCartItems = async (req, res) => {
       updated_at: indoDateTime,
     };
 
+    const updateCartDetail = {
+      updated_at: indoDateTime,
+    };
+
+    if (cancel_reason) {
+      updateCartDetail.is_canceled = 1;
+      updateCartDetail.cancel_reason = cancel_reason;
+    } else {
+      updateCartDetail.deleted_at = indoDateTime;
+    }
+
     await Cart.update(cart.id, updateCost);
     await CartDetail.update(cartDetails.cart_detail_id, {
-      deleted_at: indoDateTime,
+      updateCartDetail,
     });
 
     return res.status(200).json({
@@ -242,7 +298,7 @@ exports.deleteCartItems = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const { outlet_id, cart_id, pin, cancel_reason } = req.body;
     const outlet = await Outlet.getByOutletId(outlet_id);
@@ -252,8 +308,8 @@ exports.deleteCart = async (req, res) => {
         message: "Pin Salah!",
       });
     } else {
-      if(cancel_reason) {
-        if(cart_id) {
+      if (cancel_reason) {
+        if (cart_id) {
           await Cart.update(cart_id, {
             is_canceled: 1,
             cancel_reason: cancel_reason,
@@ -265,18 +321,18 @@ exports.deleteCart = async (req, res) => {
           await CartDetail.updateAllByCartId(cart_id, {
             deleted_at: indoDateTime,
           });
-      
+
           const deleteCost = {
             subtotal: 0,
             total: 0,
             discount_id: null,
             updated_at: indoDateTime,
           };
-      
+
           await Cart.update(cart_id, deleteCost);
         }
       }
-  
+
       return res.status(200).json({
         code: 200,
         message: "Berhasil menghapus data keranjang",
@@ -291,7 +347,7 @@ exports.deleteCart = async (req, res) => {
 
 exports.splitCart = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate(); 
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   const { outlet_id, cart_id, cart_details } = req.body;
   try {
     const newCart = await Cart.create({
@@ -300,10 +356,13 @@ exports.splitCart = async (req, res) => {
     const newCartID = newCart.insertId;
     let subtotalNewCart = 0;
     for (const cartDetail of cart_details) {
-      const oldCartDetail = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
-      const oldTotalPriceItem = oldCartDetail.price * (oldCartDetail.qty - cartDetail.qty_to_split);
+      const oldCartDetail = await CartDetail.getByCartDetailId(
+        cartDetail.cart_detail_id
+      );
+      const oldTotalPriceItem =
+        oldCartDetail.price * (oldCartDetail.qty - cartDetail.qty_to_split);
       const newTotalPriceItem = oldCartDetail.price * cartDetail.qty_to_split;
-      
+
       const newCartDetail = {
         cart_id: newCartID,
         menu_id: oldCartDetail.menu_id,
@@ -311,19 +370,19 @@ exports.splitCart = async (req, res) => {
         qty: cartDetail.qty_to_split,
         price: oldCartDetail.price,
         total_price: newTotalPriceItem,
-      }
+      };
 
-      if(oldCartDetail.menu_detail_id != null) {
+      if (oldCartDetail.menu_detail_id != null) {
         newCartDetail.menu_detail_id = oldCartDetail.menu_detail_id;
       }
 
-      if(oldCartDetail.note_item) {
+      if (oldCartDetail.note_item) {
         newCartDetail.note_item = oldCartDetail.note_item;
       }
 
       await CartDetail.create(newCartDetail);
 
-      await CartDetail.update(cartDetail.cart_detail_id,{
+      await CartDetail.update(cartDetail.cart_detail_id, {
         discount_id: 0,
         discounted_price: null,
         qty: oldCartDetail.qty - cartDetail.qty_to_split,
@@ -334,17 +393,17 @@ exports.splitCart = async (req, res) => {
     }
 
     const oldCartDetails = await CartDetail.getByCartId(cart_id);
-    if(oldCartDetails) {
+    if (oldCartDetails) {
       let subtotalCart = 0;
-      for(const oldCartDetail of oldCartDetails) {
+      for (const oldCartDetail of oldCartDetails) {
         let subtotalCartDetail = oldCartDetail.qty * oldCartDetail.price;
-        if(oldCartDetail.discount_id != 0) {
+        if (oldCartDetail.discount_id != 0) {
           subtotalCartDetail = oldCartDetail.total_price;
         }
-        if(oldCartDetail.qty == 0) {
+        if (oldCartDetail.qty == 0) {
           await CartDetail.update(oldCartDetail.cart_detail_id, {
             deleted_at: indoDateTime,
-          })
+          });
         }
         subtotalCart = subtotalCart + subtotalCartDetail;
       }
@@ -354,25 +413,26 @@ exports.splitCart = async (req, res) => {
         total: subtotalCart,
         discount_id: null,
         updated_at: indoDateTime,
-        is_active: 0, 
+        is_active: 0,
         is_queuing: 1,
-      })
+      });
     }
 
     await Cart.update(newCartID, {
       subtotal: subtotalNewCart,
       total: subtotalNewCart,
       updated_at: indoDateTime,
-      is_active: 1, 
+      is_active: 1,
       is_queuing: 0,
-    })
+    });
 
     return res.status(201).json({
       message: "Cart berhasil dipisah!",
     });
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Some error occurred while separate the cart";
+    const errorMessage =
+      error.message || "Some error occurred while separate the cart";
 
     return res.status(statusCode).json({
       message: errorMessage,

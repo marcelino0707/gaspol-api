@@ -54,6 +54,16 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: null, 
       },
+      cancel_reason: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        defaultValue: null, 
+      },
+      is_canceled: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       is_ordered: {
         allowNull: true,
         defaultValue: 0,
