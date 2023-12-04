@@ -196,7 +196,8 @@ exports.updateCart = async (req, res) => {
 
     if(cartDetail.is_ordered == 1) {
       const canceledQty = cartDetail.qty - qty;
-        
+      const cartDetailCancelTotalPrice = cartDetail.price * canceledQty;
+      
     }
     // const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
     // let cartDetailTotalPrice = price * qty;
