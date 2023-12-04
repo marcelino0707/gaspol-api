@@ -173,68 +173,133 @@ exports.updateCart = async (req, res) => {
     price,
     qty,
     note_item,
+    cancel_reason
   } = req.body;
 
-  // const updatedCartItems = {
-  //   menu_id,
-  //   serving_type_id,
-  //   price,
-  //   qty,
-  //   note_item,
-  //   updated_at: indoDateTime,
-  // };
-
-  // if (menu_detail_id) {
-  //   updatedCartItems.menu_detail_id = menu_detail_id;
-  // } else {
-  //   updatedCartItems.menu_detail_id = null;
-  // }
+  const updatedCartItems = {
+    menu_id,
+    serving_type_id,
+    price,
+    qty,
+    note_item,
+    updated_at: indoDateTime,
+  };
 
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
 
-    if(cartDetail.is_ordered == 1) {
+    const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
+    let cartDetailTotalPrice = price * qty;
+
+    if (qty == 0 && cartDetail.is_ordered == 0) {
+      updatedCartItems.deleted_at = indoDateTime;
+    }
+
+    if(cartDetail.qty > qty && qty != 0 && cartDetail.is_ordered == 1) {
       const canceledQty = cartDetail.qty - qty;
-      const cartDetailCancelTotalPrice = cartDetail.price * canceledQty;
-      
+
+      const newCartDetailCancel = {
+        cart_id: cart.id,
+        menu_id: cartDetail.menu_id,
+        serving_type_id: cartDetail.serving_type_id,
+        price: cartDetail.price,
+        qty: canceledQty,
+        note_item: cartDetail.note_item,
+        menu_detail_id: cartDetail.menu_detail_id,
+        total_price: cartDetail.price * canceledQty,
+        is_canceled: 1,
+        is_ordered: 1,
+        cancel_reason: cancel_reason,
+      };
+
+      await CartDetail.create(newCartDetailCancel);
     }
-    // const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
-    // let cartDetailTotalPrice = price * qty;
 
-    // if (qty == 0) {
-    //   updatedCartItems.deleted_at = indoDateTime;
-    // }
+    if(qty == 0 && cartDetail.is_ordered == 1) {
+      updatedCartItems.qty = cartDetail.qty;
+      updatedCartItems.is_canceled = 1;
+      updatedCartItems.cancel_reason = cancel_reason;
+    }
 
-    // if(cartDetail.discount_id != 0) {
-    if (discount_id == 0 || discount_id == null) {
-      updatedCartItems.discount_id = 0;
-      updatedCartItems.discounted_price = 0;
+    if(cartDetail.qty < qty && cartDetail.is_ordered == 1) {
+      const newQty = qty - cartDetail.qty;
+
+      const newCartDetail = {
+        cart_id: cart.id,
+        menu_id: menu_id,
+        serving_type_id: serving_type_id,
+        price: price,
+        qty: newQty,
+        note_item: note_item,
+        menu_detail_id: menu_detail_id,
+        total_price: price * newQty,
+      };
+
+      if (discount_id == 0 || discount_id == null) {
+        newCartDetail.discount_id = 0;
+        newCartDetail.discounted_price = 0;
+      } else {
+        const discount = await Discount.getById(discount_id);
+
+        if(newCartDetail.total_price >= discount.min_purchase) {
+          const discountedPrice = await applyDiscountAndUpdateTotal(
+            price,
+            newQty,
+            discount.is_percent,
+            discount.value,
+            discount.min_purchase,
+            discount.max_discount,
+            discount.is_discount_cart,
+            null
+          );
+          const discountedPricePercent = discountedPrice / newQty;
+          newCartDetail.discounted_price = Math.max(
+            100,
+            Math.ceil(discountedPricePercent / 100) * 100
+          );
+          newCartDetail.discount_id = discount_id;
+          newCartDetail.total_price = discountedPrice;
+        }
+      }
+      await CartDetail.create(newCartDetail);
     } else {
-      const discount = await Discount.getById(discount_id);
-      discountedPrice = await applyDiscountAndUpdateTotal(
-        price,
-        qty,
-        discount.is_percent,
-        discount.value,
-        discount.min_purchase,
-        discount.max_discount,
-        discount.is_discount_cart,
-        null
-      );
-      cartDetailTotalPrice = discountedPrice * qty;
-      const discountedPricePercent = discountedPrice / qty;
-      updatedCartItems.discounted_price = Math.max(
-        100,
-        Math.ceil(discountedPricePercent / 100) * 100
-      );
-      updatedCartItems.discount_id = discount_id;
+      if(qty != 0) {
+        if (menu_detail_id) {
+          updatedCartItems.menu_detail_id = menu_detail_id;
+        } else {
+          updatedCartItems.menu_detail_id = null;
+        }
+
+        if (discount_id == 0 || discount_id == null) {
+          updatedCartItems.discount_id = 0;
+          updatedCartItems.discounted_price = 0;
+        } else {
+          const discount = await Discount.getById(discount_id);
+          const discountedPrice = await applyDiscountAndUpdateTotal(
+            price,
+            qty,
+            discount.is_percent,
+            discount.value,
+            discount.min_purchase,
+            discount.max_discount,
+            discount.is_discount_cart,
+            null
+          );
+          cartDetailTotalPrice = discountedPrice;
+          const discountedPricePercent = discountedPrice / qty;
+          updatedCartItems.discounted_price = Math.max(
+            100,
+            Math.ceil(discountedPricePercent / 100) * 100
+          );
+          updatedCartItems.discount_id = discount_id;
+        }
+    
+        updatedCartItems.total_price = cartDetailTotalPrice;
+      }
+
+      await CartDetail.update(cart_detail_id, updatedCartItems);
     }
-    // }
-
-    updatedCartItems.total_price = cartDetailTotalPrice;
-
-    await CartDetail.update(cart_detail_id, updatedCartItems);
 
     const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
     const updateSubtotal = {
