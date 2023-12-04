@@ -175,30 +175,35 @@ exports.updateCart = async (req, res) => {
     note_item,
   } = req.body;
 
-  const updatedCartItems = {
-    menu_id,
-    serving_type_id,
-    price,
-    qty,
-    note_item,
-    updated_at: indoDateTime,
-  };
+  // const updatedCartItems = {
+  //   menu_id,
+  //   serving_type_id,
+  //   price,
+  //   qty,
+  //   note_item,
+  //   updated_at: indoDateTime,
+  // };
 
-  if (menu_detail_id) {
-    updatedCartItems.menu_detail_id = menu_detail_id;
-  } else {
-    updatedCartItems.menu_detail_id = null;
-  }
+  // if (menu_detail_id) {
+  //   updatedCartItems.menu_detail_id = menu_detail_id;
+  // } else {
+  //   updatedCartItems.menu_detail_id = null;
+  // }
 
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
-    const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
-    let cartDetailTotalPrice = price * qty;
 
-    if (qty == 0) {
-      updatedCartItems.deleted_at = indoDateTime;
+    if(cartDetail.is_ordered == 1) {
+      const canceledQty = cartDetail.qty - qty;
+        
     }
+    // const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
+    // let cartDetailTotalPrice = price * qty;
+
+    // if (qty == 0) {
+    //   updatedCartItems.deleted_at = indoDateTime;
+    // }
 
     // if(cartDetail.discount_id != 0) {
     if (discount_id == 0 || discount_id == null) {
@@ -282,9 +287,9 @@ exports.deleteCartItems = async (req, res) => {
     }
 
     await Cart.update(cart.id, updateCost);
-    await CartDetail.update(cartDetails.cart_detail_id, {
+    await CartDetail.update(cartDetails.cart_detail_id,
       updateCartDetail,
-    });
+    );
 
     return res.status(200).json({
       message: "Berhasil menghapus menu dari keranjang",
