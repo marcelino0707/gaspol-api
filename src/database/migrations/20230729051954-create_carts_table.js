@@ -42,10 +42,6 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.TINYINT,
       },
-      cancel_reason: {
-        allowNull: true,
-        type: Sequelize.STRING,
-      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

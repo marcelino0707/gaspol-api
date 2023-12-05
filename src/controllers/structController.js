@@ -40,6 +40,8 @@ exports.getCustomerStruct = async (req, res) => {
     const result = {
       outlet_name: outlet.name,
       outlet_address: outlet.address,
+      outlet_phone_number: outlet.phone_number,
+      outlet_footer: outlet.footer,
       date_time: transaction.invoice_due_date.toGMTString(),
       receipt_number: transaction.receipt_number,
       customer_name: transaction.customer_name,
@@ -142,7 +144,7 @@ exports.getShiftStruct = async (req, res) => {
     function getStartDate() {
       const today = moment().tz("Asia/Jakarta");
       const startDate = today.set({
-        hour: 6,
+        hour: 0,
         minute: 0,
         second: 0,
         millisecond: 0,
@@ -201,7 +203,8 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    // const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
 
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
@@ -212,7 +215,7 @@ exports.getShiftStruct = async (req, res) => {
       endDateString
     );
     const payment_types = await PaymentType.getAll(outlet_id);
-    const transactionsNotFiltered = await Transaction.getShiftReport(
+    const transactions = await Transaction.getShiftReport(
       outlet_id,
       startDateString,
       endDateString
@@ -220,16 +223,10 @@ exports.getShiftStruct = async (req, res) => {
 
     let cartDetails = [];
     let refundDetails = [];
-    const transactions = transactionsNotFiltered.filter(
-      (transaction) => transaction.is_canceled === 0
-    );
-    const transactionsCanceled = transactionsNotFiltered.filter(
-      (transaction) => transaction.is_canceled === 1
-    );
     if (transactions.length > 0) {
       const cartIds = [
         ...new Set(
-          transactionsNotFiltered.map((transaction) => transaction.cart_id)
+          transactions.map((transaction) => transaction.cart_id)
         ),
       ];
       cartDetails = await CartDetail.getByCartIdsShift(cartIds);
@@ -264,16 +261,14 @@ exports.getShiftStruct = async (req, res) => {
           transaction.cart_id === cart.cart_id &&
           transaction.invoice_number === null
       );
-      return !!associatedTransaction;
+
+      const isCanceled = cart.is_canceled == 0;
+
+      return !!associatedTransaction && isCanceled;
     });
 
     // Extract cart details for canceled transactions
-    const cartDetailsCanceled = cartDetails.filter((cart) => {
-      const associatedCanceledTransaction = transactionsCanceled.find(
-        (transaction) => transaction.cart_id === cart.cart_id
-      );
-      return !!associatedCanceledTransaction;
-    });
+    const cartDetailsCanceled = cartDetails.filter((cart) => cart.is_canceled == 1);
 
     const payment_details = [];
     const cartDetailsSuccessCash = cartDetails
@@ -293,8 +288,33 @@ exports.getShiftStruct = async (req, res) => {
       0
     );
 
+    const cartDetailIdsRefundedCash = cartDetails
+    .filter((cart) => {
+      const associatedTransaction = transactions.find(
+        (transaction) =>
+          transaction.cart_id == cart.cart_id &&
+          transaction.invoice_number !== null &&
+          transaction.payment_type_id == 1
+      );
+      return !!associatedTransaction && cart.total_price == 0;
+    })
+    .map((cart) => cart.cart_detail_id);
+
+    const cartDetailsRefundedCashToOtherPayment = refundDetails
+    .filter((refund) => cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1);
+    
+    const totalCashRefundedToOtherPayment = cartDetailsRefundedCashToOtherPayment.reduce(
+      (total, refund) => total + refund.total_refund_price,
+      0
+    );
+
     const cashRefundDetails = refundDetails.filter(
       (refund) => refund.payment_type_id == 1
+    );
+
+    const totalCashRefund = cashRefundDetails.reduce(
+      (total, refund) => total + refund.total_refund_price,
+      0
     );
 
     const paymentDetailsCash = {
@@ -302,7 +322,7 @@ exports.getShiftStruct = async (req, res) => {
       payment_type_detail: [
         {
           payment_type: "Cash Sales",
-          total_payment: totalCashSales,
+          total_payment: totalCashSales + totalCashRefundedToOtherPayment,
           is_success: 1,
           is_refund: 0,
           is_pending: 0,
@@ -319,18 +339,15 @@ exports.getShiftStruct = async (req, res) => {
         },
         {
           payment_type: "Cash Refund",
-          total_payment: cashRefundDetails.reduce(
-            (total, refund) => total + refund.total_refund_price,
-            0
-          ),
+          total_payment: totalCashRefund,
           is_success: 0,
           is_refund: 1,
           is_pending: 0,
         },
         {
           payment_type: "Cash Canceled",
-          total_payment: transactionsCanceled.reduce(
-            (total, transaction) => total + transaction.total,
+          total_payment: cartDetailsCanceled.reduce(
+            (total, cart) => total + cart.total_price,
             0
           ),
           is_success: 0,
@@ -548,7 +565,7 @@ exports.getShiftStruct = async (req, res) => {
 
     const discount_total_amount =
       discount_amount_per_items + discount_amount_transactions;
-    const ending_cash_expected = (totalCashSales - discountAmountCashTransactions) - expenditure.totalExpense;
+    const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - totalCashRefund - expenditure.totalExpense;
     const cash_difference = actual_ending_cash - ending_cash_expected;
     await ShiftReport.update(shiftReports.id, {
       cash_difference: cash_difference,

@@ -380,28 +380,30 @@ exports.deleteCart = async (req, res) => {
       });
     } else {
       if (cancel_reason) {
-        if (cart_id) {
           await Cart.update(cart_id, {
             is_canceled: 1,
-            cancel_reason: cancel_reason,
             is_active: false,
             is_queuing: false,
             updated_at: indoDateTime,
           });
-        } else {
+
           await CartDetail.updateAllByCartId(cart_id, {
-            deleted_at: indoDateTime,
+            is_canceled: 1,
+            cancel_reason: cancel_reason,
           });
+      } else {
+        await CartDetail.updateAllByCartId(cart_id, {
+          deleted_at: indoDateTime,
+        });
 
-          const deleteCost = {
-            subtotal: 0,
-            total: 0,
-            discount_id: null,
-            updated_at: indoDateTime,
-          };
+        const deleteCost = {
+          subtotal: 0,
+          total: 0,
+          discount_id: null,
+          updated_at: indoDateTime,
+        };
 
-          await Cart.update(cart_id, deleteCost);
-        }
+        await Cart.update(cart_id, deleteCost);
       }
 
       return res.status(200).json({

@@ -13,7 +13,6 @@ const moment = require("moment-timezone");
 
 exports.getTransactions = async (req, res) => {
   const thisTimeNow = moment();
-  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const { outlet_id, is_success } = req.query;
     let transactions = [];
@@ -43,9 +42,6 @@ exports.getTransactions = async (req, res) => {
     });
     return res.status(200).json({
       data: filteredTransactions,
-      dateTimeNow: new Date(),
-      thisTimeNowMomento: indoDateTime,
-      reportDate: reportDate,
     });
   } catch (error) {
     return res.status(500).json({
