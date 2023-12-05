@@ -203,8 +203,7 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    // const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
 
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
@@ -302,7 +301,7 @@ exports.getShiftStruct = async (req, res) => {
 
     const cartDetailsRefundedCashToOtherPayment = refundDetails
     .filter((refund) => cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1);
-    
+
     const totalCashRefundedToOtherPayment = cartDetailsRefundedCashToOtherPayment.reduce(
       (total, refund) => total + refund.total_refund_price,
       0
