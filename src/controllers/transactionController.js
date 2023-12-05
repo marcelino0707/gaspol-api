@@ -131,6 +131,11 @@ exports.createTransaction = async (req, res) => {
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       canceledItems = await CartDetail.getCanceledByCartId(cartId);
+      if(canceledItems) {
+        await CartDetail.updateAllByCartId(cartId, {
+          is_cancel_printed : 1
+        })
+      }
     }
 
     await Cart.update(cart_id, {
