@@ -4,6 +4,7 @@ const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
+const Outlet = require("../models/outlet");
 const {
   applyDiscountAndUpdateTotal,
   formatDate,
@@ -123,12 +124,13 @@ exports.createTransaction = async (req, res) => {
       existingTransaction = await Transaction.getById(transactionId);
     }
 
-    let cartDetails = [];
+    let cartDetails, canceledItems = [];
     const cartId = cart_id ? cart_id : existingTransaction.cart_id;
     if (customer_cash) {
       cartDetails = await CartDetail.getByCartId(cartId);
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
+      canceledItems = await CartDetail.getCanceledByCartId(cartId);
     }
 
     await Cart.update(cart_id, {
@@ -140,7 +142,13 @@ exports.createTransaction = async (req, res) => {
       is_ordered: 1,
     });
 
+    const outlet = await Outlet.getByOutletId(outlet_id);
+
     const result = {
+      outlet_name: outlet.name,
+      outlet_address: outlet.address,
+      outlet_phone_number: outlet.phone_number,
+      outlet_footer: outlet.footer,
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
       customer_name: existingTransaction.customer_name,
@@ -157,6 +165,7 @@ exports.createTransaction = async (req, res) => {
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
+      canceledItems: canceledItems,
     };
 
     if (transaction.delivery_type || existingTransaction.delivery_type) {

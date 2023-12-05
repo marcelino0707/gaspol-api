@@ -64,6 +64,11 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.TINYINT,
       },
+      is_cancel_printed: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
       is_ordered: {
         allowNull: true,
         defaultValue: 0,
