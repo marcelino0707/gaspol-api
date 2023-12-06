@@ -21,7 +21,7 @@ exports.getTransactions = async (req, res) => {
     if (is_success == "true") {
       transactions = await Transaction.getAllByIsSuccess(outlet_id, reportDate);
     } else {
-      transactions = await Transaction.getAllByOutletID(outlet_id, reportDate);
+      transactions = await Transaction.getAllByOutletID(outlet_id);
     }
 
     const filteredTransactions = transactions.map((transaction) => {
@@ -166,7 +166,7 @@ exports.createTransaction = async (req, res) => {
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
-      canceledItems: canceledItems,
+      canceled_items: canceledItems,
     };
 
     if (transaction.delivery_type || existingTransaction.delivery_type) {

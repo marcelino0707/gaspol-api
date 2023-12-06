@@ -144,7 +144,7 @@ exports.getShiftStruct = async (req, res) => {
     function getStartDate() {
       const today = moment().tz("Asia/Jakarta");
       const startDate = today.set({
-        hour: 0,
+        hour: 6,
         minute: 0,
         second: 0,
         millisecond: 0,

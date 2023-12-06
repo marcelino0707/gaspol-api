@@ -1,15 +1,13 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 const Transaction = {
-  getAllByOutletID: (outlet_id, date) => {
+  getAllByOutletID: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
             "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN carts ON transactions.cart_id = carts.id WHERE transactions.outlet_id = " +
               outlet_id +
-              " AND DATE(transactions.created_at) = '" +
-              date +
-              "' AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
+              " AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
