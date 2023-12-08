@@ -144,8 +144,8 @@ exports.getShiftStruct = async (req, res) => {
     function getStartDate() {
       const today = moment().tz("Asia/Jakarta");
       const startDate = today.set({
-        hour: 6,
-        minute: 0,
+        hour: 3,
+        minute: 10,
         second: 0,
         millisecond: 0,
       });
@@ -203,7 +203,7 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
 
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
@@ -315,6 +315,50 @@ exports.getShiftStruct = async (req, res) => {
       (total, refund) => total + refund.total_refund_price,
       0
     );
+
+    const mergeAndSumCartDetails = (cartDetails, is_refund) => {
+      const mergedCartDetails = [];
+    
+      cartDetails.forEach((cart) => {
+        const existingCartItem = mergedCartDetails.find(
+          (mergedCart) =>
+            mergedCart.menu_id == cart.menu_id &&
+            mergedCart.menu_detail_id == cart.menu_detail_id
+        );
+    
+        if (existingCartItem) {
+          if(is_refund) {
+            existingCartItem.qty_refund_item += cart.qty_refund_item;
+            existingCartItem.total_refund_price += cart.total_refund_price;
+          } else {
+            existingCartItem.qty += cart.qty;
+            existingCartItem.total_price += cart.total_price;
+          }
+        } else {
+          const newCartItem = {
+            menu_id: cart.menu_id,
+            menu_detail_id: cart.menu_detail_id,
+            menu_name: cart.menu_name,
+            varian: cart.varian,
+          };
+          if(is_refund) {
+            newCartItem.qty_refund_item = cart.qty_refund_item;
+            newCartItem.total_refund_price = cart.total_refund_price;
+          } else {
+            newCartItem.qty = cart.qty;
+            newCartItem.total_price = cart.total_price;
+          }
+          mergedCartDetails.push(newCartItem);
+        }
+      });
+    
+      return mergedCartDetails;
+    };
+
+    const cartDetailsSuccessFiltered = mergeAndSumCartDetails(cartDetailsSuccess, false);
+    const cartDetailsPendingFiltered = mergeAndSumCartDetails(cartDetailsPending, false);
+    const cartDetailsCanceledFiltered = mergeAndSumCartDetails(cartDetailsCanceled, false);
+    const refundDetailsFiltered = mergeAndSumCartDetails(refundDetails, true);
 
     const paymentDetailsCash = {
       payment_category: "Cash Payment",
@@ -564,7 +608,7 @@ exports.getShiftStruct = async (req, res) => {
 
     const discount_total_amount =
       discount_amount_per_items + discount_amount_transactions;
-    const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - totalCashRefund - expenditure.totalExpense;
+    const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - expenditure.totalExpense;
     const cash_difference = actual_ending_cash - ending_cash_expected;
     await ShiftReport.update(shiftReports.id, {
       cash_difference: cash_difference,
@@ -590,19 +634,19 @@ exports.getShiftStruct = async (req, res) => {
       discount_amount_transactions,
       discount_amount_per_items,
       discount_total_amount,
-      cart_details_success: cartDetailsSuccess,
+      cart_details_success: cartDetailsSuccessFiltered,
       totalSuccessQty,
       totalCartSuccessAmount,
 
-      cart_details_pending: cartDetailsPending,
+      cart_details_pending: cartDetailsPendingFiltered,
       totalPendingQty,
       totalCartPendingAmount,
 
-      cart_details_canceled: cartDetailsCanceled,
+      cart_details_canceled: cartDetailsCanceledFiltered,
       totalCanceledQty,
       totalCartCanceledAmount,
 
-      refund_details: refundDetails,
+      refund_details: refundDetailsFiltered,
       totalRefundQty,
       totalCartRefundAmount,
 
