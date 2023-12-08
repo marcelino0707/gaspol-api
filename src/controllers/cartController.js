@@ -176,15 +176,6 @@ exports.updateCart = async (req, res) => {
     cancel_reason
   } = req.body;
 
-  const updatedCartItems = {
-    menu_id,
-    serving_type_id,
-    price,
-    qty,
-    note_item,
-    updated_at: indoDateTime,
-  };
-
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
@@ -192,85 +183,22 @@ exports.updateCart = async (req, res) => {
     const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
     let cartDetailTotalPrice = price * qty;
 
-    if (qty == 0 && cartDetail.is_ordered == 0) {
-      updatedCartItems.deleted_at = indoDateTime;
-    }
+    const updatedCartItems = {
+      menu_id,
+      menu_detail_id,
+      serving_type_id,
+      price,
+      qty,
+      note_item,
+      updated_at: indoDateTime,
+    };
 
-    if(cartDetail.qty > qty && qty != 0 && cartDetail.is_ordered == 1) {
-      const canceledQty = cartDetail.qty - qty;
-
-      const newCartDetailCancel = {
-        cart_id: cart.id,
-        menu_id: cartDetail.menu_id,
-        serving_type_id: cartDetail.serving_type_id,
-        price: cartDetail.price,
-        qty: canceledQty,
-        note_item: cartDetail.note_item,
-        menu_detail_id: cartDetail.menu_detail_id,
-        total_price: cartDetail.price * canceledQty,
-        is_canceled: 1,
-        is_ordered: 1,
-        cancel_reason: cancel_reason,
-      };
-
-      await CartDetail.create(newCartDetailCancel);
-    }
-
-    if(qty == 0 && cartDetail.is_ordered == 1) {
-      updatedCartItems.qty = cartDetail.qty;
-      updatedCartItems.is_canceled = 1;
-      updatedCartItems.cancel_reason = cancel_reason;
-    }
-
-    if(cartDetail.qty < qty && cartDetail.is_ordered == 1) {
-      const newQty = qty - cartDetail.qty;
-
-      const newCartDetail = {
-        cart_id: cart.id,
-        menu_id: menu_id,
-        serving_type_id: serving_type_id,
-        price: price,
-        qty: newQty,
-        note_item: note_item,
-        menu_detail_id: menu_detail_id,
-        total_price: price * newQty,
-      };
-
-      if (discount_id == 0 || discount_id == null) {
-        newCartDetail.discount_id = 0;
-        newCartDetail.discounted_price = 0;
-      } else {
-        const discount = await Discount.getById(discount_id);
-
-        if(newCartDetail.total_price >= discount.min_purchase) {
-          const discountedPrice = await applyDiscountAndUpdateTotal(
-            price,
-            newQty,
-            discount.is_percent,
-            discount.value,
-            discount.min_purchase,
-            discount.max_discount,
-            discount.is_discount_cart,
-            null
-          );
-          const discountedPricePercent = discountedPrice / newQty;
-          newCartDetail.discounted_price = Math.max(
-            100,
-            Math.ceil(discountedPricePercent / 100) * 100
-          );
-          newCartDetail.discount_id = discount_id;
-          newCartDetail.total_price = discountedPrice;
-        }
+    if(cartDetail.is_ordered == 0) {
+      if(qty == 0) {
+        updatedCartItems.deleted_at = indoDateTime;
       }
-      await CartDetail.create(newCartDetail);
-    } else {
-      if(qty != 0) {
-        if (menu_detail_id) {
-          updatedCartItems.menu_detail_id = menu_detail_id;
-        } else {
-          updatedCartItems.menu_detail_id = null;
-        }
 
+      if(cartDetail.qty > qty && qty != 0) {
         if (discount_id == 0 || discount_id == null) {
           updatedCartItems.discount_id = 0;
           updatedCartItems.discounted_price = 0;
@@ -294,10 +222,145 @@ exports.updateCart = async (req, res) => {
           );
           updatedCartItems.discount_id = discount_id;
         }
-    
         updatedCartItems.total_price = cartDetailTotalPrice;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
+      if(cartDetail.qty < qty) {
+        if (discount_id == 0 || discount_id == null) {
+          updatedCartItems.discount_id = 0;
+          updatedCartItems.discounted_price = 0;
+        } else {
+          const discount = await Discount.getById(discount_id);
+          const discountedPrice = await applyDiscountAndUpdateTotal(
+            price,
+            qty,
+            discount.is_percent,
+            discount.value,
+            discount.min_purchase,
+            discount.max_discount,
+            discount.is_discount_cart,
+            null
+          );
+          cartDetailTotalPrice = discountedPrice;
+          const discountedPricePercent = discountedPrice / qty;
+          updatedCartItems.discounted_price = Math.max(
+            100,
+            Math.ceil(discountedPricePercent / 100) * 100
+          );
+          updatedCartItems.discount_id = discount_id;
+        }
+        updatedCartItems.total_price = cartDetailTotalPrice;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
+      }
+    } else {
+      if(qty == 0) {
+        updatedCartItems.qty = cartDetail.qty;
+        updatedCartItems.is_canceled = 1;
+        updatedCartItems.cancel_reason = cancel_reason;
+      }
+
+      if(cartDetail.qty > qty && qty != 0) {
+        // create canceled item
+        const newQty = cartDetail.qty - qty;
+        const newTotalPrice = price * newQty;
+        const newCartDetail = {
+          cart_id: cart.id,
+          menu_id: menu_id,
+          menu_detail_id: menu_detail_id,
+          serving_type_id: serving_type_id,
+          price: price,
+          qty: newQty,
+          note_item: note_item,
+          total_price: newTotalPrice,
+          is_canceled: 1,
+          cancel_reason: cancel_reason,
+        };
+
+        await CartDetail.create(newCartDetail);
+
+        // update ordered item
+        updatedCartItems.discount_id = 0;
+        updatedCartItems.discounted_price = 0;
+        updatedCartItems.discounted_price = 0;
+        updatedCartItems.total_price = cartDetailTotalPrice;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
+      }
+
+      if(cartDetail.qty < qty) {
+        const newQty = qty - cartDetail.qty;
+        const newTotalPrice = price * newQty;
+        const newCartDetail = {
+          cart_id: cart.id,
+          menu_id: menu_id,
+          menu_detail_id: menu_detail_id,
+          serving_type_id: serving_type_id,
+          price: price,
+          qty: newQty,
+          note_item: note_item,
+          total_price: newTotalPrice,
+        };
+
+        if (discount_id == 0 || discount_id == null) {
+          newCartDetail.discount_id = 0;
+          newCartDetail.discounted_price = 0;
+        } else {
+          const discount = await Discount.getById(discount_id);
+  
+          if(newTotalPrice >= discount.min_purchase) {
+            const discountedPrice = await applyDiscountAndUpdateTotal(
+              price,
+              newQty,
+              discount.is_percent,
+              discount.value,
+              discount.min_purchase,
+              discount.max_discount,
+              discount.is_discount_cart,
+              null
+            );
+            const discountedPricePercent = discountedPrice / newQty;
+            newCartDetail.discounted_price = Math.max(
+              100,
+              Math.ceil(discountedPricePercent / 100) * 100
+            );
+            newCartDetail.discount_id = discount_id;
+            newCartDetail.total_price = discountedPrice;
+          }
+        }
+        await CartDetail.create(newCartDetail);
+      }
+    }
+
+    if(cartDetail.qty == qty) {
+      if(cartDetail.is_ordered == 1) {
+        updatedCartItems.menu_detail_id = cartDetail.menu_detail_id;
+        updatedCartItems.note_item = cartDetail.note_item;
+      }
+
+      if (discount_id == 0 || discount_id == null) {
+        updatedCartItems.discount_id = 0;
+        updatedCartItems.discounted_price = 0;
+      } else {
+        const discount = await Discount.getById(discount_id);
+        const discountedPrice = await applyDiscountAndUpdateTotal(
+          price,
+          qty,
+          discount.is_percent,
+          discount.value,
+          discount.min_purchase,
+          discount.max_discount,
+          discount.is_discount_cart,
+          null
+        );
+        cartDetailTotalPrice = discountedPrice;
+        const discountedPricePercent = discountedPrice / qty;
+        updatedCartItems.discounted_price = Math.max(
+          100,
+          Math.ceil(discountedPricePercent / 100) * 100
+        );
+        updatedCartItems.discount_id = discount_id;
+      }
+      updatedCartItems.total_price = cartDetailTotalPrice;
       await CartDetail.update(cart_detail_id, updatedCartItems);
     }
 
@@ -331,15 +394,20 @@ exports.deleteCartItems = async (req, res) => {
     const cart_detail_id = req.params.id;
     const { outlet_id, cancel_reason } = req.query;
     const cart = await Cart.getByOutletId(outlet_id);
-    const cartDetails = await CartDetail.getByCartDetailId(cart_detail_id);
-    totalCart = cart.subtotal - cartDetails.total_price;
+    const oldCartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
+    totalCart = cart.subtotal - oldCartDetail.total_price;
 
+    const transaction = await Transaction.getByCartId(cart.id);
     const updateCost = {
       subtotal: totalCart,
       total: totalCart,
       discount_id: null,
       updated_at: indoDateTime,
     };
+
+    if(transaction && totalCart == 0) {
+      updateCost.is_canceled = true;
+    }
 
     const updateCartDetail = {
       updated_at: indoDateTime,
@@ -353,7 +421,7 @@ exports.deleteCartItems = async (req, res) => {
     }
 
     await Cart.update(cart.id, updateCost);
-    await CartDetail.update(cartDetails.cart_detail_id,
+    await CartDetail.update(oldCartDetail.cart_detail_id,
       updateCartDetail,
     );
 
@@ -379,7 +447,12 @@ exports.deleteCart = async (req, res) => {
         message: "Pin Salah!",
       });
     } else {
-      if (cancel_reason) {
+      const transaction = await Transaction.getByCartId(cart_id);
+      if (transaction) {
+          await Transaction.update(transaction.id, {
+            updated_at: indoDateTime
+          })
+
           await Cart.update(cart_id, {
             is_canceled: 1,
             is_active: false,
@@ -395,7 +468,6 @@ exports.deleteCart = async (req, res) => {
         await CartDetail.updateAllByCartId(cart_id, {
           deleted_at: indoDateTime,
         });
-
         const deleteCost = {
           subtotal: 0,
           total: 0,
