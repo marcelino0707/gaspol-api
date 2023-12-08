@@ -144,8 +144,8 @@ exports.getShiftStruct = async (req, res) => {
     function getStartDate() {
       const today = moment().tz("Asia/Jakarta");
       const startDate = today.set({
-        hour: 3,
-        minute: 10,
+        hour: 6,
+        minute: 0,
         second: 0,
         millisecond: 0,
       });
@@ -203,7 +203,7 @@ exports.getShiftStruct = async (req, res) => {
       shift_number: shiftNumber + 1,
     });
 
-    const startDateString = moment(getStartDate()).format("YYYY-MM-DD HH:mm:ss");
+    const startDateString = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
 
     const endDateString = moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss");
 
