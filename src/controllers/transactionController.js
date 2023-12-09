@@ -131,7 +131,6 @@ exports.createTransaction = async (req, res) => {
         const cartDetailIds = [
           ...new Set(canceledItems.map((cartDetail) => cartDetail.cart_detail_id)),
         ];
-        console.log(cartDetailIds);
         await CartDetail.updateAllByCartDetailId(cartDetailIds, {
           is_cancel_printed : 1
         });

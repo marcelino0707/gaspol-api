@@ -273,6 +273,7 @@ exports.updateCart = async (req, res) => {
           qty: newQty,
           note_item: note_item,
           total_price: newTotalPrice,
+          is_ordered: 1,
           is_canceled: 1,
           cancel_reason: cancel_reason,
         };
