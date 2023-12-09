@@ -127,10 +127,14 @@ exports.createTransaction = async (req, res) => {
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       canceledItems = await CartDetail.getCanceledByCartId(cartId);
-      if(canceledItems) {
-        await CartDetail.updateAllByCartId(cartId, {
+      if(canceledItems.length > 0) {
+        const cartDetailIds = [
+          ...new Set(canceledItems.map((cartDetail) => cartDetail.cart_detail_id)),
+        ];
+        console.log(cartDetailIds);
+        await CartDetail.updateAllByCartDetailId(cartDetailIds, {
           is_cancel_printed : 1
-        })
+        });
       }
     }
 
