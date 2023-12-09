@@ -230,6 +230,12 @@ exports.getTransactionById = async (req, res) => {
     if (refund) {
       refundDetails = await RefundDetail.getByRefundId(refund.id);
     }
+    let canceledItems = [];
+    const getCanceledItems = await CartDetail.getCanceledByCartIdStructChecker(cart.id);
+    if(getCanceledItems.length > 0) {
+      canceledItems = getCanceledItems;
+    }
+
     const result = {
       transaction_id: transaction.id,
       receipt_number: transaction.receipt_number,
@@ -245,6 +251,7 @@ exports.getTransactionById = async (req, res) => {
       discounts_value: cart.discounts_value,
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
+      canceled_items: canceledItems,
     };
 
     if (transaction.delivery_type) {
