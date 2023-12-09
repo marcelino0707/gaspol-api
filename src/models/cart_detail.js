@@ -193,7 +193,7 @@ const CartDetail = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("UPDATE cart_details SET ? WHERE id = ?", [data, id], (error, results) => {
+          connection.query("UPDATE cart_details SET ? WHERE id IN (?)", [data, id], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
