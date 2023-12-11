@@ -196,6 +196,7 @@ exports.updateCart = async (req, res) => {
     if(cartDetail.is_ordered == 0) {
       if(qty == 0) {
         updatedCartItems.deleted_at = indoDateTime;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
       if(cartDetail.qty > qty && qty != 0) {
@@ -258,20 +259,21 @@ exports.updateCart = async (req, res) => {
         updatedCartItems.qty = cartDetail.qty;
         updatedCartItems.is_canceled = 1;
         updatedCartItems.cancel_reason = cancel_reason;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
       if(cartDetail.qty > qty && qty != 0) {
         // create canceled item
         const newQty = cartDetail.qty - qty;
-        const newTotalPrice = price * newQty;
+        const newTotalPrice = cartDetail.price * newQty;
         const newCartDetail = {
           cart_id: cart.id,
-          menu_id: menu_id,
-          menu_detail_id: menu_detail_id,
-          serving_type_id: serving_type_id,
-          price: price,
+          menu_id: cartDetail.menu_id,
+          menu_detail_id: cartDetail.menu_detail_id,
+          serving_type_id: cartDetail.serving_type_id,
+          price: cartDetail.price,
           qty: newQty,
-          note_item: note_item,
+          note_item: cartDetail.Cartnote_item,
           total_price: newTotalPrice,
           is_ordered: 1,
           is_canceled: 1,

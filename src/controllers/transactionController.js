@@ -116,6 +116,7 @@ exports.createTransaction = async (req, res) => {
       const transactionId = transaction_id
         ? transaction_id
         : existingTransaction.id;
+      transaction.updated_at = indoDateTime;
       await Transaction.update(transactionId, transaction);
       existingTransaction = await Transaction.getById(transactionId);
     }

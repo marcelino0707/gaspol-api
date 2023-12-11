@@ -219,7 +219,6 @@ exports.getShiftStruct = async (req, res) => {
       startDateString,
       endDateString
     );
-
     let cartDetails = [];
     let refundDetails = [];
     if (transactions.length > 0) {
@@ -252,7 +251,7 @@ exports.getShiftStruct = async (req, res) => {
         );
         return !!associatedTransaction;
       })
-      .filter((cart) => cart.total_price > 0);
+      .filter((cart) => cart.total_price > 0 && cart.is_canceled == 0);
 
     const cartDetailsPending = cartDetails.filter((cart) => {
       const associatedTransaction = transactions.find(
