@@ -121,13 +121,17 @@ exports.createTransaction = async (req, res) => {
       existingTransaction = await Transaction.getById(transactionId);
     }
 
-    let cartDetails, canceledItems = [];
+    let cartDetails, canceledItems, kitchenBarCartDetails, kitchenBarCanceledItems = [];
     const cartId = cart_id ? cart_id : existingTransaction.cart_id;
     if (customer_cash) {
       cartDetails = await CartDetail.getByCartId(cartId);
+      kitchenBarCartDetails = await CartDetail.getNotOrderedByCartId(cartId);
+      kitchenBarCanceledItems = await CartDetail.getCanceledByCartId(cartId);
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       canceledItems = await CartDetail.getCanceledByCartId(cartId);
+      kitchenBarCartDetails = cartDetails;
+      kitchenBarCanceledItems = canceledItems;
       if(canceledItems.length > 0) {
         const cartDetailIds = [
           ...new Set(canceledItems.map((cartDetail) => cartDetail.cart_detail_id)),
@@ -171,6 +175,8 @@ exports.createTransaction = async (req, res) => {
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
       canceled_items: canceledItems,
+      kitchenBarCartDetails: kitchenBarCartDetails,
+      kitchenBarCanceledItems: kitchenBarCanceledItems,
     };
 
     if (transaction.delivery_type || existingTransaction.delivery_type) {

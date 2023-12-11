@@ -179,7 +179,6 @@ exports.updateCart = async (req, res) => {
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     const cartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
-
     const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
     let cartDetailTotalPrice = price * qty;
 
