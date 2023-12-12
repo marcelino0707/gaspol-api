@@ -3,7 +3,9 @@ const CartDetail = require("../models/cart_detail");
 const Discount = require("../models/discount");
 const Transaction = require("../models/transaction");
 const Outlet = require("../models/outlet");
-const { applyDiscountAndUpdateTotal } = require("../utils/generalFunctions");
+const {
+  applyDiscountAndUpdateTotal
+} = require("../utils/generalFunctions");
 const moment = require("moment-timezone");
 
 exports.getCart = async (req, res) => {
@@ -52,7 +54,9 @@ exports.getCart = async (req, res) => {
 
 exports.getCartItems = async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
     const cartDetail = await CartDetail.getByCartDetailId(id);
     return res.status(200).json({
       data: cartDetail,
@@ -192,13 +196,13 @@ exports.updateCart = async (req, res) => {
       updated_at: indoDateTime,
     };
 
-    if(cartDetail.is_ordered == 0) {
-      if(qty == 0) {
+    if (cartDetail.is_ordered == 0) {
+      if (qty == 0) {
         updatedCartItems.deleted_at = indoDateTime;
         await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
-      if(cartDetail.qty > qty && qty != 0) {
+      if (cartDetail.qty > qty && qty != 0) {
         if (discount_id == 0 || discount_id == null) {
           updatedCartItems.discount_id = 0;
           updatedCartItems.discounted_price = 0;
@@ -226,7 +230,35 @@ exports.updateCart = async (req, res) => {
         await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
-      if(cartDetail.qty < qty) {
+      if (cartDetail.qty < qty) {
+        if (discount_id == 0 || discount_id == null) {
+          updatedCartItems.discount_id = 0;
+          updatedCartItems.discounted_price = 0;
+        } else {
+          const discount = await Discount.getById(discount_id);
+          const discountedPrice = await applyDiscountAndUpdateTotal(
+            price,
+            qty,
+            discount.is_percent,
+            discount.value,
+            discount.min_purchase,
+            discount.max_discount,
+            discount.is_discount_cart,
+            null
+          );
+          cartDetailTotalPrice = discountedPrice;
+          const discountedPricePercent = discountedPrice / qty;
+          updatedCartItems.discounted_price = Math.max(
+            100,
+            Math.ceil(discountedPricePercent / 100) * 100
+          );
+          updatedCartItems.discount_id = discount_id;
+        }
+        updatedCartItems.total_price = cartDetailTotalPrice;
+        await CartDetail.update(cart_detail_id, updatedCartItems);
+      }
+      
+      if (cartDetail.qty == qty) {
         if (discount_id == 0 || discount_id == null) {
           updatedCartItems.discount_id = 0;
           updatedCartItems.discounted_price = 0;
@@ -254,14 +286,14 @@ exports.updateCart = async (req, res) => {
         await CartDetail.update(cart_detail_id, updatedCartItems);
       }
     } else {
-      if(qty == 0) {
-        updatedCartItems.qty = cartDetail.qty;
-        updatedCartItems.is_canceled = 1;
-        updatedCartItems.cancel_reason = cancel_reason;
-        await CartDetail.update(cart_detail_id, updatedCartItems);
+      if (qty == 0) {
+        await CartDetail.update(cart_detail_id, {
+          is_canceled: 1,
+          cancel_reason: cancel_reason,
+        });
       }
 
-      if(cartDetail.qty > qty && qty != 0) {
+      if (cartDetail.qty > qty && qty != 0) {
         // create canceled item
         const newQty = cartDetail.qty - qty;
         const newTotalPrice = cartDetail.price * newQty;
@@ -272,7 +304,7 @@ exports.updateCart = async (req, res) => {
           serving_type_id: cartDetail.serving_type_id,
           price: cartDetail.price,
           qty: newQty,
-          note_item: cartDetail.Cartnote_item,
+          note_item: cartDetail.note_item,
           total_price: newTotalPrice,
           is_ordered: 1,
           is_canceled: 1,
@@ -289,7 +321,7 @@ exports.updateCart = async (req, res) => {
         await CartDetail.update(cart_detail_id, updatedCartItems);
       }
 
-      if(cartDetail.qty < qty) {
+      if (cartDetail.qty < qty) {
         const newQty = qty - cartDetail.qty;
         const newTotalPrice = price * newQty;
         const newCartDetail = {
@@ -308,8 +340,8 @@ exports.updateCart = async (req, res) => {
           newCartDetail.discounted_price = 0;
         } else {
           const discount = await Discount.getById(discount_id);
-  
-          if(newTotalPrice >= discount.min_purchase) {
+
+          if (newTotalPrice >= discount.min_purchase) {
             const discountedPrice = await applyDiscountAndUpdateTotal(
               price,
               newQty,
@@ -331,39 +363,6 @@ exports.updateCart = async (req, res) => {
         }
         await CartDetail.create(newCartDetail);
       }
-    }
-
-    if(cartDetail.qty == qty) {
-      if(cartDetail.is_ordered == 1) {
-        updatedCartItems.menu_detail_id = cartDetail.menu_detail_id;
-        updatedCartItems.note_item = cartDetail.note_item;
-      }
-
-      if (discount_id == 0 || discount_id == null) {
-        updatedCartItems.discount_id = 0;
-        updatedCartItems.discounted_price = 0;
-      } else {
-        const discount = await Discount.getById(discount_id);
-        const discountedPrice = await applyDiscountAndUpdateTotal(
-          price,
-          qty,
-          discount.is_percent,
-          discount.value,
-          discount.min_purchase,
-          discount.max_discount,
-          discount.is_discount_cart,
-          null
-        );
-        cartDetailTotalPrice = discountedPrice;
-        const discountedPricePercent = discountedPrice / qty;
-        updatedCartItems.discounted_price = Math.max(
-          100,
-          Math.ceil(discountedPricePercent / 100) * 100
-        );
-        updatedCartItems.discount_id = discount_id;
-      }
-      updatedCartItems.total_price = cartDetailTotalPrice;
-      await CartDetail.update(cart_detail_id, updatedCartItems);
     }
 
     const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
@@ -394,7 +393,10 @@ exports.deleteCartItems = async (req, res) => {
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const cart_detail_id = req.params.id;
-    const { outlet_id, cancel_reason } = req.query;
+    const {
+      outlet_id,
+      cancel_reason
+    } = req.query;
     const cart = await Cart.getByOutletId(outlet_id);
     const oldCartDetail = await CartDetail.getByCartDetailId(cart_detail_id);
     totalCart = cart.subtotal - oldCartDetail.total_price;
@@ -407,7 +409,7 @@ exports.deleteCartItems = async (req, res) => {
       updated_at: indoDateTime,
     };
 
-    if(transaction && totalCart == 0) {
+    if (transaction && totalCart == 0) {
       updateCost.is_canceled = true;
     }
 
@@ -441,7 +443,12 @@ exports.deleteCart = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
-    const { outlet_id, cart_id, pin, cancel_reason } = req.body;
+    const {
+      outlet_id,
+      cart_id,
+      pin,
+      cancel_reason
+    } = req.body;
     const outlet = await Outlet.getByOutletId(outlet_id);
     if (outlet.pin != pin) {
       return res.status(401).json({
@@ -451,21 +458,21 @@ exports.deleteCart = async (req, res) => {
     } else {
       const transaction = await Transaction.getByCartId(cart_id);
       if (transaction) {
-          await Transaction.update(transaction.id, {
-            updated_at: indoDateTime
-          })
+        await Transaction.update(transaction.id, {
+          updated_at: indoDateTime
+        })
 
-          await Cart.update(cart_id, {
-            is_canceled: 1,
-            is_active: false,
-            is_queuing: false,
-            updated_at: indoDateTime,
-          });
+        await Cart.update(cart_id, {
+          is_canceled: 1,
+          is_active: false,
+          is_queuing: false,
+          updated_at: indoDateTime,
+        });
 
-          await CartDetail.updateAllByCartId(cart_id, {
-            is_canceled: 1,
-            cancel_reason: cancel_reason,
-          });
+        await CartDetail.updateAllByCartId(cart_id, {
+          is_canceled: 1,
+          cancel_reason: cancel_reason,
+        });
       } else {
         await CartDetail.updateAllByCartId(cart_id, {
           deleted_at: indoDateTime,
@@ -495,7 +502,11 @@ exports.deleteCart = async (req, res) => {
 exports.splitCart = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
-  const { outlet_id, cart_id, cart_details } = req.body;
+  const {
+    outlet_id,
+    cart_id,
+    cart_details
+  } = req.body;
   try {
     const newCart = await Cart.create({
       outlet_id: outlet_id,
