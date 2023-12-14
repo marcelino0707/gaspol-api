@@ -2,32 +2,37 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('ingredients', {
+    await queryInterface.createTable('ingredient_order_list_details', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      name: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
-      ingredient_type_id: {
+      outlet_order_list_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      ingredient_unit_type_id: {
+      leftover: {
         allowNull: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.DECIMAL(10, 2),
       },
-      storage_location_warehouse_id: {
+      order_request_quantity: {
         allowNull: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.DECIMAL(10, 2),
       },
-      supplier_id: {
+      real: {
         allowNull: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.DECIMAL(10, 2),
+      },
+      order_quantity: {
+        allowNull: true,
+        type: Sequelize.DECIMAL(10, 2),
+      },
+      order_date: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null, 
       },
       created_at: {
         allowNull: false,
@@ -48,6 +53,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('ingredients');
+    await queryInterface.dropTable('ingredient_order_list_details');
   }
 };
