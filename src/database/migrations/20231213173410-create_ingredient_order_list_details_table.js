@@ -13,6 +13,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      ingredient_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       leftover: {
         allowNull: true,
         type: Sequelize.DECIMAL(10, 2),
@@ -28,11 +32,6 @@ module.exports = {
       order_quantity: {
         allowNull: true,
         type: Sequelize.DECIMAL(10, 2),
-      },
-      order_date: {
-        allowNull: true,
-        type: Sequelize.DATE,
-        defaultValue: null, 
       },
       created_at: {
         allowNull: false,

@@ -17,13 +17,17 @@ exports.login = async (req, res) => {
         if(password == user.password) {
             let outletName = "GASPOL";
             let roleName = "Super Admin";
-            if(user.role != 1) {
+            if(user.role != 1 && user.role != 3) {
                 if(user.outlet_id != 0) {
                     const outlet = await Outlet.getByOutletId(user.outlet_id);
                     outletName = outlet.name;
                 }
                 roleName = "Admin";
             } 
+
+            if(user.role == 3) {
+                roleName = "Warehouse";
+            }
 
             const userTokenData = {
                 userId: user.id,

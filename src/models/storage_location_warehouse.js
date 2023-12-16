@@ -1,11 +1,11 @@
 const { connectDB, disconnectDB } = require('../utils/dbUtils');
 
-const Outlet = {
-  getByOutletId: (outlet_id) => {
+const StorageLocationWarehouse = {
+  getByStorageLocationWarehouseId: (storage_location_warehouse_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, name, address, pin, phone_number, footer FROM outlets WHERE id = ? AND deleted_at IS NULL', outlet_id, (error, results) => {
+          connection.query('SELECT id, name FROM ingredient_storage_warehouse_locations WHERE id = ? AND deleted_at IS NULL', storage_location_warehouse_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -21,7 +21,7 @@ const Outlet = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, name, address FROM outlets WHERE deleted_at IS NULL', (error, results) => {
+          connection.query('SELECT id, name, is_active FROM ingredient_storage_warehouse_locations WHERE deleted_at IS NULL', (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -33,27 +33,11 @@ const Outlet = {
         .catch((error) => reject(error));
     });
   },
-  getAllDropdown: () => {
+  create: (data) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, name FROM outlets WHERE deleted_at IS NULL', (error, results) => {
-            disconnectDB(connection);
-            if (error) {
-              reject(error);
-            } else {
-              resolve(results || null);
-            }
-          });
-        })
-        .catch((error) => reject(error));
-    });
-  },
-  create: (outlet) => {
-    return new Promise((resolve, reject) => {
-      connectDB()
-        .then((connection) => {
-          connection.query("INSERT INTO outlets SET ?", outlet, (error, results) => {
+          connection.query("INSERT INTO ingredient_storage_warehouse_locations SET ?", data, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -65,11 +49,11 @@ const Outlet = {
         .catch((error) => reject(error));
     });
   },
-  update: (id, outlet) => {
+  update: (id, data) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("UPDATE outlets SET ? WHERE id = ?", [outlet, id], (error, results) => {
+          connection.query("UPDATE ingredient_storage_warehouse_locations SET ? WHERE id = ?", [data, id], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -83,4 +67,4 @@ const Outlet = {
   }
 };
 
-module.exports = Outlet;
+module.exports = StorageLocationWarehouse;

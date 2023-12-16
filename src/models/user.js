@@ -66,7 +66,7 @@ const User = {
       connectDB()
         .then((connection) => {
           connection.execute(
-            "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users JOIN outlets ON users.outlet_id = outlets.id WHERE users.deleted_at IS NULL",
+            "SELECT users.id, users.name, users.username, users.outlet_id, users.role, users.menu_access, outlets.name AS outlet_name FROM users JOIN outlets ON users.outlet_id = outlets.id WHERE users.deleted_at IS NULL AND users.role != 3",
             (error, results) => {
               disconnectDB(connection);
               if (error) {

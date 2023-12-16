@@ -29,6 +29,11 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING,
       },
+      is_kitchen_bar_merged: {
+        allowNull: true,
+        defaultValue: 1,
+        type: Sequelize.TINYINT,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
