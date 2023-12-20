@@ -21,6 +21,7 @@ const customPrice = require("./controllers/customizePriceController");
 const paymentType = require("./controllers/paymentController");
 const expenditure = require("./controllers/expenditureController");
 const ingredient = require("./controllers/ingredientController");
+const ingredeintOrderList = require("./controllers/ingredientOrderController");
 
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
@@ -124,5 +125,8 @@ route.post("/ingredient", ingredient.createIngredient); // CMS
 route.get("/ingredient/:id", ingredient.getIngredientById); // CMS
 route.patch("/ingredient/:id", ingredient.updateIngredient); // CMS
 route.delete("/ingredient/:id", ingredient.deleteIngredient); // CMS
+
+// ingredeintOrderList
+route.get("/ingredient-order", ingredeintOrderList.getOrderIngredients); // CMS 
 
 module.exports = route;

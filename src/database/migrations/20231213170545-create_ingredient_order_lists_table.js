@@ -13,9 +13,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
-      storage_location_outlet_id: {
+      storage_location_outlet: {
         allowNull: true,
-        type: Sequelize.INTEGER,
+        defaultValue: 1,
+        type: Sequelize.TINYINT,
       },
       order_date: {
         allowNull: true,
@@ -23,20 +24,24 @@ module.exports = {
         defaultValue: null, 
       },
       pembuat_order: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
+        defaultValue: null, 
       },
       penanggung_jawab: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
+        defaultValue: null, 
       },
       penerima: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
+        defaultValue: null, 
       },
       pengirim: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
+        defaultValue: null, 
       },
       created_at: {
         allowNull: false,

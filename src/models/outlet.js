@@ -5,7 +5,7 @@ const Outlet = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, name, address, pin, phone_number, footer FROM outlets WHERE id = ? AND deleted_at IS NULL', outlet_id, (error, results) => {
+          connection.query('SELECT id, name, address, pin, phone_number, is_kitchen_bar_merged, footer FROM outlets WHERE id = ? AND deleted_at IS NULL', outlet_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -37,7 +37,7 @@ const Outlet = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, name FROM outlets WHERE deleted_at IS NULL', (error, results) => {
+          connection.query('SELECT id, name, is_kitchen_bar_merged FROM outlets WHERE deleted_at IS NULL', (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);

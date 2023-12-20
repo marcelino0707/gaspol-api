@@ -41,14 +41,16 @@ exports.getIngredientById = async (req, res) => {
 
 exports.createIngredient = async (req, res) => {
   try {
-    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access } = req.body;
+    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access, storage_location_outlet, order_quantity } = req.body;
     
     const newIngredient = {
       name: name,
       ingredient_type_id: ingredient_type_id,
       ingredient_unit_type_id: ingredient_unit_type_id,
       storage_location_warehouse_id: storage_location_warehouse_id,
-      ingredient_access: ingredient_access
+      ingredient_access: ingredient_access,
+      order_quantity: order_quantity,
+      storage_location_outlet: storage_location_outlet,
     }
 
     await Ingredient.create(newIngredient);
@@ -68,7 +70,7 @@ exports.updateIngredient = async (req, res) => {
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const ingredientId = req.params.id;
-    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access } = req.body;
+    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access, storage_location_outlet, order_quantity } = req.body;
     
     const updateIngredient = {
         name: name,
@@ -76,6 +78,8 @@ exports.updateIngredient = async (req, res) => {
         ingredient_unit_type_id: ingredient_unit_type_id,
         storage_location_warehouse_id: storage_location_warehouse_id,
         ingredient_access: ingredient_access,
+        order_quantity: order_quantity,
+        storage_location_outlet: storage_location_outlet,
         updated_at: indoDateTime,
     }
 

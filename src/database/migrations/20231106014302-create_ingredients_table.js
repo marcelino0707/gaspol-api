@@ -33,10 +33,14 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING,
       },
-      is_kitchen: {
+      storage_location_outlet: {
         allowNull: true,
         defaultValue: 1,
         type: Sequelize.TINYINT,
+      },
+      order_quantity: {
+        allowNull: true,
+        type: Sequelize.DECIMAL(2, 1),
       },
       created_at: {
         allowNull: false,

@@ -5,7 +5,7 @@ const Ingredient = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT ingredients.id, ingredients.name AS name, ingredients.ingredient_type_id, ingredients.ingredient_unit_type_id, ingredients.storage_location_warehouse_id, ingredients.supplier_id, ingredient_types.name AS ingredient_type_name, ingredients.ingredient_access, ingredient_unit_types.name AS ingredient_unit_type_name, ingredient_storage_warehouse_locations.name AS ingredient_storage_warehouse_location_name FROM ingredients LEFT JOIN ingredient_types ON ingredients.ingredient_type_id = ingredient_types.id LEFT JOIN ingredient_unit_types ON ingredients.ingredient_unit_type_id = ingredient_unit_types.id LEFT JOIN ingredient_storage_warehouse_locations ON ingredients.storage_location_warehouse_id = ingredient_storage_warehouse_locations.id WHERE ingredients.deleted_at IS NULL AND ingredients.id = ?', ingredient_id, (error, results) => {
+          connection.query('SELECT ingredients.id, ingredients.name AS name, ingredients.ingredient_type_id, ingredients.order_quantity, ingredients.storage_location_outlet, ingredients.ingredient_unit_type_id, ingredients.storage_location_warehouse_id, ingredients.supplier_id, ingredient_types.name AS ingredient_type_name, ingredients.ingredient_access, ingredient_unit_types.name AS ingredient_unit_type_name, ingredient_storage_warehouse_locations.name AS ingredient_storage_warehouse_location_name FROM ingredients LEFT JOIN ingredient_types ON ingredients.ingredient_type_id = ingredient_types.id LEFT JOIN ingredient_unit_types ON ingredients.ingredient_unit_type_id = ingredient_unit_types.id LEFT JOIN ingredient_storage_warehouse_locations ON ingredients.storage_location_warehouse_id = ingredient_storage_warehouse_locations.id WHERE ingredients.deleted_at IS NULL AND ingredients.id = ?', ingredient_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -17,11 +17,28 @@ const Ingredient = {
         .catch((error) => reject(error));
     });
   },
+  getIngredientByOutletId: (outlet_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query('SELECT ingredients.id, ingredients.name AS name, ingredients.ingredient_type_id, ingredients.order_quantity, ingredients.storage_location_outlet, ingredients.ingredient_unit_type_id, ingredient_types.name AS ingredient_type_name, ingredients.ingredient_access, ingredient_unit_types.name AS ingredient_unit_type_name FROM ingredients LEFT JOIN ingredient_types ON ingredients.ingredient_type_id = ingredient_types.id LEFT JOIN ingredient_unit_types ON ingredients.ingredient_unit_type_id = ingredient_unit_types.id WHERE ingredients.deleted_at IS NULL AND (ingredients.ingredient_access = ? OR FIND_IN_SET(?, ingredients.ingredient_access))',
+          [outlet_id, outlet_id], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results || null);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getAll: () => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT ingredients.id, ingredients.name AS name, ingredients.ingredient_type_id, ingredients.ingredient_unit_type_id, ingredients.storage_location_warehouse_id, ingredients.supplier_id, ingredient_types.name AS ingredient_type_name, ingredients.ingredient_access, ingredient_unit_types.name AS ingredient_unit_type_name, ingredient_storage_warehouse_locations.name AS ingredient_storage_warehouse_location_name FROM ingredients LEFT JOIN ingredient_types ON ingredients.ingredient_type_id = ingredient_types.id LEFT JOIN ingredient_unit_types ON ingredients.ingredient_unit_type_id = ingredient_unit_types.id LEFT JOIN ingredient_storage_warehouse_locations ON ingredients.storage_location_warehouse_id = ingredient_storage_warehouse_locations.id WHERE ingredients.deleted_at IS NULL', (error, results) => {
+          connection.query('SELECT ingredients.id, ingredients.name AS name, ingredients.ingredient_type_id, ingredients.order_quantity, ingredients.storage_location_outlet, ingredients.ingredient_unit_type_id, ingredients.storage_location_warehouse_id, ingredients.supplier_id, ingredient_types.name AS ingredient_type_name, ingredients.ingredient_access, ingredient_unit_types.name AS ingredient_unit_type_name, ingredient_storage_warehouse_locations.name AS ingredient_storage_warehouse_location_name FROM ingredients LEFT JOIN ingredient_types ON ingredients.ingredient_type_id = ingredient_types.id LEFT JOIN ingredient_unit_types ON ingredients.ingredient_unit_type_id = ingredient_unit_types.id LEFT JOIN ingredient_storage_warehouse_locations ON ingredients.storage_location_warehouse_id = ingredient_storage_warehouse_locations.id WHERE ingredients.deleted_at IS NULL', (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);

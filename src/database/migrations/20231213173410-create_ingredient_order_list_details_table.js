@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      outlet_order_list_id: {
+      ingredient_order_list_id: {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
@@ -26,10 +26,6 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
       },
       real: {
-        allowNull: true,
-        type: Sequelize.DECIMAL(10, 2),
-      },
-      order_quantity: {
         allowNull: true,
         type: Sequelize.DECIMAL(10, 2),
       },
