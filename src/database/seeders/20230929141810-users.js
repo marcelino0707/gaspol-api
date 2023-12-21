@@ -28,6 +28,14 @@ module.exports = {
         outlet_id: 2,
         menu_access: "2",
       },
+      {
+        name: "Gaspol Pengadaan",
+        username: 'warehouse',
+        password: "Gaspol123!",
+        role: 3,
+        outlet_id: 0,
+        menu_access: "0",
+      },
     ],{});
   },
 

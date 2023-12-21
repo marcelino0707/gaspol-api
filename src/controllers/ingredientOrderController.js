@@ -31,23 +31,26 @@ exports.getOrderIngredients = async (req, res) => {
         storage_location_outlet: 1
       })
 
-      const orderListId = createdOrderList.insertId;
+      if(ingredientIds.length > 0) {
+        const orderListId = createdOrderList.insertId;
+  
+        await IngredientOrderListDetail.createMultiple(orderListId, ingredientIds);
+  
+        const orderListDetails = await IngredientOrderListDetail.getByIngredientOrderListId(orderListId);
+  
+        // Combine the data based on ingredient_id
+        ingredientOrderListDetails = orderListDetails.map(orderDetail => ({
+          ingredient_order_list_detail_id: orderDetail.id,
+          ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
+          ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
+          order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
+          ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
+          leftover: Math.round(orderDetail.leftover),
+          order_request_quantity: Math.round(orderDetail.order_request_quantity),
+          real: Math.round(orderDetail.real)
+        }));
+      }
 
-      await IngredientOrderListDetail.createMultiple(orderListId, ingredientIds);
-
-      const orderListDetails = await IngredientOrderListDetail.getByIngredientOrderListId(orderListId);
-
-      // Combine the data based on ingredient_id
-      ingredientOrderListDetails = orderListDetails.map(orderDetail => ({
-        ingredient_order_list_detail_id: orderDetail.id,
-        ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
-        ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
-        order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
-        ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
-        leftover: orderDetail.leftover,
-        order_request_quantity: orderDetail.order_request_quantity,
-        real: orderDetail.real
-      }));
 
       if(outlet.is_kitchen_bar_merged == 0) {
         const createdOrderBarList = await IngredientOrderList.create({
@@ -56,23 +59,25 @@ exports.getOrderIngredients = async (req, res) => {
           storage_location_outlet: 0
         })
 
-        const orderBarListId = createdOrderBarList.insertId;
-
-        await IngredientOrderListDetail.createMultiple(orderBarListId, ingredientBarIds);
-
-        const orderBarListDetails = await IngredientOrderListDetail.getByIngredientOrderListId(orderBarListId);
-
-        // Combine the data based on ingredient_id
-        ingredientOrderBarListDetails = orderBarListDetails.map(orderDetail => ({
-          ingredient_order_list_detail_id: orderDetail.id,
-          ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
-          ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
-          order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
-          ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
-          leftover: orderDetail.leftover,
-          order_request_quantity: orderDetail.order_request_quantity,
-          real: orderDetail.real
-        }));
+        if(ingredientBarIds.length > 0) {
+          const orderBarListId = createdOrderBarList.insertId;
+          
+          await IngredientOrderListDetail.createMultiple(orderBarListId, ingredientBarIds);
+  
+          const orderBarListDetails = await IngredientOrderListDetail.getByIngredientOrderListId(orderBarListId);
+  
+          // Combine the data based on ingredient_id
+          ingredientOrderBarListDetails = orderBarListDetails.map(orderDetail => ({
+            ingredient_order_list_detail_id: orderDetail.id,
+            ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
+            ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
+            order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
+            ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
+            leftover: Math.round(orderDetail.leftover),
+            order_request_quantity: Math.round(orderDetail.order_request_quantity),
+            real: Math.round(orderDetail.real)
+          }));
+        }
       }
 
       ingredeintOrderList = await IngredientOrderList.getByOutletId(outlet_id);
@@ -92,9 +97,9 @@ exports.getOrderIngredients = async (req, res) => {
         ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
         order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
         ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
-        leftover: orderDetail.leftover,
-        order_request_quantity: orderDetail.order_request_quantity,
-        real: orderDetail.real
+        leftover: Math.round(orderDetail.leftover),
+        order_request_quantity: Math.round(orderDetail.order_request_quantity),
+        real: Math.round(orderDetail.real)
       }));
 
       if(outlet.is_kitchen_bar_merged == 0) {
@@ -113,9 +118,9 @@ exports.getOrderIngredients = async (req, res) => {
           ingredient_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_type_id || null,
           order_quantity: Math.round(ingredientMap.get(orderDetail.ingredient_id)?.order_quantity) || null,
           ingredient_unit_type_id: ingredientMap.get(orderDetail.ingredient_id)?.ingredient_unit_type_id || null,
-          leftover: orderDetail.leftover,
-          order_request_quantity: orderDetail.order_request_quantity,
-          real: orderDetail.real
+          leftover: Math.round(orderDetail.leftover),
+          order_request_quantity: Math.round(orderDetail.order_request_quantity),
+          real: Math.round(orderDetail.real)
         }));
       }
     }

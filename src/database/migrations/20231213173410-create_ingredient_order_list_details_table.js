@@ -19,15 +19,15 @@ module.exports = {
       },
       leftover: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 2),
+        type: Sequelize.DECIMAL(2, 1),
       },
       order_request_quantity: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 2),
+        type: Sequelize.DECIMAL(2, 1),
       },
       real: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 2),
+        type: Sequelize.DECIMAL(2, 1),
       },
       created_at: {
         allowNull: false,
