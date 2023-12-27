@@ -40,7 +40,7 @@ module.exports = {
       },
       order_quantity: {
         allowNull: true,
-        type: Sequelize.DECIMAL(2, 1),
+        type: Sequelize.DECIMAL(10, 1),
       },
       created_at: {
         allowNull: false,

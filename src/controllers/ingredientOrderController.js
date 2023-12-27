@@ -14,7 +14,11 @@ exports.getOrderIngredients = async (req, res) => {
     const outlet = await Outlet.getByOutletId(outlet_id);
     let ingredeintOrderList, ingredientOrderListDetails, ingredientOrderBarListDetails = [];
     const ingredients = await Ingredient.getIngredientByOutletId(outlet_id);
-    ingredeintOrderList = await IngredientOrderList.getByOutletId(outlet_id);
+    
+    const startDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 1 }).toDate();
+    const endDate = moment(indoDateTime).add(1, 'days').set({ hour: 4, minute: 30, second: 0 }).toDate();
+    ingredeintOrderList = await IngredientOrderList.getByOutletId(outlet_id, startDate, endDate);
+    
     // Create a map for faster lookup of ingredients
     const ingredientMap = new Map(ingredients.map(ingredient => [ingredient.id, ingredient]));
     const ingredientIds = ingredients.filter(
@@ -129,7 +133,7 @@ exports.getOrderIngredients = async (req, res) => {
     const ingredientUnitTypes = await IngredientUnitType.getAll();
 
     const result = {
-      ingredeint_order_lists: ingredeintOrderList,
+      ingredient_order_lists: ingredeintOrderList,
       ingredient_order_list_details: ingredientOrderListDetails,
       ingredient_order_bar_list_details: ingredientOrderBarListDetails,
       ingredient_types: ingredientTypes,
@@ -146,89 +150,89 @@ exports.getOrderIngredients = async (req, res) => {
   }
 };
 
-exports.getIngredientById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const ingredient = await Ingredient.getByIngredientId(id);
-    return res.status(200).json({
-      data: ingredient,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Get ingredient failed!",
-    });
-  }
-};
-
-exports.createIngredient = async (req, res) => {
-  try {
-    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access } = req.body;
-    
-    const newIngredient = {
-      name: name,
-      ingredient_type_id: ingredient_type_id,
-      ingredient_unit_type_id: ingredient_unit_type_id,
-      storage_location_warehouse_id: storage_location_warehouse_id,
-      ingredient_access: ingredient_access
-    }
-
-    await Ingredient.create(newIngredient);
-    
-    return res.status(201).json({
-      message: "Ingredient created successfully!",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Failed to create ingredient",
-    });
-  }
-};
-
-exports.updateIngredient = async (req, res) => {
+exports.updateOrderIngredients = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
-    const ingredientId = req.params.id;
-    const { name, ingredient_type_id, ingredient_unit_type_id, storage_location_warehouse_id, ingredient_access } = req.body;
+    const { ingredient_order_lists, ingredient_order_list_details } = req.body;
     
-    const updateIngredient = {
-        name: name,
-        ingredient_type_id: ingredient_type_id,
-        ingredient_unit_type_id: ingredient_unit_type_id,
-        storage_location_warehouse_id: storage_location_warehouse_id,
-        ingredient_access: ingredient_access,
-        updated_at: indoDateTime,
-    }
+    const updatedIngredientOrderLists = ingredient_order_lists.map((list) => ({
+      ...list,
+      updated_at: moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss"),
+    }));
 
-    await Ingredient.update(ingredientId, updateIngredient);
-    
+    const updatedIngredientOrderListDetails = ingredient_order_list_details.map((detail) => {
+      const { ingredient_order_list_detail_id, ...restDetail } = detail;
+      return {
+        ...restDetail,
+        id: ingredient_order_list_detail_id,
+        updated_at: moment(indoDateTime).format("YYYY-MM-DD HH:mm:ss"),
+      };
+    });
+
+    await IngredientOrderList.updateMultiple(updatedIngredientOrderLists);
+    await IngredientOrderListDetail.updateMultiple(updatedIngredientOrderListDetails);
+
     return res.status(201).json({
-      message: "Ingredient updated successfully!",
+      message: "Order Ingredient updated successfully!",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Failed to update ingredient",
+      message: error.message || "Failed to update order ingredient",
     });
   }
 };
 
-exports.deleteIngredient = async (req, res) => {
+exports.getOrderIngredientsOutlet = async (req, res) => {
   try {
+    const { outlet_id } = req.query;
     const thisTimeNow = moment();
     const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
-    const ingredientId = req.params.id;
-    const deletedAtNow = {
-      deleted_at: indoDateTime,
-    };
+    let ingredeintOrderList = [];
+    const startDate = moment(indoDateTime).subtract(1, 'days').set({ hour: 4, minute: 3, second: 1 }).toDate();
+    const endDate = moment(indoDateTime).set({ hour: 4, minute: 3, second: 0 }).toDate();
+    if(outlet_id) {
+      ingredeintOrderList = await IngredientOrderList.getByOutletId(outlet_id, startDate, endDate);
+    } else {
+      ingredeintOrderList = await IngredientOrderList.getAll(startDate, endDate);
+    }
 
-    await Ingredient.update(ingredientId, deletedAtNow);
+    const ingredientOrderListIds = ingredeintOrderList.map(
+      (list) => list.id
+    );
+    
+    const ingredientOrderListDetails = await IngredientOrderListDetail.getByIngredientOrderListIds(ingredientOrderListIds);
+      
+    const outlet_ids = ingredeintOrderList.map(
+      (list) => list.outlet_id
+    );
+
+    const outlets = await Outlet.getByOutletIds(outlet_ids);
+
+    const orderLists = ingredeintOrderList.map((orderList) => {
+      const details = ingredientOrderListDetails.filter((detail) => detail.ingredient_order_list_id === orderList.id);
+      return {
+        ...orderList,
+        ingredientOrderListDetails: details,
+      };
+    });
+
+    const ingredientTypes = await IngredientType.getAll();
+    const ingredientUnitTypes = await IngredientUnitType.getAll();
+
+    const result = {
+      outlets, 
+      ingredient_types: ingredientTypes,
+      ingredient_unit_types: ingredientUnitTypes, 
+      order_lists: orderLists,
+    }
 
     return res.status(200).json({
-      message: "Berhasil menghapus data ingredient",
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message || "Error while deleting ingredient",
+      message: error.message || "Failed to fetch ingredients order outlet",
     });
   }
 }

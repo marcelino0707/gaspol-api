@@ -33,6 +33,22 @@ const Outlet = {
         .catch((error) => reject(error));
     });
   },
+  getByOutletIds: (outlet_ids) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query('SELECT id, name FROM outlets WHERE deleted_at IS NULL AND id IN (?)', [outlet_ids], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results || null);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getAllDropdown: () => {
     return new Promise((resolve, reject) => {
       connectDB()

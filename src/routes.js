@@ -128,5 +128,7 @@ route.delete("/ingredient/:id", ingredient.deleteIngredient); // CMS
 
 // ingredeintOrderList
 route.get("/ingredient-order", ingredeintOrderList.getOrderIngredients); // CMS 
+route.patch("/ingredient-order", ingredeintOrderList.updateOrderIngredients); // CMS
+route.get("/ingredient-order-outlet", ingredeintOrderList.getOrderIngredientsOutlet); // CMS
 
 module.exports = route;
