@@ -8,7 +8,7 @@ const IngredientOrderList = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT ingredient_order_lists.id, ingredient_order_lists.outlet_id, ingredient_order_lists.storage_location_outlet, ingredient_order_lists.order_date, ingredient_order_lists.pembuat_order, ingredient_order_lists.penanggung_jawab, ingredient_order_lists.penerima, ingredient_order_lists.pengirim FROM ingredient_order_lists WHERE ingredient_order_lists.deleted_at IS NULL AND ingredient_order_lists.outlet_id = ? AND order_date BETWEEN ? AND ?', [outlet_id, start_date, end_date], (error, results) => {
+          connection.query('SELECT id, outlet_id, storage_location_outlet, order_date, pembuat_order, penanggung_jawab, penerima, pengirim FROM ingredient_order_lists WHERE deleted_at IS NULL AND outlet_id = ? AND order_date BETWEEN ? AND ?', [outlet_id, start_date, end_date], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
@@ -24,7 +24,7 @@ const IngredientOrderList = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT ingredient_order_lists.id, ingredient_order_lists.outlet_id, ingredient_order_lists.storage_location_outlet, ingredient_order_lists.order_date, ingredient_order_lists.pembuat_order, ingredient_order_lists.penanggung_jawab, ingredient_order_lists.penerima, ingredient_order_lists.pengirim FROM ingredient_order_lists WHERE ingredient_order_lists.deleted_at IS NULL AND order_date BETWEEN ? AND ?', [start_date, end_date], (error, results) => {
+          connection.query('SELECT id, outlet_id, storage_location_outlet, order_date, pembuat_order, penanggung_jawab, penerima, pengirim FROM ingredient_order_lists WHERE deleted_at IS NULL AND order_date BETWEEN ? AND ?', [start_date, end_date], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);

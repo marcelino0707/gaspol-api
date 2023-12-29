@@ -15,8 +15,15 @@ exports.getOrderIngredients = async (req, res) => {
     let ingredeintOrderList, ingredientOrderListDetails, ingredientOrderBarListDetails = [];
     const ingredients = await Ingredient.getIngredientByOutletId(outlet_id);
     
-    const startDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 1 }).toDate();
-    const endDate = moment(indoDateTime).add(1, 'days').set({ hour: 4, minute: 30, second: 0 }).toDate();
+    let startDate, endDate;
+    if (thisTimeNow.hours() >= 0) {
+      startDate = moment(indoDateTime).set({ hour: 0, minute: 0, second: 0 }).toDate();
+      endDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 0 }).toDate();
+    } else {
+      startDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 1 }).toDate();
+      endDate = moment(indoDateTime).add(1, 'days').set({ hour: 4, minute: 30, second: 0 }).toDate();
+    }
+
     ingredeintOrderList = await IngredientOrderList.getByOutletId(outlet_id, startDate, endDate);
     
     // Create a map for faster lookup of ingredients
@@ -131,8 +138,10 @@ exports.getOrderIngredients = async (req, res) => {
 
     const ingredientTypes = await IngredientType.getAll();
     const ingredientUnitTypes = await IngredientUnitType.getAll();
-
+    const newDatetimeFormat = thisTimeNow.tz("Asia/Jakarta");
+    const dateTimeNowFormat = newDatetimeFormat.format("dddd, D MMMM YYYY - HH:mm");
     const result = {
+      date_time_now: dateTimeNowFormat,
       ingredient_order_lists: ingredeintOrderList,
       ingredient_order_list_details: ingredientOrderListDetails,
       ingredient_order_bar_list_details: ingredientOrderBarListDetails,
@@ -219,8 +228,10 @@ exports.getOrderIngredientsOutlet = async (req, res) => {
 
     const ingredientTypes = await IngredientType.getAll();
     const ingredientUnitTypes = await IngredientUnitType.getAll();
-
+    const newDatetimeFormat = thisTimeNow.tz("Asia/Jakarta");
+    const dateTimeNowFormat = newDatetimeFormat.format("dddd, D MMMM YYYY - HH:mm");
     const result = {
+      date_time_now: dateTimeNowFormat,
       outlets, 
       ingredient_types: ingredientTypes,
       ingredient_unit_types: ingredientUnitTypes, 

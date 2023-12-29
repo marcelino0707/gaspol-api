@@ -77,12 +77,15 @@ exports.getOutletById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { name, address, pin } = req.body;
+    const { name, address, pin, phone_number, footer, is_kitchen_bar_merged } = req.body;
 
     const outlet = {
       name: name,
       address: address,
       pin: pin,
+      phone_number: phone_number,
+      footer: footer,
+      is_kitchen_bar_merged: is_kitchen_bar_merged
     };
 
     await Outlet.create(outlet);
@@ -99,13 +102,19 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
+    const thisTimeNow = moment();
+    const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
     const outletId = req.params.id;
-    const { name, address, pin } = req.body;
+    const { name, address, pin, phone_number, footer, is_kitchen_bar_merged } = req.body;
 
     const updateOutlet = {
       name: name,
       address: address,
       pin: pin,
+      phone_number: phone_number,
+      footer: footer,
+      is_kitchen_bar_merged: is_kitchen_bar_merged,
+      updated_at: indoDateTime,
     };
 
     await Outlet.update(outletId, updateOutlet);
