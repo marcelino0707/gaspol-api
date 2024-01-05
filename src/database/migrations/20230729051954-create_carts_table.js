@@ -42,6 +42,10 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.TINYINT,
       },
+      cart_id_main_split: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

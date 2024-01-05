@@ -474,17 +474,44 @@ exports.deleteCart = async (req, res) => {
           cancel_reason: cancel_reason,
         });
       } else {
-        await CartDetail.updateAllByCartId(cart_id, {
-          deleted_at: indoDateTime,
-        });
+        const cart = await Cart.getByCartId(cart_id);
         const deleteCost = {
           subtotal: 0,
           total: 0,
           discount_id: null,
           updated_at: indoDateTime,
         };
+        if (cart && cart.cart_id_main_split != null) {
+          const oldTransaction = await Transaction.getByCartId(cart.cart_id_main_split);
+          if (oldTransaction) {
+            await Cart.update(cart_id, {
+              is_canceled: 1,
+              is_active: false,
+              is_queuing: false,
+              updated_at: indoDateTime,
+            });
+    
+            await CartDetail.updateAllByCartId(cart_id, {
+              is_canceled: 1,
+              cancel_reason: cancel_reason,
+            });
+          } else {
+            deleteCost.is_active = false;
+            deleteCost.is_queuing = false;
 
-        await Cart.update(cart_id, deleteCost);
+            await CartDetail.updateAllByCartId(cart_id, {
+              deleted_at: indoDateTime,
+            });
+  
+            await Cart.update(cart_id, deleteCost);
+          }
+        } else {
+          await CartDetail.updateAllByCartId(cart_id, {
+            deleted_at: indoDateTime,
+          });
+
+          await Cart.update(cart_id, deleteCost);
+        }
       }
 
       return res.status(200).json({
@@ -510,6 +537,7 @@ exports.splitCart = async (req, res) => {
   try {
     const newCart = await Cart.create({
       outlet_id: outlet_id,
+      cart_id_main_split: cart_id
     });
     const newCartID = newCart.insertId;
     let subtotalNewCart = 0;
