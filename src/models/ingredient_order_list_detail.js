@@ -20,6 +20,38 @@ const IngredientOrderListDetail = {
         .catch((error) => reject(error));
     });
   },
+  getByIngredientReportId: (ingredient_order_list_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query('SELECT id, ingredient_id, current_shift_pertama, tambahan_shift_pertama, tambahan_shift_kedua, akhir_shift_pertama, akhir_shift_kedua, selisih_shift_pertama, selisih_shift_kedua, penjualan_shift_pertama, penjualan_shift_kedua FROM ingredient_order_list_details WHERE deleted_at IS NULL AND ingredient_order_list_id = ?', ingredient_order_list_id, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getByLastIngredientReportId: (ingredient_order_list_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query('SELECT id, ingredient_id, akhir_shift_kedua FROM ingredient_order_list_details WHERE deleted_at IS NULL AND ingredient_order_list_id = ?', ingredient_order_list_id, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getByIngredientOrderListIds: (ingredient_order_list_ids) => {
     return new Promise((resolve, reject) => {
       connectDB()

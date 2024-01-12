@@ -43,6 +43,26 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: null, 
       },
+      kordinator_shift_pertama: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        defaultValue: null, 
+      },
+      kordinator_shift_kedua: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        defaultValue: null, 
+      },
+      checker_shift_pertama: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        defaultValue: null, 
+      },
+      checker_shift_kedua: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        defaultValue: null, 
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

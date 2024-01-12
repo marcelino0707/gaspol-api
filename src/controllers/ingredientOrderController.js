@@ -247,3 +247,119 @@ exports.getOrderIngredientsOutlet = async (req, res) => {
     });
   }
 }
+
+exports.getOrderIngredientsReport = async (req, res) => {
+  try{
+    const { outlet_id } = req.query;
+    const thisTimeNow = moment();
+    const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+    let ingredeintOrderList, ingredientOrderListDetails = [];
+
+    let startDate, endDate;
+    const cutOffTime = moment(indoDateTime).set({ hour: 4, minute: 30, second: 1 }).toDate();
+    if (thisTimeNow.isBefore(cutOffTime)) {
+      startDate = moment(indoDateTime).subtract(1, 'days').set({ hour: 4, minute: 3, second: 1 }).toDate();
+      endDate = moment(indoDateTime).set({ hour: 4, minute: 3, second: 0 }).toDate();
+    } else {
+      startDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 1 }).toDate();
+      endDate = moment(indoDateTime).add(1, 'days').set({ hour: 4, minute: 30, second: 0 }).toDate();
+    }
+
+    const startDateYesterday = moment(startDate).subtract(1, 'days').toDate();
+    const endDateYesterday = moment(endDate).subtract(1, 'days').toDate();
+
+    ingredeintOrderList = await IngredientOrderList.getReportByOutletId(outlet_id, startDate, endDate);
+    const ingredientReportYesterday = await IngredientOrderList.getReportByOutletId(outlet_id, startDateYesterday, endDateYesterday);
+    const ingredients = await Ingredient.getIngredientByOutletId(outlet_id);
+    const ingredientMap = new Map(ingredients.map(ingredient => [ingredient.id, ingredient]));
+    const ingredientIds =  ingredients.map((item) => item.id);
+    if(ingredeintOrderList == undefined) {
+      const createdOrderList = await IngredientOrderList.create({
+        order_date: moment(indoDateTime).toDate(),
+        outlet_id: outlet_id,
+      })
+
+      if (ingredients.length > 0) {
+        const orderListId = createdOrderList.insertId;
+
+        await IngredientOrderListDetail.createMultiple(orderListId, ingredientIds);
+        const orderListDetails = await IngredientOrderListDetail.getByIngredientReportId(orderListId);
+
+        let orderListDetailsYesterday, orderListDetailsYesterdayMap;
+        if(ingredientReportYesterday) {
+          orderListDetailsYesterday = await IngredientOrderListDetail.getByLastIngredientReportId(ingredientReportYesterday.id);
+          orderListDetailsYesterdayMap = new Map(orderListDetailsYesterday.map(detail => [detail.ingredient_id, detail.akhir_shift_kedua]));
+        }
+
+        ingredientOrderListDetails = orderListDetails.map(orderDetail => ({
+          ingredient_order_list_detail_id: orderDetail.id,
+          awal: parseFloat(orderListDetailsYesterdayMap?.get(orderDetail.ingredient_id)) || 0,
+          ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
+          current_shift_pertama: orderDetail.current_shift_pertama || 0,
+          tambahan_shift_pertama: orderDetail.tambahan_shift_pertama || 0,
+          total_shift_pertama: orderDetail.current_shift_pertama + orderDetail.tambahan_shift_pertama || 0,
+          tambahan_shift_kedua: orderDetail.tambahan_shift_kedua || 0,
+          total_shift_kedua: orderDetail.akhir_shift_pertama || 0,
+          akhir_shift_pertama: orderDetail.akhir_shift_pertama || 0,
+          akhir_shift_kedua: orderDetail.akhir_shift_kedua || 0,
+          penjualan_shift_pertama: orderDetail.penjualan_shift_pertama || 0,
+          penjualan_shift_kedua: orderDetail.penjualan_shift_kedua || 0,
+          real_shift_pertama: (orderDetail.current_shift_pertama + orderDetail.tambahan_shift_pertama - orderDetail.akhir_shift_pertama) * -1 || 0,
+          real_shift_kedua: (orderDetail.akhir_shift_pertama - orderDetail.akhir_shift_kedua) * -1 || 0,
+          selisih_shift_pertama: orderDetail.selisih_shift_pertama || 0,
+          selisih_shift_kedua: orderDetail.selisih_shift_kedua || 0,
+        }));
+      } 
+
+      ingredeintOrderList = await IngredientOrderList.getReportByOutletId(outlet_id, startDate, endDate);
+    } else {
+      let orderListDetails = await IngredientOrderListDetail.getByIngredientReportId(ingredeintOrderList.id);
+      let orderListDetailsYesterday, orderListDetailsYesterdayMap;
+      if(ingredientReportYesterday) {
+        orderListDetailsYesterday = await IngredientOrderListDetail.getByLastIngredientReportId(ingredientReportYesterday.id);
+        orderListDetailsYesterdayMap = new Map(orderListDetailsYesterday.map(detail => [detail.ingredient_id, detail.akhir_shift_kedua]));
+      }
+      const existingIngredientIds = orderListDetails.map((item) => item.ingredient_id);
+      const missingIngredientIds = ingredientIds.filter((ingredientId) => !existingIngredientIds.includes(ingredientId));
+      if(missingIngredientIds.length > 0) {
+        await IngredientOrderListDetail.createMultiple(ingredeintOrderList.id, missingIngredientIds);
+        orderListDetails = await IngredientOrderListDetail.getByIngredientReportId(ingredeintOrderList.id);
+      }
+
+      ingredientOrderListDetails = orderListDetails.map(orderDetail => ({
+        ingredient_order_list_detail_id: orderDetail.id,
+        awal: parseFloat(orderListDetailsYesterdayMap?.get(orderDetail.ingredient_id)) || 0,
+        ingredient_name: ingredientMap.get(orderDetail.ingredient_id)?.name || null,
+        current_shift_pertama: orderDetail.current_shift_pertama || 0,
+        tambahan_shift_pertama: orderDetail.tambahan_shift_pertama || 0,
+        total_shift_pertama: orderDetail.current_shift_pertama + orderDetail.tambahan_shift_pertama || 0,
+        tambahan_shift_kedua: orderDetail.tambahan_shift_kedua || 0,
+        total_shift_kedua: orderDetail.akhir_shift_pertama || 0,
+        akhir_shift_pertama: orderDetail.akhir_shift_pertama || 0,
+        akhir_shift_kedua: orderDetail.akhir_shift_kedua || 0,
+        penjualan_shift_pertama: orderDetail.penjualan_shift_pertama || 0,
+        penjualan_shift_kedua: orderDetail.penjualan_shift_kedua || 0,
+        real_shift_pertama: (orderDetail.current_shift_pertama + orderDetail.tambahan_shift_pertama - orderDetail.akhir_shift_pertama) * -1 || 0,
+        real_shift_kedua: (orderDetail.akhir_shift_pertama - orderDetail.akhir_shift_kedua) * -1 || 0,
+        selisih_shift_pertama: orderDetail.selisih_shift_pertama || 0,
+        selisih_shift_kedua: orderDetail.selisih_shift_kedua || 0,
+      }));
+    }
+    const newDatetimeFormat = thisTimeNow.tz("Asia/Jakarta");
+    const dateTimeNowFormat = newDatetimeFormat.format("dddd, D MMMM YYYY - HH:mm");
+
+    const result = {
+      ingredeintOrderList: ingredeintOrderList,
+      ingredientOrderListDetails: ingredientOrderListDetails,
+      date_time_now: dateTimeNowFormat,
+    }
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to fetch report ingredients order outlet",
+    });
+  }
+}

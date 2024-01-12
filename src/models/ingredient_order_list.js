@@ -20,6 +20,22 @@ const IngredientOrderList = {
         .catch((error) => reject(error));
     });
   },
+  getReportByOutletId: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query('SELECT id, outlet_id, order_date, kordinator_shift_pertama, kordinator_shift_kedua, checker_shift_pertama, checker_shift_kedua FROM ingredient_order_lists WHERE deleted_at IS NULL AND outlet_id = ? AND order_date BETWEEN ? AND ?', [outlet_id, start_date, end_date], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getAll: (start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
