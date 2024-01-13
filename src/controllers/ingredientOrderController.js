@@ -16,7 +16,7 @@ exports.getOrderIngredients = async (req, res) => {
     const ingredients = await Ingredient.getIngredientByOutletId(outlet_id);
 
     let startDate, endDate;
-    if (thisTimeNow.hours() >= 0) {
+    if (thisTimeNow.isBetween(moment(indoDateTime).set({ hour: 0, minute: 0, second: 0 }), moment(indoDateTime).set({ hour: 4, minute: 30, second: 0 }))) {
       startDate = moment(indoDateTime).set({ hour: 0, minute: 0, second: 0 }).toDate();
       endDate = moment(indoDateTime).set({ hour: 4, minute: 30, second: 0 }).toDate();
     } else {
@@ -329,7 +329,6 @@ exports.getOrderIngredientsReport = async (req, res) => {
       let orderListDetailsYesterday, orderListDetailsYesterdayMap;
       if (ingredientReportYesterday) {
         orderListDetailsYesterday = await IngredientOrderListDetail.getByLastIngredientReportId(ingredientReportYesterday.id);
-        console.log(orderListDetailsYesterday);
         orderListDetailsYesterdayMap = new Map(orderListDetailsYesterday.map(detail => [detail.ingredient_id, detail.akhir_shift_kedua]));
       }
       const existingIngredientIds = orderListDetails.map((item) => item.ingredient_id);

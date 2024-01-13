@@ -8,7 +8,7 @@ const IngredientOrderList = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id, outlet_id, storage_location_outlet, order_date, pembuat_order, penanggung_jawab, penerima, pengirim FROM ingredient_order_lists WHERE deleted_at IS NULL AND outlet_id = ? AND order_date BETWEEN ? AND ?', [outlet_id, start_date, end_date], (error, results) => {
+          connection.query('SELECT id, outlet_id, storage_location_outlet, order_date, pembuat_order, penanggung_jawab, penerima, pengirim, updated_at FROM ingredient_order_lists WHERE deleted_at IS NULL AND outlet_id = ? AND order_date BETWEEN ? AND ?', [outlet_id, start_date, end_date], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
