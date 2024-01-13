@@ -68,6 +68,24 @@ const IngredientOrderList = {
         .catch((error) => reject(error));
     });
   },
+
+  update: (id, data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE ingredient_order_lists SET ? WHERE id = ?", [data, id], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+
   updateMultiple: async (data) => {
     try {
       const connection = await connectDB();

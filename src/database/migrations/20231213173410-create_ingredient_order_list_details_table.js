@@ -19,60 +19,50 @@ module.exports = {
       },
       leftover: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       order_request_quantity: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       real: {
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       current_shift_pertama: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       tambahan_shift_pertama: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       tambahan_shift_kedua: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       akhir_shift_pertama: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       akhir_shift_kedua: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       penjualan_shift_pertama: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       penjualan_shift_kedua: {
         default: 0,
         allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
-      },
-      selisih_shift_pertama: {
-        default: 0,
-        allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
-      },
-      selisih_shift_kedua: {
-        default: 0,
-        allowNull: true,
-        type: Sequelize.DECIMAL(10, 1),
+        type: Sequelize.DECIMAL(10, 2),
       },
       created_at: {
         allowNull: false,
