@@ -5,7 +5,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE outlet_id = ? AND deleted_at IS NULL AND is_active = 1", outlet_id, (error, results) => {
+          connection.query("SELECT id, name, menu_type, price, image_url FROM menus WHERE outlet_id = ? AND deleted_at IS NULL AND is_active = 1 ORDER BY name ASC", outlet_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
