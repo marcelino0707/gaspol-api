@@ -15,6 +15,20 @@ const ShiftReport = {
       });
     });
   },
+  getLastShift: (outletId) => {
+    return new Promise((resolve, reject) => {
+      connectDB().then((connection) => {
+        connection.query("SELECT id, outlet_id, casher_name, start_date, end_date, shift_number, actual_ending_cash FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 2 OFFSET 1", outletId, (error, results) => {
+          disconnectDB(connection);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results[0]);
+          }
+        });
+      });
+    });
+  },
   create: (data) => {
     return new Promise((resolve, reject) => {
       connectDB()

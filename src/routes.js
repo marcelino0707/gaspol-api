@@ -70,6 +70,7 @@ route.post("/refund", refund.createRefund);
 // Struct
 route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 route.get("/struct-kitchen/:id", struct.getKitchenStruct);
+route.get("/struct-shift", struct.getLastShiftStruct);
 route.post("/struct-shift", struct.getShiftStruct);
 
 // Report 
