@@ -2,9 +2,9 @@ const Discount = require("../models/discount");
 const moment = require("moment-timezone");
 
 exports.getDiscounts = async (req, res) => {
-  const { is_discount_cart } = req.query;
+  const { is_discount_cart, outlet_id } = req.query;
   try {
-    const discount = await Discount.getAll(is_discount_cart);
+    const discount = await Discount.getAll(outlet_id, is_discount_cart);
     return res.status(200).json({
       data: discount,
     });

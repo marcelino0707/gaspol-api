@@ -670,7 +670,7 @@ exports.getLastShiftStruct = async (req, res) => {
   try {
     const shiftReports = await ShiftReport.getLastShift(outlet_id);
     if (!shiftReports) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: "Laporan Kosong!",
       });
     } else {

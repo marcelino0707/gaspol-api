@@ -15,7 +15,7 @@ exports.getCart = async (req, res) => {
     if (!cart) {
       cart = await Cart.getQueuingByOutletId(req.query.outlet_id);
       if (!cart) {
-        return res.status(404).json({
+        return res.status(200).json({
           message: "Keranjang di Outlet ini sedang kosong",
         });
       } else {

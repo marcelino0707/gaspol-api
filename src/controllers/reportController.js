@@ -130,8 +130,8 @@ exports.getPaymentReport = async (req, res) => {
         data: result,
       });
     } else {
-      return res.status(404).json({
-        code: 404,
+      return res.status(200).json({
+        code: 200,
         message: "Laporan Kosong!",
         data: null,
       });

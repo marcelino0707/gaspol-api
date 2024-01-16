@@ -83,7 +83,7 @@ exports.createTransaction = async (req, res) => {
   try {
     const cart = await Cart.getByCartId(cart_id);
     if (!cart) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: "Keranjang Kosong!" || error.message || "Failed to fetch carts",
       });
     }

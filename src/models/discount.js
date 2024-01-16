@@ -16,12 +16,13 @@ const getCurrentDateTime = () => {
 };
 
 const Discount = {
-  getAll: (is_discount_cart) => {
+  getAll: (outlet_id, is_discount_cart) => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
         let currentDate = getCurrentDateTime();
         let query =
           "SELECT id, code, is_percent, is_discount_cart, value, start_date, end_date, min_purchase, max_discount, updated_at FROM discounts WHERE deleted_at IS NULL";
+        query += ` AND outlet_id = ${outlet_id}`;
         if (is_discount_cart !== undefined) {
           if (is_discount_cart == 1) {
             query += " AND is_discount_cart = 1";
