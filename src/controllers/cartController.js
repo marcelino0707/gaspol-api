@@ -17,6 +17,7 @@ exports.getCart = async (req, res) => {
       if (!cart) {
         return res.status(200).json({
           message: "Keranjang di Outlet ini sedang kosong",
+          data: null
         });
       } else {
         isQueuing = true;

@@ -85,6 +85,7 @@ exports.createTransaction = async (req, res) => {
     if (!cart) {
       return res.status(200).json({
         message: "Keranjang Kosong!" || error.message || "Failed to fetch carts",
+        data: null,
       });
     }
 

@@ -672,6 +672,7 @@ exports.getLastShiftStruct = async (req, res) => {
     if (!shiftReports) {
       return res.status(200).json({
         message: "Laporan Kosong!",
+        data: null,
       });
     } else {
       const actual_ending_cash = shiftReports.actual_ending_cash;
