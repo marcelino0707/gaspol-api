@@ -339,6 +339,7 @@ exports.getShiftStruct = async (req, res) => {
             menu_detail_id: cart.menu_detail_id,
             menu_name: cart.menu_name,
             varian: cart.varian,
+            menu_type: cart.menu_type,
           };
           if (is_refund) {
             newCartItem.qty_refund_item = cart.qty_refund_item;
@@ -815,6 +816,7 @@ exports.getLastShiftStruct = async (req, res) => {
               menu_id: cart.menu_id,
               menu_detail_id: cart.menu_detail_id,
               menu_name: cart.menu_name,
+              menu_type: cart.menu_type,
               varian: cart.varian,
             };
             if (is_refund) {
