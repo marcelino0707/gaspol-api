@@ -32,10 +32,57 @@ exports.getReport = async (req, res) => {
       isSuccess,
       isPending
     );
+
+    const turnoversByDate = transactions.reduce((result, transaction) => {
+      const { invoice_due_date, payment_type_id, payment_type, customer_cash, customer_change } = transaction;
+      // Skip transactions without invoice_due_date
+      if (invoice_due_date !== null) {
+        const totalTransactionAmount = customer_cash - customer_change;
+    
+        // Extract the date part (yyyy-mm-dd) from invoice_due_date
+        const datePart = invoice_due_date.split(' ')[0];
+    
+        // Check if datePart already exists in the result array
+        const existingDateIndex = result.findIndex(item => item.invoice_due_date === datePart);
+    
+        if (existingDateIndex !== -1) {
+          // If datePart exists, update the total amount and details
+          result[existingDateIndex].total_turnover += totalTransactionAmount;
+    
+          // Check if payment type already exists in details array
+          const existingPaymentTypeIndex = result[existingDateIndex].details.findIndex(item => item.payment_type_id === payment_type_id);
+          if (existingPaymentTypeIndex !== -1) {
+            // If payment type exists, update the total amount in details
+            result[existingDateIndex].details[existingPaymentTypeIndex].total_amount += totalTransactionAmount;
+          } else {
+            // If payment type doesn't exist, add a new entry to details
+            result[existingDateIndex].details.push({
+              payment_type_id: payment_type_id,
+              payment_type: payment_type,
+              total_amount: totalTransactionAmount,
+            });
+          }
+        } else {
+          // If datePart doesn't exist, add a new entry to result
+          result.push({
+            invoice_due_date: datePart,
+            total_turnover: totalTransactionAmount,
+            details: [{
+              payment_type_id: payment_type_id,
+              payment_type: payment_type,
+              total_amount: totalTransactionAmount,
+            }],
+          });
+        }
+      }
+      return result;
+    }, []);
+    
     return res.status(200).json({
       code: 200,
       message: "Laporan berhasil ditampilkan!",
       data: transactions,
+      chart: turnoversByDate,
     });
   } catch (error) {
     return res.status(500).json({
