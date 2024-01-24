@@ -626,3 +626,31 @@ exports.splitCart = async (req, res) => {
     });
   }
 };
+
+exports.getStatusOrderedCart = async (req, res) => {
+  try {
+    let cart = await Cart.getByOutletId(req.query.outlet_id);
+    let result = {
+      is_ordered: 0,
+    };
+    if (cart) {
+      const cartDetails = await CartDetail.getOrderedByCartId(cart.id);
+      if(cartDetails.length > 0) {
+        result.is_ordered = 1;
+      }
+    } else {
+      return res.status(200).json({
+        message: "Keranjang di Outlet ini sedang kosong",
+        data: result
+      });
+    }
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to fetch carts",
+    });
+  }
+};

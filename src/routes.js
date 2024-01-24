@@ -138,4 +138,6 @@ route.patch("/ingredient-order", ingredeintOrderList.updateOrderIngredients); //
 route.get("/ingredient-order-outlet", ingredeintOrderList.getOrderIngredientsOutlet); // CMS
 route.get("/ingredient-report", ingredeintOrderList.getOrderIngredientsReport); // CMS
 
+route.get("/check-ordered-cart", cart.getStatusOrderedCart); // check status ordered cart
+
 module.exports = route;

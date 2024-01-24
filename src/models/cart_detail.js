@@ -41,6 +41,26 @@ const CartDetail = {
         .catch((error) => reject(error));
     });
   },
+  getOrderedByCartId: (cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id FROM cart_details WHERE cart_id = ? AND deleted_at IS NULL AND is_ordered = 1",
+            cart_id,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getCanceledByCartId: (cart_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
