@@ -139,5 +139,6 @@ route.get("/ingredient-order-outlet", ingredeintOrderList.getOrderIngredientsOut
 route.get("/ingredient-report", ingredeintOrderList.getOrderIngredientsReport); // CMS
 
 route.get("/check-ordered-cart", cart.getStatusOrderedCart); // check status ordered cart
+route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
 
 module.exports = route;

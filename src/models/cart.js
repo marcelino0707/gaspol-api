@@ -49,6 +49,22 @@ const Cart = {
         .catch((error) => reject(error));
     });
   },
+  getOldCartBySplitCartId: (split_cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id FROM carts WHERE id = ? AND deleted_at IS NULL", split_cart_id, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getNotYetPaidByCartId: (id) => {
     return new Promise((resolve, reject) => {
       connectDB()

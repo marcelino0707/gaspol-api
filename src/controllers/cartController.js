@@ -21,6 +21,10 @@ exports.getCart = async (req, res) => {
         });
       } else {
         isQueuing = true;
+        await Cart.update(cart.id, {
+          is_active: true,
+          is_queuing: false
+        })
       }
     }
 
@@ -651,6 +655,54 @@ exports.getStatusOrderedCart = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Failed to fetch carts",
+    });
+  }
+};
+
+exports.emptyCart = async (req, res) => {
+  const thisTimeNow = moment();
+  const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+  try {
+    const {
+      cart_id,
+    } = req.query;
+    const cart = await Cart.getByCartId(cart_id);
+    const deleteCost = {
+      subtotal: 0,
+      total: 0,
+      discount_id: null,
+      updated_at: indoDateTime,
+    };
+
+    if (cart && cart.cart_id_main_split != null) {
+      const oldCart = await Cart.getOldCartBySplitCartId(cart.cart_id_main_split);
+      if (oldCart) {
+        await Cart.update(cart_id, {
+          is_active: false,
+          is_queuing: true,
+        });
+
+        await Cart.update(oldCart.id, {
+          is_active: true,
+          is_queuing: false
+        })
+
+      } 
+    }
+
+    await CartDetail.updateAllByCartId(cart_id, {
+      deleted_at: indoDateTime,
+    });
+
+    await Cart.update(cart_id, deleteCost);
+
+    return res.status(200).json({
+      code: 200,
+      message: "Berhasil menghapus data keranjang",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Error while deleting cart",
     });
   }
 };
