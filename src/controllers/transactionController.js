@@ -17,7 +17,6 @@ exports.getTransactions = async (req, res) => {
     const { outlet_id, is_success } = req.query;
     let transactions = [];
     const reportDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
-
     if (is_success == "true") {
       transactions = await Transaction.getAllByIsSuccess(outlet_id, reportDate);
     } else {
@@ -34,7 +33,11 @@ exports.getTransactions = async (req, res) => {
           transaction[key] !== "0.00" &&
           transaction[key] !== 0
         ) {
-          filteredTransaction[key] = transaction[key];
+          if (key === 'invoice_due_date' || key === 'updated_at') {
+            filteredTransaction[key] = moment.tz(transaction[key], "Asia/Jakarta").format("dddd, D MMMM YYYY - HH:mm");
+          } else {
+            filteredTransaction[key] = transaction[key];
+          }
         }
       }
 
