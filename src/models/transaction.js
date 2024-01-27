@@ -84,6 +84,26 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  getSavedBillByCartId: (cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id FROM transactions WHERE cart_id = ? AND deleted_at IS NULL",
+            [cart_id],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results[0]);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   create: (transaction) => {
     return new Promise((resolve, reject) => {
       connectDB()

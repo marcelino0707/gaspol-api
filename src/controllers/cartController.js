@@ -11,7 +11,6 @@ const moment = require("moment-timezone");
 exports.getCart = async (req, res) => {
   try {
     let cart = await Cart.getByOutletId(req.query.outlet_id);
-    let isQueuing = false;
     if (!cart) {
       cart = await Cart.getQueuingByOutletId(req.query.outlet_id);
       if (!cart) {
@@ -20,7 +19,6 @@ exports.getCart = async (req, res) => {
           data: null
         });
       } else {
-        isQueuing = true;
         await Cart.update(cart.id, {
           is_active: true,
           is_queuing: false
@@ -34,16 +32,22 @@ exports.getCart = async (req, res) => {
       customer_name: "",
       customer_seat: "",
       cart_id: cart.id,
+      is_splitted: 0,
       subtotal: cart.subtotal,
       total: cart.total,
       cart_details: cartDetails,
     };
 
-    if (!isQueuing) {
-      const transaction = await Transaction.getByCartId(cart.id);
-      if (transaction) {
-        result.customer_name = transaction.customer_name;
-        result.customer_seat = transaction.customer_seat;
+    const transaction = await Transaction.getByCartId(cart.id);
+    if (transaction) {
+      result.customer_name = transaction.customer_name;
+      result.customer_seat = transaction.customer_seat;
+    }
+    
+    if(cart.cart_id_main_split != null) {
+      const savedBill = await Transaction.getSavedBillByCartId(cart.cart_id_main_split);
+      if (savedBill) {
+        result.is_splitted = 1;
       }
     }
 
