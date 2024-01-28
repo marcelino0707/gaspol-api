@@ -134,7 +134,7 @@ exports.createTransaction = async (req, res) => {
     let cartDetails, canceledItems, kitchenBarCartDetails, kitchenBarCanceledItems = [];
     const cartId = cart_id ? cart_id : existingTransaction.cart_id;
     if (customer_cash) {
-      cartDetails = await CartDetail.getByCartId(cartId);
+      cartDetails = await CartDetail.getByCartId(cartId, true);
       kitchenBarCartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       kitchenBarCanceledItems = await CartDetail.getCanceledByCartId(cartId);
     } else {
@@ -217,6 +217,8 @@ exports.createTransaction = async (req, res) => {
         return detailWithoutId;
       });
       result.refund_details = refundDetailsWithoutId;
+    } else {
+      result.is_refund_all = false;
     }
 
     return res.status(201).json({
@@ -241,7 +243,7 @@ exports.getTransactionById = async (req, res) => {
   try {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
+    const cartDetails = await CartDetail.getByCartId(transaction.cart_id, true);
     const refund = await Refund.getByTransactionId(id);
     let refundDetails = [];
     if (refund) {
@@ -283,7 +285,7 @@ exports.getTransactionById = async (req, res) => {
       result.invoice_due_date = formatDate(transaction.invoice_due_date);
     }
 
-    result.is_refund_all = null;
+    result.is_refund_all = false;
     result.total_refund = null;
     result.refund_details = [];
     if (refund) {

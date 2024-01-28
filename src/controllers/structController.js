@@ -19,7 +19,7 @@ exports.getCustomerStruct = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const outlet = await Outlet.getByOutletId(transaction.outlet_id);
     const cart = await Cart.getByCartId(transaction.cart_id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
+    const cartDetails = await CartDetail.getByCartId(transaction.cart_id, true);
     const refund = await Refund.getByTransactionId(id);
     let refundDetails = [];
     if (refund) {
@@ -81,7 +81,7 @@ exports.getKitchenStruct = async (req, res) => {
   try {
     const transaction = await Transaction.getById(id);
     const outlet = await Outlet.getByOutletId(transaction.outlet_id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id);
+    const cartDetails = await CartDetail.getByCartId(transaction.cart_id, false);
 
     let updatedCartDetails = [];
 

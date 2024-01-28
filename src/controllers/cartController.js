@@ -26,7 +26,7 @@ exports.getCart = async (req, res) => {
       }
     }
 
-    const cartDetails = await CartDetail.getByCartId(cart.id);
+    const cartDetails = await CartDetail.getByCartId(cart.id, false);
 
     const result = {
       customer_name: "",
@@ -587,7 +587,7 @@ exports.splitCart = async (req, res) => {
       subtotalNewCart = subtotalNewCart + newTotalPriceItem;
     }
 
-    const oldCartDetails = await CartDetail.getByCartId(cart_id);
+    const oldCartDetails = await CartDetail.getByCartId(cart_id, false);
     if (oldCartDetails) {
       let subtotalCart = 0;
       for (const oldCartDetail of oldCartDetails) {

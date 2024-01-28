@@ -1,12 +1,14 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const CartDetail = {
-  getByCartId: (cart_id) => {
+  getByCartId: (cart_id, emptyQty) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cart_details.id AS cart_detail_id, cart_details.menu_id, menus.name AS menu_name, menus.menu_type, cart_details.menu_detail_id, cart_details.is_ordered, menu_details.varian, cart_details.serving_type_id, serving_types.name AS serving_type_name, cart_details.discount_id, discounts.code AS discount_code, discounts.value AS discounts_value, discounted_price, discounts.is_percent AS discounts_is_percent,cart_details.price, cart_details.total_price, cart_details.qty, cart_details.note_item FROM cart_details LEFT JOIN discounts ON cart_details.discount_id = discounts.id LEFT JOIN serving_types ON cart_details.serving_type_id = serving_types.id LEFT JOIN menus ON cart_details.menu_id = menus.id LEFT JOIN menu_details ON cart_details.menu_detail_id = menu_details.id WHERE cart_details.cart_id = ? AND is_canceled = 0 AND cart_details.deleted_at IS NULL",
+            "SELECT cart_details.id AS cart_detail_id, cart_details.menu_id, menus.name AS menu_name, menus.menu_type, cart_details.menu_detail_id, cart_details.is_ordered, menu_details.varian, cart_details.serving_type_id, serving_types.name AS serving_type_name, cart_details.discount_id, discounts.code AS discount_code, discounts.value AS discounts_value, discounted_price, discounts.is_percent AS discounts_is_percent,cart_details.price, cart_details.total_price, cart_details.qty, cart_details.note_item FROM cart_details LEFT JOIN discounts ON cart_details.discount_id = discounts.id LEFT JOIN serving_types ON cart_details.serving_type_id = serving_types.id LEFT JOIN menus ON cart_details.menu_id = menus.id LEFT JOIN menu_details ON cart_details.menu_detail_id = menu_details.id WHERE cart_details.cart_id = ? AND is_canceled = 0 AND cart_details.deleted_at IS NULL" + 
+            (emptyQty ? " AND cart_details.qty != 0" : "") +
+            ";",
             cart_id,
             (error, results) => {
               disconnectDB(connection);

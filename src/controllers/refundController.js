@@ -13,6 +13,12 @@ exports.createRefund = async (req, res) => {
     const { transaction_id, is_refund_all, cart_id, refund_reason, cart_details, payment_type_id } = req.body;
     const refund = await Refund.getByTransactionId(transaction_id);
 
+    if(refund && refund.is_refund_all == 1) {
+      return res.status(200).json({
+        message: "Tidak ada transaksi yang bisa direfund lagi!",
+      });
+    }
+
     let refundId,
       totalRefund = 0;
     if (refund) {
@@ -22,14 +28,13 @@ exports.createRefund = async (req, res) => {
       const newRefund = {
         transaction_id: transaction_id,
         is_refund_all: is_refund_all,
-        refund_reason: refund_reason,
       };
       const createdRefund = await Refund.create(newRefund);
       refundId = createdRefund.insertId;
     }
 
     if (is_refund_all === true) {
-      const cartDetails = await CartDetail.getByCartId(cart_id);
+      const cartDetails = await CartDetail.getByCartId(cart_id, true);
       for (const cartDetail of cartDetails) {
         const refundDetailData = {
           refund_id: refundId,
@@ -94,23 +99,17 @@ exports.createRefund = async (req, res) => {
       updated_at: indoDateTime,
     });
 
-    const transaction = await Transaction.getByCartId(cart_id);
-    const cart = await Cart.getByCartId(cart_id);
-    const cartDetails = await CartDetail.getByCartId(cart_id);
-    const refundResult = await Refund.getByTransactionId(transaction_id);
-    const refundDetailsResult = await RefundDetail.getByRefundId(refundId);
-
+    const cartDetails = await CartDetail.getByCartId(cart_id, true);
+    
     if(is_refund_all === true) {
       await Transaction.update(transaction_id, {
         is_refunded : 1,
         updated_at: indoDateTime,
       })
     } else {
-      let refundAll = false;
-      for ( const cartDetail of cartDetails){
-        if (cartDetail.qty == 0) {
-          refundAll = true;
-        } else {
+      let refundAll = true;
+      for (const cartDetail of cartDetails){
+        if (cartDetail.qty != 0) {
           refundAll = false;
         }
       }
@@ -120,8 +119,17 @@ exports.createRefund = async (req, res) => {
           is_refunded : 1,
           updated_at: indoDateTime,
         })
+
+        await Refund.update(refundId, {
+          is_refund_all: true,
+        });
       }
     }
+
+    const transaction = await Transaction.getByCartId(cart_id);
+    const cart = await Cart.getByCartId(cart_id);
+    const refundResult = await Refund.getByTransactionId(transaction_id);
+    const refundDetailsResult = await RefundDetail.getByRefundId(refundId);
     
     const result = {
       transaction_id: transaction.id,
