@@ -77,6 +77,7 @@ route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 route.get("/struct-kitchen/:id", struct.getKitchenStruct);
 route.get("/struct-shift", struct.getLastShiftStruct);
 route.post("/struct-shift", struct.getShiftStruct);
+route.get("/shift", struct.getShift);
 
 // Report 
 route.get("/report", report.getReport);
