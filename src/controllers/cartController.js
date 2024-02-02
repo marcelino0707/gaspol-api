@@ -31,6 +31,7 @@ exports.getCart = async (req, res) => {
     const result = {
       customer_name: "",
       customer_seat: "",
+      discount_id: cart.discount_id || 0,
       cart_id: cart.id,
       is_splitted: 0,
       subtotal: cart.subtotal,
