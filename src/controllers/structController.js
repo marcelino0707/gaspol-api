@@ -213,7 +213,6 @@ exports.getShiftStruct = async (req, res) => {
       startDateString,
       endDateString
     );
-    const payment_types = await PaymentType.getAll(outlet_id);
     const transactions = await Transaction.getShiftReport(
       outlet_id,
       startDateString,
@@ -280,6 +279,19 @@ exports.getShiftStruct = async (req, res) => {
         return !!associatedTransaction;
       })
       .filter((cart) => cart.total_price > 0);
+
+    const discountedCartSuccessCash = transactions
+    .filter((transaction) => {
+      return (
+        transaction.invoice_number !== null &&
+        transaction.payment_type_id == 1 &&
+        transaction.total_discount != 0
+      );
+    })
+    .reduce(
+      (total, transaction) => total + transaction.total_discount,
+      0
+    );
 
     const totalCashSales = cartDetailsSuccessCash.reduce(
       (total, cart) => total + cart.total_price,
@@ -365,7 +377,7 @@ exports.getShiftStruct = async (req, res) => {
       payment_type_detail: [
         {
           payment_type: "Cash Sales",
-          total_payment: totalCashSales + totalCashRefundedToOtherPayment,
+          total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
           is_success: 1,
           is_refund: 0,
           is_pending: 0,
@@ -402,6 +414,7 @@ exports.getShiftStruct = async (req, res) => {
     };
     payment_details.push(paymentDetailsCash);
 
+    const payment_types = await PaymentType.getAll(outlet_id);
     // Iterate through each payment type
     for (const paymentType of payment_types) {
       if (paymentType.id != 1) {
@@ -690,7 +703,6 @@ exports.getLastShiftStruct = async (req, res) => {
         startDateString,
         endDateString
       );
-      const payment_types = await PaymentType.getAll(outlet_id);
       const transactions = await Transaction.getShiftReport(
         outlet_id,
         startDateString,
@@ -758,6 +770,19 @@ exports.getLastShiftStruct = async (req, res) => {
           return !!associatedTransaction;
         })
         .filter((cart) => cart.total_price > 0);
+
+        const discountedCartSuccessCash = transactions
+        .filter((transaction) => {
+          return (
+            transaction.invoice_number !== null &&
+            transaction.payment_type_id == 1 &&
+            transaction.total_discount != 0
+          );
+        })
+        .reduce(
+          (total, transaction) => total + transaction.total_discount,
+          0
+        );
 
       const totalCashSales = cartDetailsSuccessCash.reduce(
         (total, cart) => total + cart.total_price,
@@ -843,7 +868,7 @@ exports.getLastShiftStruct = async (req, res) => {
         payment_type_detail: [
           {
             payment_type: "Cash Sales",
-            total_payment: totalCashSales + totalCashRefundedToOtherPayment,
+            total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
             is_success: 1,
             is_refund: 0,
             is_pending: 0,
@@ -880,6 +905,7 @@ exports.getLastShiftStruct = async (req, res) => {
       };
       payment_details.push(paymentDetailsCash);
 
+      const payment_types = await PaymentType.getAll(outlet_id);
       // Iterate through each payment type
       for (const paymentType of payment_types) {
         if (paymentType.id != 1) {
@@ -1163,7 +1189,6 @@ exports.getShift = async (req, res) => {
         startDateString,
         endDateString
       );
-      const payment_types = await PaymentType.getAll(outlet_id);
       const transactions = await Transaction.getShiftReport(
         outlet_id,
         startDateString,
@@ -1233,6 +1258,19 @@ exports.getShift = async (req, res) => {
           return !!associatedTransaction;
         })
         .filter((cart) => cart.total_price > 0);
+
+        const discountedCartSuccessCash = transactions
+        .filter((transaction) => {
+          return (
+            transaction.invoice_number !== null &&
+            transaction.payment_type_id == 1 &&
+            transaction.total_discount != 0
+          );
+        })
+        .reduce(
+          (total, transaction) => total + transaction.total_discount,
+          0
+        );
 
       const totalCashSales = cartDetailsSuccessCash.reduce(
         (total, cart) => total + cart.total_price,
@@ -1318,7 +1356,7 @@ exports.getShift = async (req, res) => {
         payment_type_detail: [
           {
             payment_type: "Cash Sales",
-            total_payment: totalCashSales + totalCashRefundedToOtherPayment,
+            total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
             is_success: 1,
             is_refund: 0,
             is_pending: 0,
@@ -1355,6 +1393,7 @@ exports.getShift = async (req, res) => {
       };
       payment_details.push(paymentDetailsCash);
 
+      const payment_types = await PaymentType.getAll(outlet_id);
       // Iterate through each payment type
       for (const paymentType of payment_types) {
         if (paymentType.id != 1) {
