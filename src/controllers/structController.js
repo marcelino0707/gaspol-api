@@ -81,7 +81,10 @@ exports.getKitchenStruct = async (req, res) => {
   try {
     const transaction = await Transaction.getById(id);
     const outlet = await Outlet.getByOutletId(transaction.outlet_id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id, false);
+    const cartDetails = await CartDetail.getByCartId(
+      transaction.cart_id,
+      false
+    );
 
     let updatedCartDetails = [];
 
@@ -137,12 +140,12 @@ exports.getKitchenStruct = async (req, res) => {
 exports.getShiftStruct = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+  const today = moment().tz("Asia/Jakarta");
 
   const { outlet_id, actual_ending_cash, casher_name } = req.body;
   try {
     const shiftReports = await ShiftReport.getLastCreated(outlet_id);
     function getStartDate() {
-      const today = moment().tz("Asia/Jakarta");
       const startDate = today.set({
         hour: 6,
         minute: 0,
@@ -166,14 +169,9 @@ exports.getShiftStruct = async (req, res) => {
       });
     } else {
       const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
-
       if (
-        shiftStartDate.isAfter(moment().tz("Asia/Jakarta").startOf("day")) &&
-        shiftStartDate.isBefore(
-          moment()
-            .tz("Asia/Jakarta")
-            .set({ hour: 5, minute: 0, second: 0, millisecond: 0 })
-        )
+        today.hour() > 5 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 5 ||
+        shiftStartDate.isBefore(today) && today.hour() > 5
       ) {
         await ShiftReport.update(shiftReports.id, {
           shift_number: 1,
@@ -281,17 +279,17 @@ exports.getShiftStruct = async (req, res) => {
       .filter((cart) => cart.total_price > 0);
 
     const discountedCartSuccessCash = transactions
-    .filter((transaction) => {
-      return (
-        transaction.invoice_number !== null &&
-        transaction.payment_type_id == 1 &&
-        transaction.total_discount != 0
+      .filter((transaction) => {
+        return (
+          transaction.invoice_number !== null &&
+          transaction.payment_type_id == 1 &&
+          transaction.total_discount != 0
+        );
+      })
+      .reduce(
+        (total, transaction) => total + transaction.total_discount,
+        0
       );
-    })
-    .reduce(
-      (total, transaction) => total + transaction.total_discount,
-      0
-    );
 
     const totalCashSales = cartDetailsSuccessCash.reduce(
       (total, cart) => total + cart.total_price,
@@ -713,9 +711,7 @@ exports.getLastShiftStruct = async (req, res) => {
 
       if (transactions.length > 0) {
         const cartIds = [
-          ...new Set(
-            transactions.map((transaction) => transaction.cart_id)
-          ),
+          ...new Set(transactions.map((transaction) => transaction.cart_id)),
         ];
         cartDetails = await CartDetail.getByCartIdsShift(cartIds);
 
@@ -756,7 +752,9 @@ exports.getLastShiftStruct = async (req, res) => {
       });
 
       // Extract cart details for canceled transactions
-      const cartDetailsCanceled = cartDetails.filter((cart) => cart.is_canceled == 1);
+      const cartDetailsCanceled = cartDetails.filter(
+        (cart) => cart.is_canceled == 1
+      );
 
       const payment_details = [];
       const cartDetailsSuccessCash = cartDetails
@@ -771,7 +769,7 @@ exports.getLastShiftStruct = async (req, res) => {
         })
         .filter((cart) => cart.total_price > 0);
 
-        const discountedCartSuccessCash = transactions
+      const discountedCartSuccessCash = transactions
         .filter((transaction) => {
           return (
             transaction.invoice_number !== null &&
@@ -779,10 +777,7 @@ exports.getLastShiftStruct = async (req, res) => {
             transaction.total_discount != 0
           );
         })
-        .reduce(
-          (total, transaction) => total + transaction.total_discount,
-          0
-        );
+        .reduce((total, transaction) => total + transaction.total_discount, 0);
 
       const totalCashSales = cartDetailsSuccessCash.reduce(
         (total, cart) => total + cart.total_price,
@@ -801,13 +796,17 @@ exports.getLastShiftStruct = async (req, res) => {
         })
         .map((cart) => cart.cart_detail_id);
 
-      const cartDetailsRefundedCashToOtherPayment = refundDetails
-        .filter((refund) => cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1);
-
-      const totalCashRefundedToOtherPayment = cartDetailsRefundedCashToOtherPayment.reduce(
-        (total, refund) => total + refund.total_refund_price,
-        0
+      const cartDetailsRefundedCashToOtherPayment = refundDetails.filter(
+        (refund) =>
+          cartDetailIdsRefundedCash.includes(refund.cart_detail_id) &&
+          refund.payment_type_id != 1
       );
+
+      const totalCashRefundedToOtherPayment =
+        cartDetailsRefundedCashToOtherPayment.reduce(
+          (total, refund) => total + refund.total_refund_price,
+          0
+        );
 
       const cashRefundDetails = refundDetails.filter(
         (refund) => refund.payment_type_id == 1
@@ -858,9 +857,18 @@ exports.getLastShiftStruct = async (req, res) => {
         return mergedCartDetails;
       };
 
-      const cartDetailsSuccessFiltered = mergeAndSumCartDetails(cartDetailsSuccess, false);
-      const cartDetailsPendingFiltered = mergeAndSumCartDetails(cartDetailsPending, false);
-      const cartDetailsCanceledFiltered = mergeAndSumCartDetails(cartDetailsCanceled, false);
+      const cartDetailsSuccessFiltered = mergeAndSumCartDetails(
+        cartDetailsSuccess,
+        false
+      );
+      const cartDetailsPendingFiltered = mergeAndSumCartDetails(
+        cartDetailsPending,
+        false
+      );
+      const cartDetailsCanceledFiltered = mergeAndSumCartDetails(
+        cartDetailsCanceled,
+        false
+      );
       const refundDetailsFiltered = mergeAndSumCartDetails(refundDetails, true);
 
       const paymentDetailsCash = {
@@ -868,7 +876,10 @@ exports.getLastShiftStruct = async (req, res) => {
         payment_type_detail: [
           {
             payment_type: "Cash Sales",
-            total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
+            total_payment:
+              totalCashSales +
+              totalCashRefundedToOtherPayment -
+              discountedCartSuccessCash,
             is_success: 1,
             is_refund: 0,
             is_pending: 0,
@@ -957,7 +968,8 @@ exports.getLastShiftStruct = async (req, res) => {
             if (paymentTypeDetail.total_payment > 0) {
               // Find the payment category name
               const paymentCategoryName = payment_types.find(
-                (pt) => pt.payment_category_id === paymentType.payment_category_id
+                (pt) =>
+                  pt.payment_category_id === paymentType.payment_category_id
               ).payment_category_name;
 
               // Check if a payment category with the same name already exists
@@ -1068,7 +1080,10 @@ exports.getLastShiftStruct = async (req, res) => {
 
         const discountAmountCashTransactions = transactions
           .filter((transaction) => transaction.payment_type_id == 1)
-          .reduce((total, transaction) => total + transaction.total_discount, 0);
+          .reduce(
+            (total, transaction) => total + transaction.total_discount,
+            0
+          );
 
         const discount_amount_per_items =
           subtotalCartSuccessAmount -
@@ -1112,7 +1127,11 @@ exports.getLastShiftStruct = async (req, res) => {
 
       const discount_total_amount =
         discount_amount_per_items + discount_amount_transactions;
-      const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - expenditure.totalExpense;
+      const ending_cash_expected =
+        totalCashSales +
+        totalCashRefundedToOtherPayment -
+        discountAmountCashTransactions -
+        expenditure.totalExpense;
       const cash_difference = actual_ending_cash - ending_cash_expected;
 
       const result = {
@@ -1200,9 +1219,7 @@ exports.getShift = async (req, res) => {
 
       if (transactions.length > 0) {
         const cartIds = [
-          ...new Set(
-            transactions.map((transaction) => transaction.cart_id)
-          ),
+          ...new Set(transactions.map((transaction) => transaction.cart_id)),
         ];
         cartDetails = await CartDetail.getByCartIdsShift(cartIds);
 
@@ -1217,7 +1234,6 @@ exports.getShift = async (req, res) => {
           refundDetails = await RefundDetail.getByRefundIdsShift(refundIdS);
         }
       }
-
 
       // Separate cartDetails into cartDetailsSuccess and cartDetailsPending
       const cartDetailsSuccess = cartDetails
@@ -1244,7 +1260,9 @@ exports.getShift = async (req, res) => {
       });
 
       // Extract cart details for canceled transactions
-      const cartDetailsCanceled = cartDetails.filter((cart) => cart.is_canceled == 1);
+      const cartDetailsCanceled = cartDetails.filter(
+        (cart) => cart.is_canceled == 1
+      );
 
       const payment_details = [];
       const cartDetailsSuccessCash = cartDetails
@@ -1259,7 +1277,7 @@ exports.getShift = async (req, res) => {
         })
         .filter((cart) => cart.total_price > 0);
 
-        const discountedCartSuccessCash = transactions
+      const discountedCartSuccessCash = transactions
         .filter((transaction) => {
           return (
             transaction.invoice_number !== null &&
@@ -1267,10 +1285,7 @@ exports.getShift = async (req, res) => {
             transaction.total_discount != 0
           );
         })
-        .reduce(
-          (total, transaction) => total + transaction.total_discount,
-          0
-        );
+        .reduce((total, transaction) => total + transaction.total_discount, 0);
 
       const totalCashSales = cartDetailsSuccessCash.reduce(
         (total, cart) => total + cart.total_price,
@@ -1289,13 +1304,17 @@ exports.getShift = async (req, res) => {
         })
         .map((cart) => cart.cart_detail_id);
 
-      const cartDetailsRefundedCashToOtherPayment = refundDetails
-        .filter((refund) => cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1);
-
-      const totalCashRefundedToOtherPayment = cartDetailsRefundedCashToOtherPayment.reduce(
-        (total, refund) => total + refund.total_refund_price,
-        0
+      const cartDetailsRefundedCashToOtherPayment = refundDetails.filter(
+        (refund) =>
+          cartDetailIdsRefundedCash.includes(refund.cart_detail_id) &&
+          refund.payment_type_id != 1
       );
+
+      const totalCashRefundedToOtherPayment =
+        cartDetailsRefundedCashToOtherPayment.reduce(
+          (total, refund) => total + refund.total_refund_price,
+          0
+        );
 
       const cashRefundDetails = refundDetails.filter(
         (refund) => refund.payment_type_id == 1
@@ -1346,9 +1365,18 @@ exports.getShift = async (req, res) => {
         return mergedCartDetails;
       };
 
-      const cartDetailsSuccessFiltered = mergeAndSumCartDetails(cartDetailsSuccess, false);
-      const cartDetailsPendingFiltered = mergeAndSumCartDetails(cartDetailsPending, false);
-      const cartDetailsCanceledFiltered = mergeAndSumCartDetails(cartDetailsCanceled, false);
+      const cartDetailsSuccessFiltered = mergeAndSumCartDetails(
+        cartDetailsSuccess,
+        false
+      );
+      const cartDetailsPendingFiltered = mergeAndSumCartDetails(
+        cartDetailsPending,
+        false
+      );
+      const cartDetailsCanceledFiltered = mergeAndSumCartDetails(
+        cartDetailsCanceled,
+        false
+      );
       const refundDetailsFiltered = mergeAndSumCartDetails(refundDetails, true);
 
       const paymentDetailsCash = {
@@ -1356,7 +1384,10 @@ exports.getShift = async (req, res) => {
         payment_type_detail: [
           {
             payment_type: "Cash Sales",
-            total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
+            total_payment:
+              totalCashSales +
+              totalCashRefundedToOtherPayment -
+              discountedCartSuccessCash,
             is_success: 1,
             is_refund: 0,
             is_pending: 0,
@@ -1445,7 +1476,8 @@ exports.getShift = async (req, res) => {
             if (paymentTypeDetail.total_payment > 0) {
               // Find the payment category name
               const paymentCategoryName = payment_types.find(
-                (pt) => pt.payment_category_id === paymentType.payment_category_id
+                (pt) =>
+                  pt.payment_category_id === paymentType.payment_category_id
               ).payment_category_name;
 
               // Check if a payment category with the same name already exists
@@ -1556,7 +1588,10 @@ exports.getShift = async (req, res) => {
 
         const discountAmountCashTransactions = transactions
           .filter((transaction) => transaction.payment_type_id == 1)
-          .reduce((total, transaction) => total + transaction.total_discount, 0);
+          .reduce(
+            (total, transaction) => total + transaction.total_discount,
+            0
+          );
 
         const discount_amount_per_items =
           subtotalCartSuccessAmount -
@@ -1600,7 +1635,11 @@ exports.getShift = async (req, res) => {
 
       const discount_total_amount =
         discount_amount_per_items + discount_amount_transactions;
-      const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - expenditure.totalExpense;
+      const ending_cash_expected =
+        totalCashSales +
+        totalCashRefundedToOtherPayment -
+        discountAmountCashTransactions -
+        expenditure.totalExpense;
 
       const result = {
         outlet_name: outlet.name,
@@ -1647,4 +1686,4 @@ exports.getShift = async (req, res) => {
       message: error.message || "Some error occurred while get the transaction",
     });
   }
-}
+};
