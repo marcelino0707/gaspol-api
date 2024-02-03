@@ -344,6 +344,18 @@ exports.createDiscountTransaction = async (req, res) => {
       });
     }
 
+    if (discount_id == 0) {
+      await Cart.update(cart_id, {
+        discount_id: discount_id,
+        total: cart.subtotal,
+        updated_at: indoDateTime,
+      });
+
+      return res.status(201).json({
+        message: "Diskon berhasil dihapus!",
+      });
+    }
+
     const discount = await Discount.getById(discount_id);
     totalCartPrice = await applyDiscountAndUpdateTotal(
       null,
@@ -353,7 +365,7 @@ exports.createDiscountTransaction = async (req, res) => {
       discount.min_purchase,
       discount.max_discount,
       discount.is_discount_cart,
-      cart.subtotal
+      cart.total
     );
     await Cart.update(cart_id, {
       discount_id: discount_id,
