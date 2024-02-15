@@ -199,9 +199,14 @@ exports.getMenusV2 = async (req, res) => {
   const { outlet_id } = req.query;
   try {
     const menus = await Menu.getAllCMS(outlet_id);
-
+    const customPriceIds = menus.map((item) => item.id);
+    const prices = await CustomPrice.getPricesByMenuIdsCMS(customPriceIds);
+    const menusWithPrice = menus.map(menu => {
+      const price = prices.find(pr => pr.menu_id == menu.id);
+      return { ...menu, price: price ? price.price : null };
+    });
     return res.status(200).json({
-      data: menus,
+      data: menusWithPrice,
     });
   } catch (error) {
     return res.status(500).json({
@@ -216,7 +221,6 @@ exports.getMenuByIdV2 = async (req, res) => {
 
     const menu = await Menu.getByIdCMS(id);
     const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
-
     const result = {
       id: menu.id,
       name: menu.name,

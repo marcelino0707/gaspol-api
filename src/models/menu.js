@@ -53,7 +53,7 @@ const Menu = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query("SELECT id, name, outlet_id, menu_type, price, image_url, is_active FROM menus WHERE outlet_id = ? AND deleted_at IS NULL", outlet_id, (error, results) => {
+          connection.query("SELECT id, name, outlet_id, menu_type, image_url, is_active FROM menus WHERE outlet_id = ? AND deleted_at IS NULL", outlet_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
