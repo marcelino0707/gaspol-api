@@ -23,6 +23,26 @@ const CartDetail = {
         .catch((error) => reject(error));
     });
   },
+  getDiscountedItemsByCartId: (cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id AS cart_detail_id, subtotal_price FROM cart_details WHERE cart_id = ? AND is_canceled = 0 AND deleted_at IS NULL AND qty != 0 AND (discount_id != NULL || discount_id != 0)",
+            cart_id,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getNotOrderedByCartId: (cart_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -148,7 +168,7 @@ const CartDetail = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cart_details.id AS cart_detail_id, cart_details.menu_id, cart_details.is_ordered, menus.name AS menu_name, menus.menu_type, cart_details.menu_detail_id, cart_details.discount_id, menu_details.varian, cart_details.serving_type_id, serving_types.name AS serving_type_name, cart_details.price, cart_details.discounted_price, cart_details.total_price, cart_details.qty, cart_details.note_item FROM cart_details INNER JOIN menus ON cart_details.menu_id = menus.id LEFT JOIN menu_details ON cart_details.menu_detail_id = menu_details.id LEFT JOIN serving_types ON cart_details.serving_type_id = serving_types.id WHERE cart_details.id = ? AND cart_details.deleted_at IS NULL",
+            "SELECT cart_details.id AS cart_detail_id, cart_details.menu_id, cart_details.is_ordered, menus.name AS menu_name, menus.menu_type, cart_details.menu_detail_id, cart_details.discount_id, menu_details.varian, cart_details.serving_type_id, serving_types.name AS serving_type_name, cart_details.price, cart_details.discounted_price, cart_details.subtotal_price, cart_details.total_price, cart_details.qty, cart_details.note_item FROM cart_details INNER JOIN menus ON cart_details.menu_id = menus.id LEFT JOIN menu_details ON cart_details.menu_detail_id = menu_details.id LEFT JOIN serving_types ON cart_details.serving_type_id = serving_types.id WHERE cart_details.id = ? AND cart_details.deleted_at IS NULL",
             cart_detail_id,
             (error, results) => {
               disconnectDB(connection);

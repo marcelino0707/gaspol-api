@@ -344,7 +344,20 @@ exports.createDiscountTransaction = async (req, res) => {
       });
     }
 
-    if (discount_id == 0) {
+    // delete all discount from discounted cart detail
+    const discountedCartDetails = await CartDetail.getDiscountedItemsByCartId(cart_id);
+    if(discountedCartDetails.length != 0) {
+      for (const cartDetail of discountedCartDetails) {
+        await CartDetail.update(cartDetail.cart_detail_id, {
+          discount_id: 0,
+          discounted_price: 0,
+          total_price: cartDetail.subtotal_price,
+          updated_at: indoDateTime,
+        });
+      }
+    }
+
+    if (discount_id == 0 && cart.discount_id > 0) {
       await Cart.update(cart_id, {
         discount_id: discount_id,
         total: cart.subtotal,
@@ -354,27 +367,31 @@ exports.createDiscountTransaction = async (req, res) => {
       return res.status(201).json({
         message: "Diskon berhasil dihapus!",
       });
+    } else if (discount_id > 0) {
+      const discount = await Discount.getById(discount_id);
+      const totalCartPrice = await applyDiscountAndUpdateTotal(
+        null,
+        null,
+        discount.is_percent,
+        discount.value,
+        discount.min_purchase,
+        discount.max_discount,
+        discount.is_discount_cart,
+        cart.subtotal
+      );
+      await Cart.update(cart_id, {
+        discount_id: discount_id,
+        total: totalCartPrice,
+        updated_at: indoDateTime,
+      });
+      return res.status(201).json({
+        message: "Diskon berhasil ditambahkan!",
+      });
+    } else {
+      return res.status(201).json({
+        message: "Diskon-diskon berhasil dihapus!",
+      });
     }
-
-    const discount = await Discount.getById(discount_id);
-    totalCartPrice = await applyDiscountAndUpdateTotal(
-      null,
-      null,
-      discount.is_percent,
-      discount.value,
-      discount.min_purchase,
-      discount.max_discount,
-      discount.is_discount_cart,
-      cart.total
-    );
-    await Cart.update(cart_id, {
-      discount_id: discount_id,
-      total: totalCartPrice,
-      updated_at: indoDateTime,
-    });
-    return res.status(201).json({
-      message: "Diskon berhasil ditambahkan!",
-    });
   } catch (error) {
     const statusCode = error.statusCode || 500;
     const errorMessage =

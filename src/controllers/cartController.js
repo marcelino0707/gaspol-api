@@ -94,13 +94,14 @@ exports.createCart = async (req, res) => {
   try {
     const cart = await Cart.getByOutletId(outlet_id);
     let cartDetailTotalPrice = price * qty;
-
+    const cartDetailSubtotalPrice = cartDetailTotalPrice;
     let cartId,
-      subTotalPrice = 0;
+      subTotalPrice = 0,
+      totalPrice = 0;
 
-    const discount = await Discount.getById(discount_id);
-    if (discount_id != 0) {
-      discountedPrice = await applyDiscountAndUpdateTotal(
+    if (discount_id && discount_id != 0) {
+      const discount = await Discount.getById(discount_id);
+      const discountedPrice = await applyDiscountAndUpdateTotal(
         price,
         qty,
         discount.is_percent,
@@ -116,6 +117,7 @@ exports.createCart = async (req, res) => {
     if (cart) {
       cartId = cart.id;
       subTotalPrice = cart.subtotal;
+      totalPrice = cart.total;
     } else {
       let newCart = {};
       newCart.outlet_id = outlet_id;
@@ -129,12 +131,13 @@ exports.createCart = async (req, res) => {
       serving_type_id: serving_type_id,
       price: price,
       qty: qty,
+      subtotal_price: cartDetailSubtotalPrice,
       total_price: cartDetailTotalPrice,
     };
 
-    if (discount_id != 0) {
+    if (discount_id && discount_id != 0) {
       newCartDetail.discount_id = discount_id;
-      const discountedPricePercent = discountedPrice / qty;
+      const discountedPricePercent = cartDetailTotalPrice / qty;
       newCartDetail.discounted_price = Math.max(
         100,
         Math.ceil(discountedPricePercent / 100) * 100
@@ -151,12 +154,16 @@ exports.createCart = async (req, res) => {
 
     await CartDetail.create(newCartDetail);
 
-    subTotalPrice = subTotalPrice + cartDetailTotalPrice;
+    subTotalPrice = subTotalPrice + cartDetailSubtotalPrice;
+    totalPrice = totalPrice + cartDetailTotalPrice;
+    if (cart && cart.discount_id > 0) {
+      totalPrice = cart.subtotal + cartDetailTotalPrice;
+    }
 
     await Cart.update(cartId, {
       subtotal: subTotalPrice,
-      total: subTotalPrice,
-      discount_id: null,
+      total: totalPrice,
+      discount_id: 0,
       updated_at: indoDateTime,
     });
 
@@ -218,8 +225,13 @@ exports.updateCart = async (req, res) => {
     }
 
     const cart = await Cart.getByOutletId(outlet_id);
-    const oldSubtotalReduce = cart.subtotal - cartDetail.total_price;
+    const oldSubtotalReduce = cart.subtotal - cartDetail.subtotal_price;
+    let oldTotalReduce = cart.total - cartDetail.total_price;
+    if (cart && cart.discount_id > 0) {
+      oldTotalReduce = cart.subtotal - cartDetail.total_price;
+    }
     let cartDetailTotalPrice = price * qty;
+    const cartDetailSubtotalPrice = cartDetailTotalPrice;
 
     const updatedCartItems = {
       menu_id,
@@ -255,6 +267,7 @@ exports.updateCart = async (req, res) => {
         );
         updatedCartItems.discount_id = discount_id;
       }
+      updatedCartItems.subtotal_price = cartDetailSubtotalPrice;
       updatedCartItems.total_price = cartDetailTotalPrice;
       await CartDetail.update(cart_detail_id, updatedCartItems);
     } else {
@@ -270,6 +283,7 @@ exports.updateCart = async (req, res) => {
         price: cartDetail.price,
         qty: newQty,
         note_item: cartDetail.note_item,
+        subtotal_price: newTotalPrice,
         total_price: newTotalPrice,
         is_ordered: 1,
         is_canceled: 1,
@@ -282,15 +296,17 @@ exports.updateCart = async (req, res) => {
       updatedCartItems.discount_id = 0;
       updatedCartItems.discounted_price = 0;
       updatedCartItems.discounted_price = 0;
+      updatedCartItems.subtotal_price = cartDetailSubtotalPrice;
       updatedCartItems.total_price = cartDetailTotalPrice;
       await CartDetail.update(cart_detail_id, updatedCartItems);
     }
 
-    const subTotalPrice = oldSubtotalReduce + cartDetailTotalPrice;
+    const subTotalPrice = oldSubtotalReduce + cartDetailSubtotalPrice;
+    const totalPrice = oldTotalReduce + cartDetailTotalPrice;
     const updateSubtotal = {
       subtotal: subTotalPrice,
-      total: subTotalPrice,
-      discount_id: null,
+      total: totalPrice,
+      discount_id: 0,
       updated_at: indoDateTime,
     };
     await Cart.update(cart.id, updateSubtotal);
@@ -330,13 +346,17 @@ exports.deleteCartItems = async (req, res) => {
       }
     }
     const cart = await Cart.getByOutletId(outlet_id);
-    const totalCart = cart.subtotal - oldCartDetail.total_price;
+    const subtotalCart = cart.subtotal - oldCartDetail.subtotal_price;
+    let totalCart = cart.total - oldCartDetail.total_price;
+    if (cart && cart.discount_id > 0) {
+      totalCart = cart.subtotal - oldCartDetail.total_price;
+    }
 
     const transaction = await Transaction.getByCartId(cart.id);
     const updateCart = {
-      subtotal: totalCart,
+      subtotal: subtotalCart,
       total: totalCart,
-      discount_id: null,
+      discount_id: 0,
       updated_at: indoDateTime,
     };
 
