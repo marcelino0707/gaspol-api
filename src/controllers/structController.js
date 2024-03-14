@@ -144,7 +144,6 @@ exports.getShiftStruct = async (req, res) => {
 
   const { outlet_id, actual_ending_cash, casher_name } = req.body;
   try {
-    const shiftReports = await ShiftReport.getLastCreated(outlet_id);
     function getStartDate() {
       const startDate = today.set({
         hour: 6,
@@ -158,6 +157,7 @@ exports.getShiftStruct = async (req, res) => {
     let startDate = getStartDate();
     let shiftNumber = 1;
 
+    const shiftReports = await ShiftReport.getLastCreated(outlet_id);
     if (!shiftReports) {
       await ShiftReport.create({
         outlet_id: outlet_id,
@@ -169,9 +169,17 @@ exports.getShiftStruct = async (req, res) => {
       });
     } else {
       const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
+      // check have transaction not shifted
+      const startDateLastShift = moment(shiftReports.start_date).format("YYYY-MM-DD HH:mm:ss")
+      let haveTransactionBefore = false;
+      const haveSuccessTransactions = await Transaction.haveSuccessTransactions(outlet_id, startDateLastShift, indoDateTime);
+      if (haveSuccessTransactions.length > 0) {
+        haveTransactionBefore = true;
+      } 
+
       if (
-        today.hour() > 5 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 5 ||
-        shiftStartDate.isBefore(today) && today.hour() > 5
+        (today.hour() > 5 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 5 ||
+        shiftStartDate.isBefore(today) && today.hour() > 5 ) && !haveTransactionBefore
       ) {
         await ShiftReport.update(shiftReports.id, {
           shift_number: 1,

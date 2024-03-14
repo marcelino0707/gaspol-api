@@ -188,7 +188,29 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           const query =
-            "SELECT transactions.id AS transaction_id, carts.id AS cart_id, carts.subtotal, transactions.invoice_number, payment_types.name AS payment_type, payment_categories.name AS payment_category, carts.total, discounts.code AS discount_code, discounts.is_percent AS discounts_is_percent,  discounts.max_discount AS max_discount, discounts.value AS discounts_value, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS refund_id, (SELECT refunds.total_refund FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS total_refund, ( SELECT DATE_FORMAT(refunds.updated_at, '%Y-%m-%d %H:%i') FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id JOIN carts ON transactions.cart_id = carts.id LEFT JOIN discounts ON carts.discount_id = discounts.id WHERE transactions.deleted_at IS NULL AND transactions.invoice_number IS NOT NULL AND transactions.outlet_id = ? AND transactions.invoice_due_date BETWEEN ? AND ? ORDER BY transactions.invoice_due_date DESC";
+            "SELECT transactions.id AS transaction_id, transactions.discount_name AS transaction_discount_code, carts.id AS cart_id, carts.subtotal, transactions.invoice_number, payment_types.name AS payment_type, payment_categories.name AS payment_category, carts.total, discounts.code AS discount_code, discounts.is_percent AS discounts_is_percent,  discounts.max_discount AS max_discount, discounts.value AS discounts_value, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS refund_id, (SELECT refunds.total_refund FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1 ) AS total_refund, ( SELECT DATE_FORMAT(refunds.updated_at, '%Y-%m-%d %H:%i') FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id JOIN carts ON transactions.cart_id = carts.id LEFT JOIN discounts ON carts.discount_id = discounts.id WHERE transactions.deleted_at IS NULL AND transactions.invoice_number IS NOT NULL AND transactions.outlet_id = ? AND transactions.invoice_due_date BETWEEN ? AND ? ORDER BY transactions.invoice_due_date DESC";
+          connection.query(
+            query,
+            [outlet_id, start_date, end_date],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },  
+  haveSuccessTransactions: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query =
+            "SELECT id FROM transactions WHERE deleted_at IS NULL AND invoice_number IS NOT NULL AND outlet_id = ? AND invoice_due_date BETWEEN ? AND ?";
           connection.query(
             query,
             [outlet_id, start_date, end_date],
@@ -210,10 +232,10 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           const query =
-            "SELECT carts.id AS cart_id, carts.is_canceled, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, (carts.subtotal - carts.total) AS total_discount, (SELECT refunds.id FROM refunds WHERE refunds.transaction_id = transactions.id LIMIT 1) AS refund_id FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND transactions.updated_at BETWEEN ? AND ?";
+            "SELECT (carts.subtotal - carts.total) AS total_discount, transactions.id AS transaction_id, carts.id AS cart_id, carts.is_canceled, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, carts.discount_id, refunds.id AS refund_id, refunds.is_refund_all FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id LEFT JOIN refunds ON transactions.id = refunds.transaction_id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND ((transactions.invoice_number IS NOT NULL AND transactions.invoice_due_date BETWEEN ? AND ?) OR (transactions.invoice_number IS NULL AND transactions.updated_at BETWEEN ? AND ?))";
           connection.query(
             query,
-            [outlet_id, start_date, end_date],
+            [outlet_id, start_date, end_date, start_date, end_date],
             (error, results) => {
               disconnectDB(connection);
               if (error) {
