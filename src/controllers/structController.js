@@ -177,12 +177,11 @@ exports.getShiftStruct = async (req, res) => {
       } 
 
       if (
-        (today.hour() > 5 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 5 ||
-        shiftStartDate.isBefore(today) && today.hour() > 5) && !haveTransactionBefore
+        (today.hour() >= 6 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 6 ||
+        shiftStartDate.isBefore(today) && today.hour() >= 6) && !haveTransactionBefore
       ) {
         await ShiftReport.update(shiftReports.id, {
           shift_number: 1,
-          start_date: getStartDate(),
           end_date: indoDateTime,
           casher_name: casher_name,
           actual_ending_cash: actual_ending_cash,
