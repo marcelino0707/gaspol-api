@@ -203,6 +203,28 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },  
+  haveSuccessTransactions: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query =
+            "SELECT id FROM transactions WHERE deleted_at IS NULL AND invoice_number IS NOT NULL AND outlet_id = ? AND invoice_due_date BETWEEN ? AND ?";
+          connection.query(
+            query,
+            [outlet_id, start_date, end_date],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },  
   getShiftReport: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
