@@ -75,6 +75,28 @@ const Refund = {
         .catch((error) => reject(error));
     });
   },
+  haveRefunds: (outlet_id, start_date, end_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query =
+            "SELECT refunds.id FROM refunds JOIN transactions ON refunds.transaction_id = transactions.id WHERE transactions.outlet_id = ? AND refunds.updated_at BETWEEN ? AND ?";
+          connection.query(
+            query,
+            [outlet_id, start_date, end_date],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  }, 
   create: (refund) => {
     return new Promise((resolve, reject) => {
       connectDB()

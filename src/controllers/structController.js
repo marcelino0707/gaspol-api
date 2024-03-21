@@ -169,11 +169,12 @@ exports.getShiftStruct = async (req, res) => {
       });
     } else {
       const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
-      // check have transaction not shifted
+      // check have not shifted transaction & refund
       const startDateLastShift = moment(shiftReports.start_date).format("YYYY-MM-DD HH:mm:ss")
       let haveTransactionBefore = false;
       const haveSuccessTransactions = await Transaction.haveSuccessTransactions(outlet_id, startDateLastShift, indoDateTime);
-      if (haveSuccessTransactions.length > 0) {
+      const haveRefundTransactions = await Refund.haveRefunds(outlet_id, startDateLastShift, indoDateTime);
+      if (haveSuccessTransactions.length > 0 || haveRefundTransactions.length > 0) {
         haveTransactionBefore = true;
       } 
 
@@ -186,14 +187,12 @@ exports.getShiftStruct = async (req, res) => {
           end_date: indoDateTime,
           casher_name: casher_name,
           actual_ending_cash: actual_ending_cash,
-          updated_at: indoDateTime,
         });
       } else {
         await ShiftReport.update(shiftReports.id, {
           end_date: indoDateTime,
           casher_name: casher_name,
           actual_ending_cash: actual_ending_cash,
-          updated_at: indoDateTime,
         });
         startDate = shiftReports.start_date;
         shiftNumber = shiftReports.shift_number;
@@ -225,8 +224,6 @@ exports.getShiftStruct = async (req, res) => {
 
     // Get cartDetails & refundDetails data
     let cartDetails = [];
-    // let refundDetails = [];
-    // let transactionsWithRefund = [];
     if (transactions.length > 0) {
       const cartIds = [
         ...new Set(
@@ -234,17 +231,6 @@ exports.getShiftStruct = async (req, res) => {
         ),
       ];
       cartDetails = await CartDetail.getByCartIdsShift(cartIds);
-
-      // transactionsWithRefund = transactions.filter(
-      //   (transaction) => transaction.refund_id !== null
-      // );
-
-      // if (transactionsWithRefund.length > 0) {
-      //   const refundIdS = transactionsWithRefund.map(
-      //     (transaction) => transaction.refund_id
-      //   );
-      //   refundDetails = await RefundDetail.getByRefundIdsShift(refundIdS);
-      // }
     }
 
     // Separate cartDetails into cartDetailsSuccess, cartDetailsPending and cartDetailsCanceled
@@ -272,31 +258,6 @@ exports.getShiftStruct = async (req, res) => {
     });
 
     const cartDetailsCanceled = cartDetails.filter((cart) => cart.is_canceled == 1);
-
-    // const cartDetailsSuccessCash = cartDetails
-    //   .filter((cart) => {
-    //     const associatedTransaction = transactions.find(
-    //       (transaction) =>
-    //         transaction.cart_id == cart.cart_id &&
-    //         transaction.invoice_number !== null &&
-    //         transaction.payment_type_id == 1
-    //     );
-    //     return !!associatedTransaction;
-    //   })
-    //   .filter((cart) => cart.total_price > 0);
-
-      // const discountedCartSuccessCash = transactions
-      // .filter((transaction) => {
-      //   return (
-      //     transaction.invoice_number !== null &&
-      //     transaction.payment_type_id == 1 &&
-      //     transaction.total_discount != 0
-      //   );
-      // })
-      // .reduce(
-      //   (total, transaction) => total + transaction.total_discount,
-      //   0
-      // );
 
     const payment_details = [];
     let totalCashSales = 0
@@ -390,43 +351,9 @@ exports.getShiftStruct = async (req, res) => {
     }
 
     // for Cash payment type
-    const transactionsIdsCashPayment = transactions
-      .filter((transaction) => {
-        return transaction.payment_type_id == 1;
-      })
-      .map((transaction) => transaction.transaction_id);
-
-    const cartDetailIdsCashPayment = cartDetails
-      .filter((cart) => {
-        const associatedTransaction = transactions.find(
-          (transaction) =>
-            transaction.cart_id == cart.cart_id &&
-            transaction.invoice_number !== null &&
-            transaction.payment_type_id == 1
-        );
-        return !!associatedTransaction && cart.total_price == 0;
-      })
-      .map((cart) => cart.cart_detail_id);
-
-    // const refundIdsWithRefundAll = transactionsWithRefund
-    //   .filter((transaction) => transaction.is_refund_all == 1)
-    //   .map(
-    //     (transaction) => transaction.refund_id
-    //   );
-
-    // const refundDetailsWithNotRefundAll = refundDetails.filter(refund => !refundIdsWithRefundAll.includes(refund.refund_id));
-
-    // const totalRefundedCashToOtherPaymentWithRefundAll = transactionsWithRefund
-    //   .filter((transaction) => transaction.is_refund_all == 1 && transaction.payment_type_id == 1)
-    //   .reduce((total, transaction) => total + transaction.total, 0 );
-
     const totalRefundedCashFromOtherPaymentWithRefundAll = refundAllTransactions
       .filter((refund) => refund.payment_type_id == 1)
       .reduce((total, refund) => total + refund.total_refund, 0 );
-
-    // const totalRefundedCashToOtherPaymentWithNotRefundAll = refundDetailsWithNotRefundAll
-    // .filter((refund) => refund.payment_type_id == 1 || (cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1))
-    // .reduce((total, refund) => total + refund.total_refund_price, 0 );
 
     const totalRefundedCashFromOtherPaymentWithNotRefundAll = refundDetails
       .filter((refund) => refund.payment_type_id == 1 && refund.is_refund_type_all == 0)
@@ -434,37 +361,11 @@ exports.getShiftStruct = async (req, res) => {
 
     const totalCashRefunded = totalRefundedCashFromOtherPaymentWithRefundAll + totalRefundedCashFromOtherPaymentWithNotRefundAll;
     
-    const totalTransactionRefundedCashToOtherPayment = refundAllTransactions
-      .filter((refund) => transactionsIdsCashPayment.includes(refund.transaction_id) && refund.payment_type_id != 1)
-      .reduce((total, refund) => total + refund.total_refund, 0 );
-
-    const totalPerItemRefundedCashToOtherPayment = refundDetails
-      .filter((refund) => cartDetailIdsCashPayment.includes(refund.cart_detail_id) && refund.payment_type_id != 1 && refund.is_refund_type_all == 0)
-      .reduce((total, refund) => total + refund.total_refund_price, 0);
-
-    const totalCashRefundedToOtherPayment = totalTransactionRefundedCashToOtherPayment + totalPerItemRefundedCashToOtherPayment;
-    
-     // const cartDetailsRefundedCashToOtherPayment = refundDetails
-    //   .filter((refund) => cartDetailIdsRefundedCash.includes(refund.cart_detail_id) && refund.payment_type_id != 1);
-    // totalCashRefundedToOtherPayment = cartDetailsRefundedCashToOtherPayment.reduce(
-    //   (total, refund) => total + refund.total_refund_price,
-    //   0
-    // );
-
-    // const cashRefundDetails = refundDetails.filter(
-    //   (refund) => refund.payment_type_id == 1
-    // );
-    // const totalCashRefund = cashRefundDetails.reduce(
-    //   (total, refund) => total + refund.total_refund_price,
-    //   0
-    // );
-
     const paymentDetailsCash = {
       payment_category: "Cash Payment",
       payment_type_detail: [
         {
           payment_type: "Cash Sales",
-          // total_payment: totalCashSales + totalCashRefundedToOtherPayment - discountedCartSuccessCash,
           total_payment: totalCashSales,
 
           is_success: 1,
@@ -596,11 +497,6 @@ exports.getShiftStruct = async (req, res) => {
         0
       );
 
-      // sum subtotal
-      // const subtotalCartSuccessAmount = cartDetailsSuccess.reduce(
-      //   (total, cart) => total + cart.price * cart.qty,
-      //   0
-      // );
       const subtotalCartRefundAmount = refundDetails.reduce(
         (total, cart) => total + (cart.price * cart.qty_refund_item),
         0
@@ -644,10 +540,6 @@ exports.getShiftStruct = async (req, res) => {
       
       const discount_amount_transactions = discountedTransactions + discountedRefundTransaction;
 
-      // const discountAmountCashTransactions = transactions
-      //   .filter((transaction) => transaction.payment_type_id == 1)
-      //   .reduce((total, transaction) => total + transaction.total_discount, 0);
-
       // sum total discount per item
       const totalDiscountedAmountPerSuccessItems = cartDetailsSuccess
       .filter((item) => item.discount_id > 0 || item.discount_id != null)
@@ -655,11 +547,6 @@ exports.getShiftStruct = async (req, res) => {
       
       const discount_amount_per_items = totalDiscountedAmountPerSuccessItems + (subtotalCartRefundAmount - totalCartRefundAmount);
       
-      // const discount_amount_per_items =
-      //   subtotalCartSuccessAmount -
-      //   totalCartSuccessAmount +
-      //   (subtotalCartRefundAmount - totalCartRefundAmount);
-
       return {
         totalSuccessQty,
         totalPendingQty,
@@ -671,7 +558,6 @@ exports.getShiftStruct = async (req, res) => {
         totalCartRefundAmount,
         discount_amount_transactions,
         discount_amount_per_items,
-        // discountAmountCashTransactions,
       };
     }
 
@@ -686,7 +572,6 @@ exports.getShiftStruct = async (req, res) => {
       totalCartRefundAmount,
       discount_amount_transactions,
       discount_amount_per_items,
-      // discountAmountCashTransactions,
     } = calculateSummary(
       cartDetailsSuccess,
       cartDetailsPending,
@@ -697,8 +582,6 @@ exports.getShiftStruct = async (req, res) => {
     );
 
     const discount_total_amount = discount_amount_per_items + discount_amount_transactions;
-    // const ending_cash_expected = ((totalCashSales + totalCashRefundedToOtherPayment) - discountAmountCashTransactions) - expenditure.totalExpense;
-    // const ending_cash_expected = (totalCashSales + totalCashRefundedToOtherPayment) - expenditure.totalExpense;
     const ending_cash_expected = totalCashSales - expenditure.totalExpense;
     const cash_difference = actual_ending_cash - ending_cash_expected;
 
