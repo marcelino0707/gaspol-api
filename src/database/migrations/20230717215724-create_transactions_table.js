@@ -64,10 +64,9 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: null, 
       },
-      is_refunded: {
+      discount_name: {
         allowNull: true,
-        defaultValue: 0,
-        type: Sequelize.TINYINT,
+        type: Sequelize.STRING,
       },
       created_at: {
         allowNull: false,

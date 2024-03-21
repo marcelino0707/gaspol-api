@@ -97,6 +97,12 @@ exports.createTransaction = async (req, res) => {
         const errorMessage = "Uang anda kurang boss!";
         throw { statusCode: 400, message: errorMessage };
       }
+
+      // add discount name for transaction
+      if (cart.discount_id > 0) {
+        transaction.discount_name = cart.discount_code; 
+      }
+
       transaction.customer_cash = customer_cash;
       transaction.customer_change = customer_cash - cart.total;
       transaction.payment_type_id = payment_type_id;
@@ -137,6 +143,20 @@ exports.createTransaction = async (req, res) => {
       cartDetails = await CartDetail.getByCartId(cartId, true);
       kitchenBarCartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       kitchenBarCanceledItems = await CartDetail.getCanceledByCartId(cartId);
+
+      // add discount names for transaction
+      if ((cart.discount_id == 0 || cart.discount_id == null) && cart.total != cart.subtotal) {
+        let discountNames = [];
+        for (const cartDetail of cartDetails) {
+          discountNames.push(cartDetail.discount_code);
+        }
+        const transactionId = transaction_id
+        ? transaction_id
+        : existingTransaction.id;
+        await Transaction.update(transactionId, {
+          discount_name: discountNames.join(', ')
+        });
+      }
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
       canceledItems = await CartDetail.getCanceledByCartId(cartId);

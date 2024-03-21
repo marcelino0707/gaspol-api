@@ -18,6 +18,16 @@ module.exports = {
         defaultValue: 0,
         type: Sequelize.TINYINT,
       },
+      is_refund_type_all: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.TINYINT,
+      },
+      payment_type_id_all: {
+        allowNull: true,
+        defaultValue: 0,
+        type: Sequelize.INTEGER,
+      },
       refund_reason: {
         allowNull: true,
         type: Sequelize.STRING,

@@ -29,11 +29,19 @@ exports.createRefund = async (req, res) => {
         transaction_id: transaction_id,
         is_refund_all: is_refund_all,
       };
+
+      if(is_refund_all === true) {
+        newRefund.payment_type_id_all = payment_type_id;
+        newRefund.is_refund_type_all = 1;
+        newRefund.is_refund_all = 1;
+        newRefund.refund_reason = refund_reason;
+      }
       const createdRefund = await Refund.create(newRefund);
       refundId = createdRefund.insertId;
     }
 
     if (is_refund_all === true) {
+      const cart = await Cart.getByCartId(cart_id);
       const cartDetails = await CartDetail.getByCartId(cart_id, true);
       for (const cartDetail of cartDetails) {
         const refundDetailData = {
@@ -45,22 +53,14 @@ exports.createRefund = async (req, res) => {
           payment_type_id: payment_type_id,
         };
 
-        const refundData = {
-          is_refund_all: 1,
-          refund_reason: refund_reason,
-        }
-        
         await RefundDetail.create(refundDetailData);
-
-        await Refund.update(refundId, refundData);
 
         await CartDetail.update(cartDetail.cart_detail_id, {
           qty: 0,
           total_price: 0,
         });
-
-        totalRefund = totalRefund + cartDetail.total_price;
       }
+      totalRefund = cart.total;
     } else {
       for (const cartDetail of cart_details) {
         const oldCartDetail = await CartDetail.getByCartDetailId(cartDetail.cart_detail_id);
@@ -72,14 +72,14 @@ exports.createRefund = async (req, res) => {
           totalRefundPrice = cartDetail.qty_refund * oldCartDetail.price;
         } else {
           oldCartDetailPrice = oldCartDetail.discounted_price;
-          totalRefundPrice = cartDetail.qty_refund * oldCartDetail.discounted_price;
+          totalRefundPrice = cartDetail.qty_refund == oldCartDetail.qty ? oldCartDetail.total_price : cartDetail.qty_refund * oldCartDetail.discounted_price;
         }
         
         const qtyUpdate = oldCartDetail.qty - cartDetail.qty_refund;
         const totalPriceUpdate = qtyUpdate * oldCartDetailPrice;
         await CartDetail.update(cartDetail.cart_detail_id, {
           qty: qtyUpdate,
-          total_price: totalPriceUpdate,
+          total_price: oldCartDetail.qty != cartDetail.qty_refund ? totalPriceUpdate : 0,
         });
 
         await RefundDetail.create({
@@ -94,37 +94,25 @@ exports.createRefund = async (req, res) => {
       }
     }
 
-    await Refund.update(refundId, {
+    const cartDetails = await CartDetail.getByCartId(cart_id, true);
+
+    const refundUpdate = {
       total_refund: totalRefund,
       updated_at: indoDateTime,
-    });
+    }
 
-    const cartDetails = await CartDetail.getByCartId(cart_id, true);
-    
-    if(is_refund_all === true) {
-      await Transaction.update(transaction_id, {
-        is_refunded : 1,
-        updated_at: indoDateTime,
-      })
-    } else {
-      let refundAll = true;
-      for (const cartDetail of cartDetails){
-        if (cartDetail.qty != 0) {
-          refundAll = false;
-        }
-      }
-
-      if(refundAll) {
-        await Transaction.update(transaction_id, {
-          is_refunded : 1,
-          updated_at: indoDateTime,
-        })
-
-        await Refund.update(refundId, {
-          is_refund_all: true,
-        });
+    let refundAll = true;
+    for (const cartDetail of cartDetails){
+      if (cartDetail.qty != 0) {
+        refundAll = false;
       }
     }
+
+    if(refundAll) {
+      refundUpdate.is_refund_all = true;
+    }
+
+    await Refund.update(refundId, refundUpdate);
 
     const transaction = await Transaction.getByCartId(cart_id);
     const cart = await Cart.getByCartId(cart_id);

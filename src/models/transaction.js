@@ -232,7 +232,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           const query =
-            "SELECT (carts.subtotal - carts.total) AS total_discount, transactions.id AS transaction_id, carts.id AS cart_id, carts.is_canceled, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, carts.discount_id, refunds.id AS refund_id, refunds.is_refund_all FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id LEFT JOIN refunds ON transactions.id = refunds.transaction_id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND ((transactions.invoice_number IS NOT NULL AND transactions.invoice_due_date BETWEEN ? AND ?) OR (transactions.invoice_number IS NULL AND transactions.updated_at BETWEEN ? AND ?))";
+            "SELECT transactions.id AS transaction_id, carts.id AS cart_id, carts.is_canceled, transactions.invoice_number, transactions.payment_type_id, payment_types.payment_category_id AS payment_category_id, carts.total, carts.subtotal, carts.discount_id FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id JOIN carts ON transactions.cart_id = carts.id WHERE transactions.deleted_at IS NULL AND transactions.outlet_id = ? AND ((transactions.invoice_number IS NOT NULL AND transactions.invoice_due_date BETWEEN ? AND ?) OR (transactions.invoice_number IS NULL AND transactions.updated_at BETWEEN ? AND ?))";
           connection.query(
             query,
             [outlet_id, start_date, end_date, start_date, end_date],
