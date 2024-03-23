@@ -140,6 +140,7 @@ exports.getKitchenStruct = async (req, res) => {
 exports.getShiftStruct = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+  const indoDateTimeNow = thisTimeNow.tz("Asia/Jakarta");
   const today = moment().tz("Asia/Jakarta");
 
   const { outlet_id, actual_ending_cash, casher_name } = req.body;
@@ -177,8 +178,8 @@ exports.getShiftStruct = async (req, res) => {
       } 
 
       if (
-        ((today.hour() >= 6 && shiftStartDate.isSame(today, 'day') && shiftStartDate.hour() < 6) ||
-        (shiftStartDate.isBefore(today) && today.hour() >= 6)) && !haveTransactionBefore
+        ((shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
+        (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 6)) && !haveTransactionBefore
       ) {
         await ShiftReport.update(shiftReports.id, {
           shift_number: 1,
