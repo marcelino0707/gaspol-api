@@ -155,10 +155,9 @@ exports.getShiftStruct = async (req, res) => {
       return startDate.toDate();
     }
 
-    let startDate = getStartDate();
-    let shiftNumber = 1;
-
     const shiftReports = await ShiftReport.getLastCreated(outlet_id);
+    let shiftNumber = 1;
+    const startDate = shiftReports ? shiftReports.start_date : getStartDate();
     if (!shiftReports) {
       await ShiftReport.create({
         outlet_id: outlet_id,
@@ -169,35 +168,23 @@ exports.getShiftStruct = async (req, res) => {
         actual_ending_cash: actual_ending_cash,
       });
     } else {
+      const shiftUpdateObj = {
+        end_date: indoDateTime,
+        casher_name: casher_name,
+        actual_ending_cash: actual_ending_cash,
+      }
+
       const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
-      // check have not shifted transaction & refund
-      const startDateLastShift = moment(shiftReports.start_date).format("YYYY-MM-DD HH:mm:ss")
-      let haveTransactionBefore = false;
-      const haveSuccessTransactions = await Transaction.haveSuccessTransactions(outlet_id, startDateLastShift, indoDateTime);
-      const haveRefundTransactions = await Refund.haveRefunds(outlet_id, startDateLastShift, indoDateTime);
-      if (haveSuccessTransactions.length > 0 || haveRefundTransactions.length > 0) {
-        haveTransactionBefore = true;
-      } 
 
       if (
-        ((shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
-        (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 3)) && !haveTransactionBefore
-      ) {
-        await ShiftReport.update(shiftReports.id, {
-          shift_number: 1,
-          end_date: indoDateTime,
-          casher_name: casher_name,
-          actual_ending_cash: actual_ending_cash,
-        });
+        (shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
+        (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 6)
+      ) { 
+        shiftUpdateObj.shift_number = 1; 
       } else {
-        await ShiftReport.update(shiftReports.id, {
-          end_date: indoDateTime,
-          casher_name: casher_name,
-          actual_ending_cash: actual_ending_cash,
-        });
-        startDate = shiftReports.start_date;
         shiftNumber = shiftReports.shift_number;
       }
+      await ShiftReport.update(shiftReports.id, shiftUpdateObj);
     }
 
     // generate start_date for next shift

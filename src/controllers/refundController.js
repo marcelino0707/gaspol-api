@@ -113,6 +113,9 @@ exports.createRefund = async (req, res) => {
     }
 
     await Refund.update(refundId, refundUpdate);
+    await Transaction.update(transaction_id, {
+      updated_at: indoDateTime
+    });
 
     const transaction = await Transaction.getByCartId(cart_id);
     const cart = await Cart.getByCartId(cart_id);

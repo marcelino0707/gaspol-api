@@ -24,7 +24,6 @@ exports.getReport = async (req, res) => {
     }
 
     const listShift = await ShiftReport.getShiftNumber(outlet_id, startDate, endDate);
-
     if (is_success == "true" && is_pending == "true") {
       isSuccess = "false";
       isPending = "false";
@@ -100,18 +99,11 @@ exports.getReport = async (req, res) => {
 };
 
 exports.getPaymentReport = async (req, res) => {
-  const thisTimeNow = moment();
   const { outlet_id, start_date, end_date, is_shift } = req.query;
   try {
     let startDate, endDate, startDateShow;
-    if (start_date && end_date) {
-      startDate = moment(start_date).startOf('day').add(6, 'hours').format("YYYY-MM-DD HH:mm:ss");
-      endDate = moment(end_date).endOf('day').add(5, 'hours').add(59, 'minutes').add(59, 'seconds').format("YYYY-MM-DD HH:mm:ss");
-    } else {
-      const dateNow = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD");
-      startDate = moment.tz(dateNow, "Asia/Jakarta").startOf('day').add(6, 'hours').format("YYYY-MM-DD HH:mm:ss");
-      endDate = moment.tz(dateNow, "Asia/Jakarta").add(1, 'days').endOf('day').add(5, 'hours').add(59, 'minutes').add(59, 'seconds').format("YYYY-MM-DD HH:mm:ss");
-    }
+    startDate = moment(start_date).startOf('day').format("YYYY-MM-DD HH:mm:ss");
+    endDate = moment(end_date).endOf('day').add(5, 'hours').add(59, 'minutes').add(59, 'seconds').format("YYYY-MM-DD HH:mm:ss");
     startDateShow = startDate;
 
     let shifts = [], totalAmount = 0, totalDiscount = 0, casherNames = [], actualEndingCash = 0, cashDifference = 0, expectedEndingCash = 0;
@@ -132,7 +124,6 @@ exports.getPaymentReport = async (req, res) => {
       for (const shift of shifts) {
         const shiftStartDate = moment(shift.start_date);
         const shiftEndDate = moment(shift.end_date);
-        const shiftStartDateShow = moment(shift.start_date);
 
         if (shiftStartDate.isBefore(minStartDate)) {
           minStartDate = shiftStartDate;
@@ -140,10 +131,6 @@ exports.getPaymentReport = async (req, res) => {
 
         if (shift.end_date && shiftEndDate.isAfter(maxEndDate)) {
           maxEndDate = shiftEndDate;
-        }
-
-        if (shiftStartDateShow.isBefore(startDateShow)) {
-          startDateShow = shiftStartDateShow;
         }
 
         totalAmount = totalAmount + shift.total_amount;
@@ -156,6 +143,7 @@ exports.getPaymentReport = async (req, res) => {
 
       startDate = minStartDate.format("YYYY-MM-DD HH:mm:ss");
       endDate = maxEndDate.format("YYYY-MM-DD HH:mm:ss");
+      startDateShow = startDate;
     }
 
     const transactions = await Transaction.getByAllPaymentReport(
