@@ -170,16 +170,9 @@ exports.getShiftStruct = async (req, res) => {
       });
     } else {
       const shiftStartDate = moment(shiftReports.start_date).tz("Asia/Jakarta");
-      const startDateLastShift = moment(shiftReports.start_date).format("YYYY-MM-DD HH:mm:ss")
-      let haveTransactionBefore = false;
-      const haveSuccessTransactions = await Transaction.haveSuccessTransactions(outlet_id, startDateLastShift, indoDateTime);
-      if (haveSuccessTransactions.length > 0) {
-        haveTransactionBefore = true;
-      } 
-
       if (
-        ((shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
-        (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 6)) && !haveTransactionBefore
+        (shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
+        (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 6)
       ) {
         await ShiftReport.update(shiftReports.id, {
           shift_number: 1,
