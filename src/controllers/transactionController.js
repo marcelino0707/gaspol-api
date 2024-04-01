@@ -153,9 +153,12 @@ exports.createTransaction = async (req, res) => {
         const transactionId = transaction_id
         ? transaction_id
         : existingTransaction.id;
-        await Transaction.update(transactionId, {
-          discount_name: discountNames.join(', ')
-        });
+        if (discountNames.length > 0) {
+          let discountNameString = discountNames.join(', ').replace(/,\s$/, '');
+          await Transaction.update(transactionId, {
+            discount_name: discountNameString
+          });
+        }
       }
     } else {
       cartDetails = await CartDetail.getNotOrderedByCartId(cartId);
@@ -259,11 +262,16 @@ exports.createTransaction = async (req, res) => {
 
 exports.getTransactionById = async (req, res) => {
   const { id } = req.params;
-  const { is_struct } = req.query;
+  const { is_struct, is_report } = req.query;
   try {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
-    const cartDetails = await CartDetail.getByCartId(transaction.cart_id, true);
+    let cartDetails = [];
+    if(is_report == "true") {
+      cartDetails = await CartDetail.getReportByCartId(transaction.cart_id);
+    } else {
+      cartDetails = await CartDetail.getByCartId(transaction.cart_id, true);
+    }
     const refund = await Refund.getByTransactionId(id);
     let refundDetails = [];
     if (refund) {
@@ -307,8 +315,12 @@ exports.getTransactionById = async (req, res) => {
 
     result.is_refund_all = false;
     result.total_refund = null;
+    result.refund_all_reason = null;
+    result.refund_payment_type_all_name = null;
     result.refund_details = [];
     if (refund) {
+      result.refund_payment_type_all_name = refund.refund_payment_type_all_name;
+      result.refund_all_reason = refund.refund_reason;
       result.is_refund_all = refund.is_refund_all;
       result.total_refund = refund.total_refund;
       const refundDetailsWithoutId = refundDetails.map((detail) => {
@@ -318,7 +330,24 @@ exports.getTransactionById = async (req, res) => {
       result.refund_details = refundDetailsWithoutId;
     }
 
+    let transactionDateShow = transaction.updated_at;
+    if (transaction.invoice_number != null) {
+      transactionDateShow = transaction.invoice_due_date;
+      result.status = "Paid";
+    } else {
+      result.status = "Pending";
+    }
+    
+    if (refund && refund.is_refund_all == 1) {
+      result.status = "Refunded";
+    } else if (cart.is_canceled == 1) {
+      result.status = "Canceled";
+    }
+
+    result.transaction_date_show = moment(transactionDateShow).locale('id').format("dddd, YYYY-MM-DD HH:mm:ss");
+
     if (
+      is_report == undefined &&
       transaction.invoice_number == null &&
       (is_struct != true || is_struct != 1)
     ) {

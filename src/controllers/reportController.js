@@ -24,6 +24,20 @@ exports.getReport = async (req, res) => {
     }
 
     const listShift = await ShiftReport.getShiftNumber(outlet_id, startDate, endDate);
+    const unShift = await ShiftReport.getUnShiftNumber(outlet_id, startDate);
+    
+    if(unShift.length > 0) {
+      const shiftStartDate = moment(startDate).tz("Asia/Jakarta");
+      const shiftEndDate = moment(endDate).tz("Asia/Jakarta");
+      if(shiftStartDate.isSame(shiftEndDate, 'day')) {
+        const unShiftEndDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
+        const unShiftTransaction = await Transaction.haveSuccessTransactions(outlet_id, unShift[0].start_date, unShiftEndDate);
+        if(unShiftTransaction.length > 0) {
+          listShift.unshift({shift_number: "Unshift"});
+        }
+      }
+    }
+
     if (is_success == "true" && is_pending == "true") {
       isSuccess = "false";
       isPending = "false";
@@ -37,11 +51,25 @@ exports.getReport = async (req, res) => {
       isPending
     );
 
+    transactions.forEach((transaction) => {
+      if (transaction.invoice_number != null) {
+        transaction.status = "Paid";
+      } else {
+        transaction.status = "Pending";
+      }
+      
+      if (transaction.is_refunded == 1) {
+        transaction.status = "Refunded";
+      } else if (transaction.is_canceled == 1) {
+        transaction.status = "Canceled";
+      }
+    });
+
     const turnoversByDate = transactions.reduceRight((result, transaction) => {
-      const { invoice_due_date, payment_type_id, payment_type, customer_cash, customer_change } = transaction;
+      const { invoice_due_date, payment_type_id, payment_type, total } = transaction;
       // Skip transactions without invoice_due_date
       if (invoice_due_date !== null) {
-        const totalTransactionAmount = customer_cash - customer_change;
+        const totalTransactionAmount = total;
     
         // Extract the date part (yyyy-mm-dd) from invoice_due_date
         const datePart = invoice_due_date.split(' ')[0];
@@ -79,6 +107,7 @@ exports.getReport = async (req, res) => {
           });
         }
       }
+
       return result;
     }, []);
 
@@ -102,50 +131,67 @@ exports.getPaymentReport = async (req, res) => {
   const { outlet_id, start_date, end_date, is_shift } = req.query;
   try {
     let startDate, endDate, startDateShow;
-    startDate = moment(start_date).startOf('day').format("YYYY-MM-DD HH:mm:ss");
+    startDate = moment(start_date).format("YYYY-MM-DD HH:mm:ss");
     endDate = moment(end_date).endOf('day').add(5, 'hours').add(59, 'minutes').add(59, 'seconds').format("YYYY-MM-DD HH:mm:ss");
     startDateShow = startDate;
-
     let shifts = [], totalAmount = 0, totalDiscount = 0, casherNames = [], actualEndingCash = 0, cashDifference = 0, expectedEndingCash = 0;
-    if (is_shift && is_shift != 0) {
+    if (is_shift && (is_shift > 0 || is_shift == "Unshift")) {
       shifts = await ShiftReport.getShiftByShiftNumber(outlet_id, startDate, endDate, is_shift);
     } else {
       shifts = await ShiftReport.getShiftByShiftNumber(outlet_id, startDate, endDate);
     }
 
     if (shifts.length > 0) {
-      let minStartDate = moment(shifts[0].start_date); 
-      let maxEndDate = moment(endDate);
-      startDateShow =  moment(shifts[0].start_date);
-      if(shifts[0].end_date) {
-        maxEndDate = moment(shifts[0].end_date)
+      let hasNullEndDate = false;
+
+      if(shifts[0].end_date == null) {
+        startDate = moment(shifts[0].start_date).format("YYYY-MM-DD HH:mm:ss");
+        hasNullEndDate = true;
       }
 
-      for (const shift of shifts) {
-        const shiftStartDate = moment(shift.start_date);
-        const shiftEndDate = moment(shift.end_date);
-
-        if (shiftStartDate.isBefore(minStartDate)) {
-          minStartDate = shiftStartDate;
+      if(shifts[0].end_date != null) {
+        let minStartDate = moment(shifts[0].start_date); 
+        startDateShow =  minStartDate;
+        let maxEndDate = moment(endDate);
+        if(shifts[0].end_date) {
+          maxEndDate = moment(shifts[0].end_date)
         }
 
-        if (shift.end_date && shiftEndDate.isAfter(maxEndDate)) {
-          maxEndDate = shiftEndDate;
-        }
+        for (const shift of shifts) {
+          const shiftStartDate = moment(shift.start_date);
+          const shiftEndDate = moment(shift.end_date);
+  
+          if (shiftStartDate.isBefore(minStartDate)) {
+            minStartDate = shiftStartDate;
+          }
+  
+          if (shift.end_date && shiftEndDate.isAfter(maxEndDate)) {
+            maxEndDate = shiftEndDate;
+          }
+  
+          totalAmount = totalAmount + shift.total_amount;
+          totalDiscount = totalDiscount + shift.total_discount;
+          actualEndingCash = actualEndingCash + shift.actual_ending_cash;
+          cashDifference = cashDifference + shift.cash_difference;
+          expectedEndingCash = expectedEndingCash + shift.expected_ending_cash;
+          casherNames.push(shift.casher_name);
 
-        totalAmount = totalAmount + shift.total_amount;
-        totalDiscount = totalDiscount + shift.total_discount;
-        actualEndingCash = actualEndingCash + shift.actual_ending_cash;
-        cashDifference = cashDifference + shift.cash_difference;
-        expectedEndingCash = expectedEndingCash + shift.expected_ending_cash;
-        casherNames.push(shift.casher_name);
+          if (shift.end_date == null) {
+            hasNullEndDate = true;
+          }
+        }
+        startDate = minStartDate.format("YYYY-MM-DD HH:mm:ss");
+        endDate = maxEndDate.format("YYYY-MM-DD HH:mm:ss");
       }
 
-      startDate = minStartDate.format("YYYY-MM-DD HH:mm:ss");
-      endDate = maxEndDate.format("YYYY-MM-DD HH:mm:ss");
+      if(hasNullEndDate == true) {
+        const thisTimeNow = moment();
+        endDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
+      }
+
       startDateShow = startDate;
     }
-
+    
     const transactions = await Transaction.getByAllPaymentReport(
       outlet_id,
       startDate,
@@ -161,7 +207,7 @@ exports.getPaymentReport = async (req, res) => {
       const cartDetails = await CartDetail.getByCartIds(cartIds);
       let result = {
         transactions: [...transactions],
-        cart_details: [...cartDetails],
+        cart_details: cartDetails.filter(item => item.qty !== 0),
       };
 
       const transactionsWithRefund = transactions.filter(
@@ -185,20 +231,37 @@ exports.getPaymentReport = async (req, res) => {
         0
       );
 
-      const totalUangCashPengeluaran = transactions
-        .filter((transaction) => transaction.payment_type === "Tunai")
+      const totalUangCashPengeluaranKeranjang = transactions
+        .filter((transaction) => transaction.is_refund_type_all === 1 && transaction.payment_type_id_all === 1)
         .reduce((total, transaction) => total + transaction.total_refund, 0);
+      
+      const refundedPerItemIds = transactionsWithRefund
+      .filter((transaction) => transaction.is_refund_type_all === 0)
+      .map((transaction) => transaction.refund_id );
+      
+      const totalUangCashPengeluaranPeritem = result.refund[0]
+      .filter((refundDetail) => refundedPerItemIds.includes(refundDetail.refund_id) && refundDetail.payment_type_id === 1)
+      .reduce((total, refundDetail) => total + refundDetail.total_refund_price, 0);
+      
+      const totalUangCashPengeluaran = totalUangCashPengeluaranKeranjang + totalUangCashPengeluaranPeritem;
+
 
       const paymentMethods = {};
       transactions.forEach((transaction) => {
-        const { payment_type, total } = transaction;
-        if (payment_type !== "Tunai") {
-          if (!paymentMethods[payment_type]) {
-            paymentMethods[payment_type] = total;
+        if (transaction.payment_type !== "Tunai") {
+          if (!paymentMethods[transaction.payment_type]) {
+            paymentMethods[transaction.payment_type] = transaction.total;
           } else {
-            paymentMethods[payment_type] += total;
+            paymentMethods[transaction.payment_type] += transaction.total;
           }
         }
+    
+        transaction.discount_type =
+          transaction.discount_id > 0
+            ? 1
+            : transaction.transaction_discount_code !== null
+            ? 2
+            : 0;
       });
 
       const totalOmset = Object.values(paymentMethods).reduce(

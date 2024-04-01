@@ -46,12 +46,16 @@ const ShiftReport = {
   getShiftByShiftNumber: (outletId, start_date, end_date, shift_number) => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        let queryParams = [outletId, start_date, end_date];
-        let query = "SELECT id, casher_name, actual_ending_cash, cash_difference, expected_ending_cash, total_amount, total_discount, start_date, end_date, actual_ending_cash, casher_name FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL AND DATE(start_date) BETWEEN ? AND ?";
+        let queryParams = [outletId, start_date, end_date, start_date, end_date];
+        let query = "SELECT id, casher_name, actual_ending_cash, cash_difference, expected_ending_cash, total_amount, total_discount, start_date, end_date, actual_ending_cash, casher_name FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL AND ((DATE(start_date) BETWEEN ? AND ?) OR (DATE(end_date) BETWEEN ? AND ?))";
   
-        if (shift_number !== undefined) {
+        if (shift_number !== undefined && shift_number > 0) {
           queryParams.push(shift_number);
-          query += " AND shift_number = ?";
+          query += " AND end_date IS NOT NULL AND shift_number = ?";
+        }
+
+        if (shift_number !== undefined && shift_number == "Unshift") {
+          query += " AND end_date IS NULL";
         }
   
         connection.query(query, queryParams, (error, results) => {
@@ -68,7 +72,21 @@ const ShiftReport = {
   getShiftNumber: (outletId, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        connection.query("SELECT DISTINCT shift_number FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL AND DATE(start_date) BETWEEN ? AND ? ORDER BY shift_number", [outletId, start_date, end_date], (error, results) => {
+        connection.query("SELECT DISTINCT shift_number FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL AND end_date IS NOT NULL AND (DATE(start_date) BETWEEN ? AND ? OR DATE(end_date) BETWEEN ? AND ?) ORDER BY shift_number", [outletId, start_date, end_date, start_date, end_date], (error, results) => {
+          disconnectDB(connection);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    });
+  },
+  getUnShiftNumber: (outletId, start_date) => {
+    return new Promise((resolve, reject) => {
+      connectDB().then((connection) => {
+        connection.query("SELECT start_date FROM shift_reports WHERE outlet_id = ? AND deleted_at IS NULL AND end_date IS NULL AND DATE(start_date) = ? LIMIT 1", [outletId, start_date], (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);
