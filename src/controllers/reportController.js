@@ -239,10 +239,12 @@ exports.getPaymentReport = async (req, res) => {
       .filter((transaction) => transaction.is_refund_type_all === 0)
       .map((transaction) => transaction.refund_id );
       
-      const totalUangCashPengeluaranPeritem = result.refund[0]
-      .filter((refundDetail) => refundedPerItemIds.includes(refundDetail.refund_id) && refundDetail.payment_type_id === 1)
-      .reduce((total, refundDetail) => total + refundDetail.total_refund_price, 0);
-      
+      let totalUangCashPengeluaranPeritem = 0;
+      if(result.refund) {
+        totalUangCashPengeluaranPeritem = result.refund[0]
+        .filter((refundDetail) => refundedPerItemIds.includes(refundDetail.refund_id) && refundDetail.payment_type_id === 1)
+        .reduce((total, refundDetail) => total + refundDetail.total_refund_price, 0);
+      }
       const totalUangCashPengeluaran = totalUangCashPengeluaranKeranjang + totalUangCashPengeluaranPeritem;
 
 
