@@ -429,6 +429,7 @@ exports.deleteCart = async (req, res) => {
         await CartDetail.updateAllByCartId(cart_id, {
           is_canceled: 1,
           cancel_reason: cancel_reason,
+          updated_at: indoDateTime,
         });
       } else {
         const cart = await Cart.getByCartId(cart_id);
@@ -451,12 +452,14 @@ exports.deleteCart = async (req, res) => {
             await CartDetail.updateAllByCartId(cart_id, {
               is_canceled: 1,
               cancel_reason: cancel_reason,
+              updated_at: indoDateTime,
             });
           } else {
             deleteCost.is_active = false;
             deleteCost.is_queuing = false;
 
             await CartDetail.updateAllByCartId(cart_id, {
+              updated_at: indoDateTime,
               deleted_at: indoDateTime,
             });
   
@@ -464,6 +467,7 @@ exports.deleteCart = async (req, res) => {
           }
         } else {
           await CartDetail.updateAllByCartId(cart_id, {
+            updated_at: indoDateTime,
             deleted_at: indoDateTime,
           });
 
