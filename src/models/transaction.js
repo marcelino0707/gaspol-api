@@ -69,7 +69,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, transactions.invoice_due_date, payment_types.name AS payment_type, payment_categories.name AS payment_category FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE transactions.cart_id = ? AND transactions.deleted_at IS NULL",
+            "SELECT transactions.id, members.name AS member_name, members.phone_number AS member_phone_number, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, transactions.invoice_due_date, payment_types.name AS payment_type, payment_categories.name AS payment_category FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN members ON transactions.member_id = members.id WHERE transactions.cart_id = ? AND transactions.deleted_at IS NULL",
             [cart_id],
             (error, results) => {
               disconnectDB(connection);
