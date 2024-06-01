@@ -17,6 +17,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      member_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       receipt_number: {
         allowNull: true,
         type: Sequelize.STRING,

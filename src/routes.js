@@ -22,6 +22,7 @@ const paymentType = require("./controllers/paymentController");
 const expenditure = require("./controllers/expenditureController");
 const ingredient = require("./controllers/ingredientController");
 const ingredeintOrderList = require("./controllers/ingredientOrderController");
+const member = require("./controllers/memberController");
 
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
@@ -141,5 +142,9 @@ route.get("/ingredient-report", ingredeintOrderList.getOrderIngredientsReport); 
 
 route.get("/check-ordered-cart", cart.getStatusOrderedCart); // check status ordered cart
 route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
+
+// Membership
+route.get("/membership", member.getMembers);
+route.post("/membership", member.create);
 
 module.exports = route;

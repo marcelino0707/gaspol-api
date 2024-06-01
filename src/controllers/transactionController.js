@@ -58,6 +58,7 @@ exports.createTransaction = async (req, res) => {
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   const {
     outlet_id,
+    member_id,
     cart_id,
     customer_seat,
     customer_name,
@@ -69,6 +70,10 @@ exports.createTransaction = async (req, res) => {
   } = req.body;
 
   const transaction = {};
+
+  if(member_id) {
+    transaction.member_id = member_id;
+  }
 
   if (customer_name) {
     transaction.customer_name = customer_name;
@@ -212,6 +217,12 @@ exports.createTransaction = async (req, res) => {
       kitchenBarCanceledItems: kitchenBarCanceledItems,
     };
 
+    if(existingTransaction.member_name) {
+      result.member_name = existingTransaction.member_name;
+      const memberPhoneNumber = existingTransaction.member_phone_number;
+      result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
+    };
+
     if (transaction.delivery_type || existingTransaction.delivery_type) {
       result.delivery_type =
         transaction.delivery_type || existingTransaction.delivery_type;
@@ -299,6 +310,12 @@ exports.getTransactionById = async (req, res) => {
       discounts_is_percent: cart.discounts_is_percent,
       cart_details: cartDetails,
       canceled_items: canceledItems,
+    };
+
+    if(transaction.member_name) {
+      result.member_name = transaction.member_name;
+      const memberPhoneNumber = transaction.member_phone_number;
+      result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
     };
 
     if (transaction.delivery_type) {

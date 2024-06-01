@@ -54,6 +54,12 @@ exports.getCustomerStruct = async (req, res) => {
       cart_details: cartDetailsWithoutId,
     };
 
+    if(transaction.member_name) {
+      result.member_name = transaction.member_name;
+      const memberPhoneNumber = transaction.member_phone_number;
+      result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
+    };
+
     if (refund) {
       const refundDetailsWithoutId = refundDetails.map((detail) => {
         const { id, cart_detail_id, ...detailWithoutId } = detail;

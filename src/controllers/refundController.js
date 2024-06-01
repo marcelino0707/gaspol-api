@@ -153,6 +153,12 @@ exports.createRefund = async (req, res) => {
       result.invoice_due_date = formatDate(tanggalWaktu);
     }
 
+    if(transaction.member_name) {
+      result.member_name = transaction.member_name;
+      const memberPhoneNumber = transaction.member_phone_number;
+      result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
+    };
+
     result.is_refund_all = refundResult.is_refund_all;
     result.refund_reason = refundResult.refund_reason;
     result.total_refund = refundResult.total_refund;
