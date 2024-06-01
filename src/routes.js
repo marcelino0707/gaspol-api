@@ -146,5 +146,7 @@ route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
 // Membership
 route.get("/membership", member.getMembers);
 route.post("/membership", member.create);
+route.patch("/membership/:id", member.update);
+route.delete("/membership/:id", member.delete);
 
 module.exports = route;
