@@ -17,7 +17,12 @@ exports.getMembers = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const { name, email, phone_number, outlet_id } = req.body;
+        const {
+            name,
+            email,
+            phone_number,
+            outlet_id
+        } = req.body;
 
         const member = {
             name: name,
@@ -38,3 +43,54 @@ exports.create = async (req, res) => {
     }
 };
 
+exports.update = async (req, res) => {
+    try {
+        const thisTimeNow = moment();
+        const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+        const memberId = req.params.id;
+        const {
+            name,
+            email,
+            phone_number,
+            outlet_id
+        } = req.body;
+
+        const updateMember = {
+            name: name,
+            email: email,
+            phone_number: phone_number,
+            outlet_id: outlet_id,
+            updated_at: indoDateTime,
+        };
+
+        await Member.update(memberId, updateMember);
+
+        return res.status(200).json({
+            message: "Berhasil mengubah data member!",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message || "Error to update member",
+        });
+    }
+};
+
+exports.delete = async (req, res) => {
+    const thisTimeNow = moment();
+    const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+    try {
+        const memberId = req.params.id;
+
+        await Member.update(memberId, {
+            deleted_at: indoDateTime,
+        });
+
+        return res.status(200).json({
+            message: "Berhasil menghapus data member",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message || "Error while deleting member",
+        });
+    }
+};

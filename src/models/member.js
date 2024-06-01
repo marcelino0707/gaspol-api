@@ -33,6 +33,22 @@ const Member = {
         .catch((error) => reject(error));
     });
   },
+  update: (id, member) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE members SET ? WHERE id = ?", [member, id], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  }
 };
 
 module.exports = Member;
