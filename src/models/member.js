@@ -5,7 +5,7 @@ const Member = {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT id AS member_id, name, phone_number FROM members WHERE deleted_at IS NULL', (error, results) => {
+          connection.query('SELECT id AS member_id, name AS member_name, phone_number AS member_phone_number FROM members WHERE deleted_at IS NULL', (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
