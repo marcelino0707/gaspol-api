@@ -11,8 +11,15 @@ exports.getMenus = async (req, res) => {
     const { outlet_id } = req.query;
     const menus = await Menu.getAll(outlet_id);
 
+    const customPriceIds = menus.map((item) => item.id);
+    const prices = await CustomPrice.getPricesByMenuIdsCMS(customPriceIds);
+    const result = menus.map(menu => {
+      const price = prices.find(pr => pr.menu_id == menu.id);
+      return { ...menu, price: price ? price.price : null };
+    });
+
     return res.status(200).json({
-      data: menus,
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
@@ -339,7 +346,7 @@ exports.updateMenuV2 = async (req, res) => {
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
   try {
     const menuId = req.params.id;
-    const { name, menu_type, price, menu_details, is_active, outlet_id } = req.body;
+    const { name, menu_type, menu_details, is_active, outlet_id } = req.body;
     const deletedAtNow = {
       deleted_at: indoDateTime,
     };
@@ -352,7 +359,6 @@ exports.updateMenuV2 = async (req, res) => {
     const updatedMenu = {
       name: name,
       menu_type: menu_type,
-      price: price,
       is_active: is_active,
       outlet_id: outlet_id,
       updated_at: indoDateTime,
