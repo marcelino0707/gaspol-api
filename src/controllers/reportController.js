@@ -207,7 +207,9 @@ exports.getPaymentReport = async (req, res) => {
       const cartDetails = await CartDetail.getByCartIds(cartIds);
       let result = {
         transactions: [...transactions],
-        cart_details: cartDetails.filter(item => item.qty !== 0),
+        cart_details: cartDetails
+          .filter(item => item.qty !== 0)
+          .sort((a, b) => a.menu_name.localeCompare(b.menu_name)),
       };
 
       const transactionsWithRefund = transactions.filter(
