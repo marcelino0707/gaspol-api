@@ -105,6 +105,37 @@ const RefundDetail = {
         .catch((error) => reject(error));
     });
   },
+  bulkCreate: (data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "INSERT INTO refund_details (refund_id, cart_detail_id, refund_reason_item, payment_type_id, qty_refund_item, total_refund_price, created_at, updated_at) VALUES ?",
+            [
+              data.map((item) => [
+                item.refund_id,
+                item.cart_detail_id,
+                item.refund_reason_item,
+                item.payment_type_id,
+                item.qty_refund_item,
+                item.total_refund_price,
+                item.created_at,
+                item.updated_at,
+              ]),
+            ],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   update: (id, refundDetail) => {
     return new Promise((resolve, reject) => {
       connectDB()

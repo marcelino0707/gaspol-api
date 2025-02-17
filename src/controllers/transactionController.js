@@ -191,6 +191,11 @@ exports.createTransaction = async (req, res) => {
 
     const outlet = await Outlet.getByOutletId(outlet_id);
 
+    let customerName = existingTransaction.customer_name;
+    if (customer_name) {
+      customerName = customer_name;
+    }
+
     const result = {
       outlet_name: outlet.name,
       outlet_address: outlet.address,
@@ -198,7 +203,7 @@ exports.createTransaction = async (req, res) => {
       outlet_footer: outlet.footer,
       transaction_id: existingTransaction.id,
       receipt_number: existingTransaction.receipt_number,
-      customer_name: existingTransaction.customer_name,
+      customer_name: customerName,
       customer_seat: existingTransaction.customer_seat,
       payment_type: existingTransaction.payment_type,
       payment_category: existingTransaction.payment_category,
@@ -469,3 +474,114 @@ exports.createDiscountTransaction = async (req, res) => {
     });
   }
 };
+
+exports.createTransactionsOutlet = async (req, res) => {
+  try {
+    const { data } = req.body;
+    const { outlet_id } = req.query;
+
+    for (const cart of data) {
+
+      let newCart = {};
+      newCart.outlet_id = outlet_id;
+      newCart.subtotal = cart.subtotal;
+      newCart.total = cart.total;
+      newCart.created_at = cart.created_at; // string
+      newCart.updated_at = cart.updated_at; // string
+
+      const createdCart = await Cart.create(newCart);
+      const cartId = createdCart.insertId;
+
+      const newTransaction = {
+        outlet_id: outlet_id,
+        cart_id: cartId,
+        receipt_number: cart.receipt_number,
+        invoice_number: cart.invoice_number,
+        invoice_due_date: cart.invoice_due_date, // string
+        payment_type_id: cart.payment_type_id,
+        customer_cash: cart.customer_cash,
+        customer_change: cart.customer_change,
+        customer_name: cart.customer_name,
+        customer_seat: cart.customer_seat,
+        created_at: cart.created_at, // string
+        updated_at: cart.invoice_due_date, // string
+      }
+
+      const createdTransaction = await Transaction.create(newTransaction);
+      const transactionId = createdTransaction.insertId;
+
+      const newCartDetails = cart.cart_details.map(item => ({
+        cart_id: cartId,
+        ref_refund_detail_id: item.cart_detail_id,
+        menu_id : item.menu_id,
+        menu_detail_id : item.menu_detail_id,
+        serving_type_id: item.serving_type_id,
+        price : item.price,
+        subtotal_price: item.subtotal_price,
+        total_price: item.total_price,
+        qty: item.qty,
+        note_item: item.note_item,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      }));
+      
+      await CartDetail.bulkCreate(newCartDetails);
+
+      let refundId = 0;
+      if(cart.is_refund & cart.is_refund != 0 || cart.refund_details.length > 0) {
+        // refund cart
+        let newRefund = {
+          transaction_id: transactionId,
+          is_refund_type_all: 0, // refund type all
+          is_refund_all: 0, // refund all after card details already empty
+          created_at: cart.created_at, // string
+          updated_at: cart.updated_at, // string
+        }
+
+        if(cart.is_refund_all == 1 ) {
+          newRefund.is_refund_type_all = 1;
+          newRefund.payment_type_id_all = cart.refund_payment_id_all;
+          newRefund.refund_reason = cart.refund_reason;
+          newRefund.total_refund = cart.total_refund;
+          newRefund.created_at = cart.refund_created_at_all;
+          newRefund.updated_at = cart.refund_created_at_all;
+        }
+
+        if(cart.refund_details.length > 0 && cart.total == 0 && cart.total_refund != 0) {
+          newRefund.is_refund_all = 1;
+        }
+
+        const createdRefund = await Refund.create(newRefund);
+        refundId = createdRefund.insertId;
+      }
+
+      if(cart.refund_details.length > 0) {
+        const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(cartId);
+        const newRefundDetails = cart.refund_details.map(item => ({
+          refund_id: refundId,
+          cart_detail_id: refCartDetail.find(refItem => refItem.ref_refund_detail_id == item.cart_detail_id)?.cart_detail_id,
+          qty_refund_item: item.qty_refund_item,
+          refund_reason_item: item.refund_reason_item,
+          payment_type_id: item.refund_payment_type_id_item,
+          total_refund_price: item.refund_total,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+        }));
+
+        await RefundDetail.bulkCreate(newRefundDetails);  
+      }
+
+      return res.status(201).json({
+        message: "Transaksi outlet berhasil ditambahkan!",
+        code: 201
+      });
+
+    };
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Some error occurred while creating the transactions for outlet",
+      code: 500
+    })
+  }
+}

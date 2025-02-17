@@ -31,7 +31,7 @@ exports.getCart = async (req, res) => {
     const result = {
       customer_name: "",
       customer_seat: "",
-      discount_id: cart.discount_id || 0,
+      discount_id: cart.discount_id || null,
       cart_id: cart.id,
       is_splitted: 0,
       subtotal: cart.subtotal,
@@ -163,7 +163,7 @@ exports.createCart = async (req, res) => {
     await Cart.update(cartId, {
       subtotal: subTotalPrice,
       total: totalPrice,
-      discount_id: 0,
+      discount_id: null,
       updated_at: indoDateTime,
     });
 
@@ -245,7 +245,7 @@ exports.updateCart = async (req, res) => {
 
     if ((cartDetail.is_ordered == 1 && cartDetail.qty == qty) || cartDetail.is_ordered == 0) {
       if (discount_id == 0 || discount_id == null) {
-        updatedCartItems.discount_id = 0;
+        updatedCartItems.discount_id = null;
         updatedCartItems.discounted_price = 0;
       } else {
         const discount = await Discount.getById(discount_id);
@@ -293,7 +293,7 @@ exports.updateCart = async (req, res) => {
       await CartDetail.create(newCartDetail);
 
       // update ordered item
-      updatedCartItems.discount_id = 0;
+      updatedCartItems.discount_id = null;
       updatedCartItems.discounted_price = 0;
       updatedCartItems.discounted_price = 0;
       updatedCartItems.subtotal_price = cartDetailSubtotalPrice;
@@ -306,7 +306,7 @@ exports.updateCart = async (req, res) => {
     const updateSubtotal = {
       subtotal: subTotalPrice,
       total: totalPrice,
-      discount_id: 0,
+      discount_id: null,
       updated_at: indoDateTime,
     };
     await Cart.update(cart.id, updateSubtotal);
@@ -356,7 +356,7 @@ exports.deleteCartItems = async (req, res) => {
     const updateCart = {
       subtotal: subtotalCart,
       total: totalCart,
-      discount_id: 0,
+      discount_id: null,
       updated_at: indoDateTime,
     };
 
@@ -530,7 +530,7 @@ exports.splitCart = async (req, res) => {
       await CartDetail.create(newCartDetail);
 
       await CartDetail.update(cartDetail.cart_detail_id, {
-        discount_id: 0,
+        discount_id: null,
         discounted_price: null,
         qty: oldCartDetail.qty - cartDetail.qty_to_split,
         total_price: oldTotalPriceItem,
@@ -544,7 +544,7 @@ exports.splitCart = async (req, res) => {
       let subtotalCart = 0;
       for (const oldCartDetail of oldCartDetails) {
         let subtotalCartDetail = oldCartDetail.qty * oldCartDetail.price;
-        if (oldCartDetail.discount_id != 0) {
+        if (oldCartDetail.discount_id && oldCartDetail.discount_id != 0) {
           subtotalCartDetail = oldCartDetail.total_price;
         }
         if (oldCartDetail.qty == 0) {

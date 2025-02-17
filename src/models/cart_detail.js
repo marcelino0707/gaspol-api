@@ -88,7 +88,7 @@ const CartDetail = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id FROM cart_details WHERE cart_id = ? AND deleted_at IS NULL AND is_ordered = 1",
+            "SELECT id FROM cart_details WHERE cart_id = ? AND is_ordered = 1",
             cart_id,
             (error, results) => {
               disconnectDB(connection);
@@ -203,6 +203,26 @@ const CartDetail = {
         .catch((error) => reject(error));
     });
   },
+  getRefRefundDetailsByCartId: (cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id AS cart_detail_id, ref_refund_detail_id FROM cart_details WHERE cart_id = ?",
+            cart_id,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   create: (cart_detail) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -215,6 +235,41 @@ const CartDetail = {
               resolve(results);
             }
           });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  bulkCreate: (data) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "INSERT INTO cart_details (cart_id, ref_refund_detail_id, menu_id, menu_detail_id, serving_type_id, price, subtotal_price, total_price, qty, note_item, created_at, updated_at) VALUES ?",
+            [
+              data.map((item) => [
+                item.cart_id,
+                item.ref_refund_detail_id,
+                item.menu_id,
+                item.menu_detail_id,
+                item.serving_type_id,
+                item.price,
+                item.subtotal_price,
+                item.total_price,
+                item.qty,
+                item.note_item,
+                item.created_at,
+                item.updated_at,
+              ]),
+            ],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
         })
         .catch((error) => reject(error));
     });

@@ -13,6 +13,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
+      ref_refund_detail_id: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+      },
       menu_id :{
         allowNull: true,
         type: Sequelize.INTEGER,
