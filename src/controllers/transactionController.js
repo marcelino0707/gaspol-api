@@ -527,9 +527,7 @@ exports.createTransactionsOutlet = async (req, res) => {
       
       await CartDetail.bulkCreate(newCartDetails);
 
-      let refundId = 0;
-      if(cart.is_refund & cart.is_refund != 0 || cart.refund_details.length > 0) {
-        // refund cart
+      if(cart.refund_details.length > 0) {
         let newRefund = {
           transaction_id: transactionId,
           is_refund_type_all: 0, // refund type all
@@ -541,7 +539,7 @@ exports.createTransactionsOutlet = async (req, res) => {
         if(cart.is_refund_all == 1 ) {
           newRefund.is_refund_type_all = 1;
           newRefund.payment_type_id_all = cart.refund_payment_id_all;
-          newRefund.refund_reason = cart.refund_reason;
+          newRefund.refund_reason = cart.refund_reason_all;
           newRefund.total_refund = cart.total_refund;
           newRefund.created_at = cart.refund_created_at_all;
           newRefund.updated_at = cart.refund_created_at_all;
@@ -552,15 +550,13 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
 
         const createdRefund = await Refund.create(newRefund);
-        refundId = createdRefund.insertId;
-      }
+        const refundId = createdRefund.insertId;
 
-      if(cart.refund_details.length > 0) {
         const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(cartId);
         const newRefundDetails = cart.refund_details.map(item => ({
           refund_id: refundId,
           cart_detail_id: refCartDetail.find(refItem => refItem.ref_refund_detail_id == item.cart_detail_id)?.cart_detail_id,
-          qty_refund_item: item.qty_refund_item,
+          qty_refund_item: item.refund_qty,
           refund_reason_item: item.refund_reason_item,
           payment_type_id: item.refund_payment_type_id_item,
           total_refund_price: item.refund_total,
@@ -570,13 +566,12 @@ exports.createTransactionsOutlet = async (req, res) => {
 
         await RefundDetail.bulkCreate(newRefundDetails);  
       }
-
-      return res.status(201).json({
-        message: "Transaksi outlet berhasil ditambahkan!",
-        code: 201
-      });
-
     };
+
+    return res.status(201).json({
+      message: "Transaksi outlet berhasil ditambahkan!",
+      code: 201,
+    });
 
   } catch (error) {
     return res.status(500).json({
