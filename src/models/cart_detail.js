@@ -222,6 +222,26 @@ const CartDetail = {
         })
         .catch((error) => reject(error));
     });
+  }, 
+  getRefDetailIdsByCardId: (cart_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT ref_refund_detail_id FROM cart_details WHERE cart_id = ?",
+            cart_id,
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
   },
   create: (cart_detail) => {
     return new Promise((resolve, reject) => {
@@ -279,6 +299,22 @@ const CartDetail = {
       connectDB()
         .then((connection) => {
           connection.query("UPDATE cart_details SET ? WHERE id = ?", [cart_detail, id], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  updateByRefRefundDetailId: (ref_refund_detail_id, cart_detail) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("UPDATE cart_details SET ? WHERE ref_refund_detail_id = ?", [cart_detail, ref_refund_detail_id], (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);

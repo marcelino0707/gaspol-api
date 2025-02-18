@@ -144,6 +144,26 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  getDataByTransactionReference: (transaction_ref) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            "SELECT id AS transaction_id, cart_id FROM transactions WHERE transaction_ref = ?",
+            [transaction_ref],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results[0]);
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getAllReport: (outlet_id, start_date, end_date, is_success, is_pending) => {
     return new Promise((resolve, reject) => {
       connectDB()

@@ -17,6 +17,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      transaction_ref:{
+        allowNull: true,
+        type: Sequelize.STRING,
+      },
       member_id: {
         allowNull: true,
         type: Sequelize.INTEGER,

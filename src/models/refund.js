@@ -33,6 +33,22 @@ const Refund = {
         .catch((error) => reject(error));
     });
   },
+  getExistRefundByTransactionId: (transaction_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT id FROM refunds WHERE transaction_id = ?", transaction_id, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0]);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getByTransactionIds: (transactionIdS) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -75,6 +91,7 @@ const Refund = {
         .catch((error) => reject(error));
     });
   },
+  // Code gatau kepake apa engga, perlu diperiksa
   haveRefunds: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
