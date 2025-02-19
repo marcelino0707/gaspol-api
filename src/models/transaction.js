@@ -149,8 +149,8 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id AS transaction_id, cart_id FROM transactions WHERE transaction_ref = ?",
-            [transaction_ref],
+            "SELECT id AS transaction_id, cart_id FROM transactions WHERE transaction_ref LIKE ?",
+            [`%${transaction_ref}`],
             (error, results) => {
               disconnectDB(connection);
               if (error) {

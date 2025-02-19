@@ -481,7 +481,7 @@ exports.createTransactionsOutlet = async (req, res) => {
     const { outlet_id } = req.query;
 
     for (const cart of data) {
-      if(cart.is_edited_sync == 0){
+      if(cart.is_edited_sync == 0) {
         let newCart = {};
         newCart.outlet_id = outlet_id;
         newCart.subtotal = cart.subtotal;
