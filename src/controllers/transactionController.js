@@ -528,7 +528,7 @@ exports.createTransactionsOutlet = async (req, res) => {
         
         await CartDetail.bulkCreate(newCartDetails);
   
-        if(cart.refund_details.length > 0) {
+        if(cart.refund_details && cart.refund_details.length > 0) {
           let newRefund = {
             transaction_id: transactionId,
             is_refund_type_all: 0, // refund type all
@@ -546,7 +546,7 @@ exports.createTransactionsOutlet = async (req, res) => {
             newRefund.updated_at = cart.refund_created_at_all;
           }
   
-          if(cart.refund_details.length > 0 && cart.total == 0 && cart.total_refund != 0) {
+          if(cart.total == 0 && cart.total_refund != 0) {
             newRefund.is_refund_all = 1;
           }
   
@@ -582,16 +582,17 @@ exports.createTransactionsOutlet = async (req, res) => {
         });
 
         const refDetailIds = await CartDetail.getRefDetailIdsByCardId(transactionData.cart_id);
+        const refundDetailIdsArray = refDetailIds.map((item) => item.ref_refund_detail_id);
 
         for (const cartDetail of cart.cart_details) {
           // edit cart details
-          if (refDetailIds.includes(cartDetail.cart_detail_id)) {
+          if (refundDetailIdsArray.includes(cartDetail.cart_detail_id)) {
             await CartDetail.updateByRefRefundDetailId(cartDetail.cart_detail_id, {
               subtotal_price: cartDetail.subtotal_price,
               total_price: cartDetail.total_price,
               qty: cartDetail.qty,
               updated_at: cartDetail.updated_at,
-            })
+            });
           } else {
             // add new cart details
             await CartDetail.create({
@@ -607,12 +608,12 @@ exports.createTransactionsOutlet = async (req, res) => {
               note_item: cartDetail.note_item,
               created_at: cartDetail.created_at,
               updated_at: cartDetail.updated_at,
-            })
+            });
           }
         }
 
         // Edit Refund
-        if (cart.refund_details.length > 0) {
+        if (cart.refund_details && cart.refund_details.length > 0) {
           const haveRefund = await Refund.getExistRefundByTransactionId(transactionData.transaction_id);
           let refundId = haveRefund;
           if (haveRefund)
@@ -647,7 +648,7 @@ exports.createTransactionsOutlet = async (req, res) => {
               newRefund.updated_at = cart.refund_created_at_all;
             }
     
-            if(cart.refund_details.length > 0 && cart.total == 0 && cart.total_refund != 0) {
+            if(cart.total == 0 && cart.total_refund != 0) {
               newRefund.is_refund_all = 1;
             }
 
