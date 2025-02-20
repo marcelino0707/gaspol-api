@@ -632,7 +632,7 @@ exports.createTransactionsOutlet = async (req, res) => {
             // Add Refund
             // Tidak Clean Code
             let newRefund = {
-              transaction_id: transactionId,
+              transaction_id: transactionData.transaction_id,
               is_refund_type_all: 0, // refund type all
               is_refund_all: 0, // refund all after card details already empty
               created_at: cart.created_at, // string
