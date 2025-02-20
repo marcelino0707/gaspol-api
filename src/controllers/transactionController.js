@@ -619,15 +619,23 @@ exports.createTransactionsOutlet = async (req, res) => {
           if (haveRefund)
           {
             // Edit Refund
-            await Refund.update(refundId, {
-              is_refund_type_all: cart.is_refund_all == 1 ? 1 : 0,
-              is_refund_all: cart.total == 0 ? 1 : 0,
-              payment_type_id_all: cart.refund_payment_id_all? cart.refund_payment_id_all : null,
-              refund_reason: cart.refund_reason_all? cart.refund_reason_all : null,
-              total_refund: cart.total_refund,
-              updated_at: cart.refund_created_at_all? cart.refund_created_at : cart.updated_at,
-            })
+            let editRefund = {
+              updated_at: cart.updated_at,
+            };
+    
+            if(cart.is_refund_all == 1 ) {
+              editRefund.is_refund_type_all = 1;
+              editRefund.payment_type_id_all = cart.refund_payment_id_all;
+              editRefund.refund_reason = cart.refund_reason_all;
+              editRefund.total_refund = cart.total_refund;
+              editRefund.updated_at = cart.refund_created_at_all;
+            };
+    
+            if(cart.total == 0 && cart.total_refund != 0) {
+              editRefund.is_refund_all = 1;
+            };
 
+            await Refund.update(refundId, editRefund);
           } else {
             // Add Refund
             // Tidak Clean Code
