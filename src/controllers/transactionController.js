@@ -615,7 +615,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         // Edit Refund
         if (cart.refund_details && cart.refund_details.length > 0) {
           const haveRefund = await Refund.getExistRefundByTransactionId(transactionData.transaction_id);
-          let refundId = haveRefund.id;
+
+          let refundId = 0;
           if (haveRefund && haveRefund.id != 0)
           {
             // Edit Refund
