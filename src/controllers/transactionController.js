@@ -585,8 +585,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         const refundDetailIdsArray = refDetailIds.map((item) => item.ref_refund_detail_id);
 
         for (const cartDetail of cart.cart_details) {
-          // edit cart details
           if (refundDetailIdsArray.includes(cartDetail.cart_detail_id)) {
+            // edit cart details
             await CartDetail.updateByRefRefundDetailId(cartDetail.cart_detail_id, {
               subtotal_price: cartDetail.subtotal_price,
               total_price: cartDetail.total_price,
@@ -616,7 +616,7 @@ exports.createTransactionsOutlet = async (req, res) => {
         if (cart.refund_details && cart.refund_details.length > 0) {
           const haveRefund = await Refund.getExistRefundByTransactionId(transactionData.transaction_id);
           let refundId = haveRefund.id;
-          if (haveRefund)
+          if (haveRefund && haveRefund.id != 0)
           {
             // Edit Refund
             let editRefund = {
