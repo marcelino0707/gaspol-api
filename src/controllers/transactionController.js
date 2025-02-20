@@ -615,11 +615,11 @@ exports.createTransactionsOutlet = async (req, res) => {
         // Edit Refund
         if (cart.refund_details && cart.refund_details.length > 0) {
           const haveRefund = await Refund.getExistRefundByTransactionId(transactionData.transaction_id);
-          let refundId = haveRefund;
+          let refundId = haveRefund.id;
           if (haveRefund)
           {
             // Edit Refund
-            await Refund.update(haveRefund.id, {
+            await Refund.update(refundId, {
               is_refund_type_all: cart.is_refund_all == 1 ? 1 : 0,
               is_refund_all: cart.total == 0 ? 1 : 0,
               payment_type_id_all: cart.refund_payment_id_all? cart.refund_payment_id_all : null,
