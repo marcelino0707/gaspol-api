@@ -652,7 +652,7 @@ exports.createTransactionsOutlet = async (req, res) => {
               newRefund.is_refund_all = 1;
             }
 
-            await Refund.create(newRefund);
+            const createdRefund = await Refund.create(newRefund);
 
             refundId = createdRefund.insertId;
           }
