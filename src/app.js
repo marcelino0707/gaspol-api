@@ -7,8 +7,9 @@ const cors = require("cors");
 const app = express();
 dotenv.config();
 
-// Parse requests
-app.use(bodyParser.json());
+// Parse requests with increased limit
+app.use(bodyParser.json({ limit: '20mb' })); // Set to 10mb or any size you need
+app.use(bodyParser.urlencoded({ limit: '20mb', extended: true })); // Set to 10mb or any size you need
 
 // Enable CORS
 app.use(cors());
