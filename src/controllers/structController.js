@@ -1175,7 +1175,7 @@ exports.getShift = async (req, res) => {
           (total, transaction) => total + transaction.total,
           0
         );
-        
+
         if (paymentType.id != 1) {
           // Create payment type detail object
           const paymentTypeDetail = {

@@ -76,6 +76,14 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING,
       },
+      member_name: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      member_phone_number :{
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
