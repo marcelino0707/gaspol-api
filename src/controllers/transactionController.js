@@ -722,12 +722,20 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           updateTransactionData.updated_at = cart.invoice_due_date; // string
         }
 
-        await Transaction.update(transactionData.transaction_id, updateTransactionData);
+        if (cart.member_name != null || cart.member_phone_number != null) {
+          updateTransactionData.member_name = cart.member_name;
+          updateTransactionData.member_phone_number = cart.member_phone_number;
+        }
 
         let updateCart = {};
         updateCart.subtotal = cart.subtotal;
         updateCart.total = cart.total;
         updateCart.updated_at = cart.updated_at;
+
+        if (cart.discount_id && cart.discount_id > 0) {
+          updateCart.discount_id = cart.discount_id;
+          updateTransactionData.discount_name = cart.discount_code;
+        }
 
         if (cart.transaction_ref_split != null) {
           const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
@@ -735,6 +743,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
         }
 
         await Cart.update(transactionData.cart_id, updateCart);
+        await Transaction.update(transactionData.transaction_id, updateTransactionData);
 
         const refDetailIds = await CartDetail.getRefDetailIdsByCardId(transactionData.cart_id);
         const refundDetailIdsArray = refDetailIds.map((item) => item.ref_refund_detail_id);
@@ -764,6 +773,9 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
               is_ordered: cartDetail.is_ordered,
               is_canceled: cartDetail.is_canceled,
               is_cancel_printed: cartDetail.is_cancel_printed,
+              cancel_reason: item.cancel_reason,
+              discount_id: item.discount_id,
+              discounted_price: item.discounted_price,
               created_at: cartDetail.created_at,
               updated_at: cartDetail.updated_at,
             });
@@ -868,12 +880,18 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           newTransaction.updated_at = cart.invoice_due_date; // string
         }
 
+        // Member
+        if (cart.member_name != null || cart.member_phone_number != null) {
+          newTransaction.member_name = cart.member_name;
+          newTransaction.member_phone_number = cart.member_phone_number;
+        }
+
         if (cart.transaction_ref_split != null) {
           const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
           newCart.cart_id_main_split = transactionSplitData.cart_id;
         }
 
-        if (cart.discount_id && cart.discount_id != 0) {
+        if (cart.discount_id && cart.discount_id > 0) {
           newCart.discount_id = cart.discount_id;
           newTransaction.discount_name = cart.discount_code;
         }
@@ -899,6 +917,9 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           is_ordered: item.is_ordered,
           is_canceled: item.is_canceled,
           is_cancel_printed: item.is_cancel_printed,
+          cancel_reason: item.cancel_reason,
+          discount_id: item.discount_id,
+          discounted_price: item.discounted_price,
           created_at: item.created_at,
           updated_at: item.updated_at,
         }));
