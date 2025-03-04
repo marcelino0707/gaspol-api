@@ -23,6 +23,7 @@ const expenditure = require("./controllers/expenditureController");
 const ingredient = require("./controllers/ingredientController");
 const ingredeintOrderList = require("./controllers/ingredientOrderController");
 const member = require("./controllers/memberController");
+const complaint = require("./controllers/complaintController");
 
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
@@ -151,5 +152,9 @@ route.delete("/membership/:id", member.delete);
 
 route.post("/sync-transactions-outlet", transaction.createTransactionsOutlet);
 route.post("/sync-transactions-outlet-testing", transaction.createTransactionsOutletV2Testing); // Testing
+
+// Complaint
+route.get("/complaint", complaint.getComplaints);
+route.post("/complaint", complaint.create);
 
 module.exports = route;

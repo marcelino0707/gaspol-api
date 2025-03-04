@@ -1,8 +1,8 @@
 const multer = require('multer');
 const Menu = require("../models/menu");
 const MenuDetail = require("../models/menu_detail");
-const CustomPrice = require("../models/custom_price")
-const ServingType = require("../models/serving_type")
+const CustomPrice = require("../models/custom_price");
+const ServingType = require("../models/serving_type");
 const fs = require('fs');
 const moment = require("moment-timezone");
 
@@ -228,15 +228,16 @@ exports.getMenuByIdV2 = async (req, res) => {
 
     const menu = await Menu.getByIdCMS(id);
     const menuDetails = await MenuDetail.getAllVarianByMenuID(id);
+    const prices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(id);
+    const price_main_menu = prices.find(price => price.menu_detail_id == 0 && price.serving_type_id == 1)?.price || menu.price;
     const result = {
       id: menu.id,
       name: menu.name,
       menu_type: menu.menu_type,
       image_url: menu.image_url,
-      price: menu.price,
+      price: price_main_menu,
       outlet_id: menu.outlet_id,
       is_active: menu.is_active,
-      dine_in_price: menu.price,
     };
 
     result.menu_details = [...menuDetails];

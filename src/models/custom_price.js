@@ -46,7 +46,7 @@ const CustomPrice = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT cmp.menu_id, cmp.price FROM (SELECT cmp.menu_id, cmp.price, cmp.created_at, ROW_NUMBER() OVER (PARTITION BY cmp.menu_id ORDER BY cmp.created_at) AS row_num FROM custom_menu_prices cmp LEFT JOIN serving_types st ON cmp.serving_type_id = st.id WHERE cmp.menu_id IN (?) AND cmp.deleted_at IS NULL AND st.deleted_at IS NULL AND cmp.menu_detail_id = 0) cmp WHERE cmp.row_num = 1",
+            "SELECT cmp.menu_id, cmp.price FROM (SELECT cmp.menu_id, cmp.price, cmp.created_at, ROW_NUMBER() OVER (PARTITION BY cmp.menu_id ORDER BY cmp.created_at) AS row_num FROM custom_menu_prices cmp LEFT JOIN serving_types st ON cmp.serving_type_id = st.id WHERE cmp.menu_id IN (?) AND cmp.deleted_at IS NULL AND st.id = 1 AND st.deleted_at IS NULL AND cmp.menu_detail_id = 0) cmp WHERE cmp.row_num = 1",
             [menuIds],
             (error, results) => {
               disconnectDB(connection);
