@@ -3,7 +3,9 @@ const moment = require("moment-timezone");
 
 exports.getComplaints = async (req, res) => {
     try {
-        const result = await Complaint.getAll();
+        const { outlet_id } = req.query;
+
+        const result = await Complaint.getAllByOutletId(outlet_id);
 
         return res.status(200).json({
             data: result,
@@ -20,7 +22,7 @@ exports.create = async (req, res) => {
         const { outlet_id } = req.query;
 
         const {
-            name,
+            name, // casher name
             title,
             message,
             sent_at,

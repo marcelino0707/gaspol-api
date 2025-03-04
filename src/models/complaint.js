@@ -1,11 +1,11 @@
 const { connectDB, disconnectDB } = require('../utils/dbUtils');
 
 const Complaint = {
-  getAll: () => {
+    getAllByOutletId: (outlet_id) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
-          connection.query('SELECT outlet_id, name, title, message, sent_at, log_last_outlet, cache_transaction, cache_failed_transaction, cache_success_transaction, cache_history_transaction FROM outlet_complaints', (error, results) => {
+          connection.query('SELECT name, title, message, sent_at, log_last_outlet, cache_transaction, cache_failed_transaction, cache_success_transaction, cache_history_transaction FROM outlet_complaints WHERE outlet_id = ?', outlet_id, (error, results) => {
             disconnectDB(connection);
             if (error) {
               reject(error);
