@@ -4,9 +4,9 @@ const moment = require("moment-timezone");
 
 exports.getCustomizePriceByMenuId = async (req, res) => {
   const menuId = req.params.id;
-  const outletId = req.query.outlet_id;
+
   try {
-    const allCustomPrices = await ServingType.getAllCMS(outletId);
+    const allCustomPrices = await ServingType.getAllCMS();
     const customMenuPrices = await CustomPrice.getCustomMenuPricesByMenuIdCMS(
       menuId
     );
