@@ -35,10 +35,10 @@ const ServingType = {
         .catch((error) => reject(error));
     });
   },
-  getAllCMS: (outletId) => {
+  getAllCMS: () => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        connection.query("SELECT id, name, is_active FROM serving_types WHERE deleted_at IS NULL AND outlet_id = ?", outletId, (error, results) => {
+        connection.query("SELECT id, name, is_active FROM serving_types WHERE deleted_at IS NULL", (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);

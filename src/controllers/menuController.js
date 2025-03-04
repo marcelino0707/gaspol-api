@@ -291,7 +291,7 @@ exports.createMenuV2 = async (req, res) => {
 
     const createdMenu = await Menu.createMenu(menu);
 
-    const customPriceIds = await ServingType.getAllCMS(outlet_id);
+    const customPriceIds = await ServingType.getAllCMS();
 
     const customPricesToInsert = customPriceIds.map(item => ({
       menu_id : createdMenu.insertId,
@@ -413,7 +413,7 @@ exports.updateMenuV2 = async (req, res) => {
             price: menuDetail.price,
           });
 
-          const customPriceIds = await ServingType.getAllCMS(outlet_id);
+          const customPriceIds = await ServingType.getAllCMS();
 
           const customPricesToInsert = customPriceIds.map(item => ({
             menu_id : menuId,

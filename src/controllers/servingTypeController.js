@@ -3,9 +3,8 @@ const moment = require("moment-timezone");
 
 exports.getServingType = async (req, res) => {
   try {
-    const outlet_id = req.params.id;
-    const servingTypes = await ServingType.getAllCMS(outlet_id);
- 
+    const servingTypes = await ServingType.getAllCMS();
+
     return res.status(200).json({
       data: servingTypes,
     });
