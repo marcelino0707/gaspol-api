@@ -23,7 +23,7 @@ module.exports = {
       },
       message: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
       sent_at: {
         allowNull: false,
@@ -32,23 +32,23 @@ module.exports = {
       },
       log_last_outlet: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
       cache_transaction: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
       cache_failed_transaction: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
       cache_success_transaction: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
       cache_history_transaction: {
         allowNull: false,
-        type: Sequelize.TEXT,
+        type: Sequelize.MEDIUMTEXT,
       },
     });
   },

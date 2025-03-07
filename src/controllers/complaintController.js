@@ -3,9 +3,7 @@ const moment = require("moment-timezone");
 
 exports.getComplaints = async (req, res) => {
     try {
-        const { outlet_id } = req.query;
-
-        const result = await Complaint.getAllByOutletId(outlet_id);
+        const result = await Complaint.getAll();
 
         return res.status(200).json({
             data: result,
