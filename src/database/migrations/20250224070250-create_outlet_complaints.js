@@ -31,24 +31,24 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       log_last_outlet: {
-        allowNull: false,
-        type: Sequelize.MEDIUMTEXT,
+        allowNull: true,
+        type: Sequelize.JSON,
       },
       cache_transaction: {
-        allowNull: false,
-        type: Sequelize.MEDIUMTEXT,
+        allowNull: true,
+        type: Sequelize.JSON,
       },
       cache_failed_transaction: {
-        allowNull: false,
-        type: Sequelize.MEDIUMTEXT,
+        allowNull: true,
+        type: Sequelize.JSON,
       },
       cache_success_transaction: {
-        allowNull: false,
-        type: Sequelize.MEDIUMTEXT,
+        allowNull: true,
+        type: Sequelize.JSON,
       },
       cache_history_transaction: {
-        allowNull: false,
-        type: Sequelize.MEDIUMTEXT,
+        allowNull: true,
+        type: Sequelize.JSON,
       },
     });
   },

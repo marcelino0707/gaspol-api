@@ -37,11 +37,11 @@ exports.create = async (req, res) => {
             title: title,
             message: message,
             sent_at: sent_at,
-            log_last_outlet: log_last_outlet,
-            cache_transaction: cache_transaction,
-            cache_failed_transaction: cache_failed_transaction,
-            cache_success_transaction: cache_success_transaction,
-            cache_history_transaction: cache_history_transaction,
+            log_last_outlet: log_last_outlet ? JSON.stringify(log_last_outlet) : null,
+            cache_transaction: cache_transaction ? JSON.stringify(cache_transaction) : null,
+            cache_failed_transaction: cache_failed_transaction ? JSON.stringify(cache_failed_transaction) : null,
+            cache_success_transaction: cache_success_transaction ? JSON.stringify(cache_success_transaction) : null,
+            cache_history_transaction: cache_history_transaction ? JSON.stringify(cache_history_transaction) : null,
         };
 
         await Complaint.create(complaint);
