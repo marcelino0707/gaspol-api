@@ -5,8 +5,31 @@ exports.getComplaints = async (req, res) => {
     try {
         const result = await Complaint.getAll();
 
+        const parseJSON = (data) => {
+            if (typeof data === "string") {
+                try {
+                    return JSON.parse(data);
+                } catch (error) {
+                    return {};
+                }
+            }
+            return data && typeof data === "object" ? data : {};
+        };
+
+        const transformedResult = result.map((item) => ({
+            name: item.name,
+            title: item.title,
+            message: item.message,
+            sent_at: item.sent_at,
+            log_last_outlet: parseJSON(item.log_last_outlet),
+            cache_transaction: parseJSON(item.cache_transaction),
+            cache_failed_transaction: parseJSON(item.cache_failed_transaction),
+            cache_success_transaction: parseJSON(item.cache_success_transaction),
+            cache_history_transaction: parseJSON(item.cache_history_transaction),
+        }));
+
         return res.status(200).json({
-            data: result,
+            data: transformedResult,
         });
     } catch (error) {
         return res.status(500).json({
