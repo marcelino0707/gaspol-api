@@ -24,6 +24,7 @@ const ingredient = require("./controllers/ingredientController");
 const ingredeintOrderList = require("./controllers/ingredientOrderController");
 const member = require("./controllers/memberController");
 const complaint = require("./controllers/complaintController");
+const updateConfirm = require("./controllers/updateConfirmationController");
 
 // Menu
 route.get("/menu", menu.getMenus); // Kasir
@@ -156,5 +157,9 @@ route.post("/sync-transactions-outlet-testing", transaction.createTransactionsOu
 // Complaint
 route.get("/complaint", complaint.getComplaints);
 route.post("/complaint", complaint.create);
+
+// Update Confirm
+route.get("/update-confirm", updateConfirm.getUpdateConfirms);
+route.post("/update-confirm", updateConfirm.create);
 
 module.exports = route;

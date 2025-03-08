@@ -1,7 +1,7 @@
 const { connectDB, disconnectDB } = require('../utils/dbUtils');
 
 const Complaint = {
-    getAll: () => {
+  getAll: () => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
