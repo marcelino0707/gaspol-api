@@ -1,5 +1,7 @@
 const Complaint = require("../models/complaint");
-const moment = require("moment-timezone");
+const {
+    formatDate,
+  } = require("../utils/generalFunctions");
 
 exports.getComplaints = async (req, res) => {
     try {
@@ -20,7 +22,7 @@ exports.getComplaints = async (req, res) => {
             name: item.name,
             title: item.title,
             message: item.message,
-            sent_at: item.sent_at,
+            sent_at: formatDate(item.sent_at),
             log_last_outlet: parseJSON(item.log_last_outlet),
             cache_transaction: parseJSON(item.cache_transaction),
             cache_failed_transaction: parseJSON(item.cache_failed_transaction),

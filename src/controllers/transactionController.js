@@ -731,11 +731,10 @@ exports.createTransactionsOutlet = async (req, res) => {
           }
   
           const createdRefund = await Refund.create(newRefund);
-          const refundId = createdRefund.insertId;
   
           const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(cartId);
           const newRefundDetails = cart.refund_details.map(item => ({
-            refund_id: refundId,
+            refund_id: createdRefund.insertId,
             cart_detail_id: refCartDetail.find(refItem => refItem.ref_refund_detail_id == item.cart_detail_id)?.cart_detail_id,
             qty_refund_item: item.refund_qty,
             refund_reason_item: item.refund_reason_item,
@@ -1018,11 +1017,10 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           }
   
           const createdRefund = await Refund.create(newRefund);
-          const refundId = createdRefund.insertId;
   
           const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(cartId);
           const newRefundDetails = cart.refund_details.map(item => ({
-            refund_id: refundId,
+            refund_id: createdRefund.insertId,
             cart_detail_id: refCartDetail.find(refItem => refItem.ref_refund_detail_id == item.cart_detail_id)?.cart_detail_id,
             qty_refund_item: item.refund_qty,
             refund_reason_item: item.refund_reason_item,
