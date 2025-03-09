@@ -31,7 +31,13 @@ exports.create = async (req, res) => {
             last_updated: last_updated,
         };
 
-        await UpdateConfirm.create(updateConfirm);
+        const existUpdateConfirm = await UpdateConfirm.getByOutletId(outlet_id);
+
+        if(existUpdateConfirm != null) {
+            await UpdateConfirm.update(outlet_id, updateConfirm);
+        } else {
+            await UpdateConfirm.create(updateConfirm);
+        }
 
         return res.status(201).json({
             member: "Data update confirm created successfully",
