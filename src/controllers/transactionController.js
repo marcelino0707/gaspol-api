@@ -483,7 +483,7 @@ exports.createTransactionsOutlet = async (req, res) => {
     for (const cart of data) {
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
-      if(transactionData && cart.is_edited_sync == 0 || cart.is_edited_sync == 1) {
+      if(transactionData && cart.is_edited_sync == 0 || transactionData && cart.is_edited_sync == 1) {
         // Edit Transaction
         let updateTransactionData = {};
         updateTransactionData.updated_at = cart.updated_at; // string
@@ -568,6 +568,7 @@ exports.createTransactionsOutlet = async (req, res) => {
           let refundId = 0;
           if (haveRefund && haveRefund.id != 0)
           {
+            refundId = haveRefund.id;
             // Edit Refund
             let editRefund = {
               updated_at: cart.updated_at,
@@ -769,7 +770,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
     for (const cart of data) {
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
-      if(transactionData && cart.is_edited_sync == 0 || cart.is_edited_sync == 1) {
+      if(transactionData && cart.is_edited_sync == 0 || transactionData && cart.is_edited_sync == 1) {
         // Edit Transaction
         let updateTransactionData = {};
         updateTransactionData.updated_at = cart.updated_at; // string
@@ -854,6 +855,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           let refundId = 0;
           if (haveRefund && haveRefund.id != 0)
           {
+            refundId = haveRefund.id;
             // Edit Refund
             let editRefund = {
               updated_at: cart.updated_at,
