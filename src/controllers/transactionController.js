@@ -483,7 +483,7 @@ exports.createTransactionsOutlet = async (req, res) => {
     for (const cart of data) {
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
-      if(cart.is_edited_sync == 1 && transactionData) {
+      if(transactionData && cart.is_edited_sync == 0 || cart.is_edited_sync == 1) {
         // Edit Transaction
         let updateTransactionData = {};
         updateTransactionData.updated_at = cart.updated_at; // string
@@ -769,7 +769,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
     for (const cart of data) {
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
-      if(cart.is_edited_sync == 1 && transactionData) {
+      if(transactionData && cart.is_edited_sync == 0 || cart.is_edited_sync == 1) {
         // Edit Transaction
         let updateTransactionData = {};
         updateTransactionData.updated_at = cart.updated_at; // string
