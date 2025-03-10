@@ -5,6 +5,7 @@ const Transaction = require("../models/transaction");
 const Refund = require("../models/refund");
 const RefundDetail = require("../models/refund_detail");
 const Outlet = require("../models/outlet");
+const logger = require('../utils/logger');
 const {
   applyDiscountAndUpdateTotal,
   formatDate,
@@ -754,6 +755,7 @@ exports.createTransactionsOutlet = async (req, res) => {
       code: 201,
     });
   } catch (error) {
+    logger.error(`Error in createTransactionsOutlet: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
@@ -1041,6 +1043,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
     });
 
   } catch (error) {
+    logger.error(`Error in createTransactionsOutlet: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
