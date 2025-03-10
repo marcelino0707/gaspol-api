@@ -1043,7 +1043,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Error in createTransactionsOutlet: ${error.stack}`);
+    logger.error(`Error in createTransactionsOutletTesting: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
