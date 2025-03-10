@@ -46,6 +46,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.INTEGER,
       },
+      transaction_ref_main_split:{
+        allowNull: true,
+        type: Sequelize.STRING,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

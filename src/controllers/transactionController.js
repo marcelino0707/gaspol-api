@@ -518,8 +518,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
 
         if (cart.transaction_ref_split != null) {
-          const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
-          updateCart.cart_id_main_split = transactionSplitData.cart_id;
+          // const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split); Belom ke pake!
+          updateCart.transaction_ref_main_split = cart.transaction_ref_split;
         }
 
         await Cart.update(transactionData.cart_id, updateCart);
@@ -594,7 +594,7 @@ exports.createTransactionsOutlet = async (req, res) => {
             let newRefund = {
               transaction_id: transactionData.transaction_id,
               is_refund_type_all: 0, // refund type all
-              is_refund_all: 0, // refund all after card details already empty
+              is_refund_all: 0, // refund all after cart details already empty
               created_at: cart.created_at, // string
               updated_at: cart.updated_at, // string
             }
@@ -668,8 +668,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
 
         if (cart.transaction_ref_split != null) {
-          const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
-          newCart.cart_id_main_split = transactionSplitData.cart_id;
+          // const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split); Belom ke pake!
+          newCart.transaction_ref_main_split = cart.transaction_ref_split;
         }
 
         if (cart.discount_id && cart.discount_id > 0) {
@@ -713,7 +713,7 @@ exports.createTransactionsOutlet = async (req, res) => {
           let newRefund = {
             transaction_id: transactionId,
             is_refund_type_all: 0, // refund type all
-            is_refund_all: 0, // refund all after card details already empty
+            is_refund_all: 0, // refund all after cart details already empty
             created_at: cart.created_at, // string
             updated_at: cart.updated_at, // string
           }
@@ -805,8 +805,8 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
         }
 
         if (cart.transaction_ref_split != null) {
-          const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
-          updateCart.cart_id_main_split = transactionSplitData.cart_id;
+          // const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split); Belom ke pake!
+          updateCart.transaction_ref_main_split = cart.transaction_ref_split;
         }
 
         await Cart.update(transactionData.cart_id, updateCart);
@@ -881,7 +881,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
             let newRefund = {
               transaction_id: transactionData.transaction_id,
               is_refund_type_all: 0, // refund type all
-              is_refund_all: 0, // refund all after card details already empty
+              is_refund_all: 0, // refund all after cart details already empty
               created_at: cart.created_at, // string
               updated_at: cart.updated_at, // string
             }
@@ -955,8 +955,8 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
         }
 
         if (cart.transaction_ref_split != null) {
-          const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split);
-          newCart.cart_id_main_split = transactionSplitData.cart_id;
+          // const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split); Belom ke pake!
+          newCart.transaction_ref_main_split = cart.transaction_ref_split;
         }
 
         if (cart.discount_id && cart.discount_id > 0) {
@@ -1000,7 +1000,7 @@ exports.createTransactionsOutletV2Testing = async (req, res) => {
           let newRefund = {
             transaction_id: transactionId,
             is_refund_type_all: 0, // refund type all
-            is_refund_all: 0, // refund all after card details already empty
+            is_refund_all: 0, // refund all after cart details already empty
             created_at: cart.created_at, // string
             updated_at: cart.updated_at, // string
           }
