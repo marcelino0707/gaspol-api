@@ -1,5 +1,5 @@
 const UpdateConfirm = require("../models/update_confirm");
-const moment = require("moment-timezone");
+const logger = require('../utils/logger');
 
 exports.getUpdateConfirms = async (req, res) => {
     try {
@@ -43,6 +43,7 @@ exports.create = async (req, res) => {
             member: "Data update confirm created successfully",
         });
     } catch (error) {
+        logger.error(`Error in updateConfirmation: ${error.stack}`);
         return res.status(500).json({
             message: error.message || "Some error occurred while creating update confirm",
         });
