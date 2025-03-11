@@ -12,9 +12,7 @@ app.use(bodyParser.json({ limit: '20mb' })); // Set to 10mb or any size you need
 app.use(bodyParser.urlencoded({ limit: '20mb', extended: true })); // Set to 10mb or any size you need
 
 // Enable CORS
-app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-}));
+app.use(cors());
 
 // Serving static files from the "public" directory
 app.use("/public", express.static("public"));
