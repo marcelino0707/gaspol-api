@@ -477,9 +477,9 @@ exports.createDiscountTransaction = async (req, res) => {
 };
 
 exports.createTransactionsOutlet = async (req, res) => {
+  const { outlet_id } = req.query;
   try {
     const { data } = req.body;
-    const { outlet_id } = req.query;
 
     for (const cart of data) {
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
@@ -553,9 +553,9 @@ exports.createTransactionsOutlet = async (req, res) => {
               is_ordered: cartDetail.is_ordered,
               is_canceled: cartDetail.is_canceled,
               is_cancel_printed: cartDetail.is_cancel_printed,
-              cancel_reason: item.cancel_reason,
-              discount_id: item.discount_id,
-              discounted_price: item.discounted_price,
+              cancel_reason: cartDetail.cancel_reason,
+              discount_id: cartDetail.discount_id,
+              discounted_price: cartDetail.discounted_price,
               created_at: cartDetail.created_at,
               updated_at: cartDetail.updated_at,
             });
@@ -755,7 +755,7 @@ exports.createTransactionsOutlet = async (req, res) => {
       code: 201,
     });
   } catch (error) {
-    logger.error(`Error in createTransactionsOutlet: ${error.stack}`);
+    logger.error(`Error in outlet ${outlet_id} createTransactionsOutlet: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
