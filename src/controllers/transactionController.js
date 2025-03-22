@@ -478,10 +478,13 @@ exports.createDiscountTransaction = async (req, res) => {
 
 exports.createTransactionsOutlet = async (req, res) => {
   const { outlet_id } = req.query;
+  let currentTransactionRef = null;
+
   try {
     const { data } = req.body;
 
     for (const cart of data) {
+      currentTransactionRef = cart.transaction_ref;
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
       if(transactionData && cart.is_edited_sync == 0 || transactionData && cart.is_edited_sync == 1) {
@@ -755,7 +758,7 @@ exports.createTransactionsOutlet = async (req, res) => {
       code: 201,
     });
   } catch (error) {
-    logger.error(`Error in outlet ${outlet_id} createTransactionsOutlet: ${error.stack}`);
+    logger.error(`Error in outlet ${outlet_id}, transaction_ref: ${currentTransactionRef}, createTransactionsOutlet: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
