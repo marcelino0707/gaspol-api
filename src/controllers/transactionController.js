@@ -515,6 +515,10 @@ exports.createTransactionsOutlet = async (req, res) => {
         updateCart.total = cart.total;
         updateCart.updated_at = cart.updated_at;
 
+        if (cart.is_canceled && cart.is_canceled == 1) {
+          updateCart.is_canceled = cart.is_canceled;
+        }
+
         if (cart.discount_id && cart.discount_id > 0) {
           updateCart.discount_id = cart.discount_id;
           updateTransactionData.discount_name = cart.discount_code;
@@ -678,6 +682,10 @@ exports.createTransactionsOutlet = async (req, res) => {
         if (cart.transaction_ref_split != null) {
           // const transactionSplitData = await Transaction.getDataByTransactionReference(cart.transaction_ref_split); Belom ke pake!
           newCart.transaction_ref_main_split = cart.transaction_ref_split;
+        }
+
+        if (cart.is_canceled && cart.is_canceled == 1) {
+          newCart.is_canceled = cart.is_canceled;
         }
 
         if (cart.discount_id && cart.discount_id > 0) {
