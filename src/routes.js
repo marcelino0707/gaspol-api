@@ -152,8 +152,6 @@ route.patch("/membership/:id", member.update);
 route.delete("/membership/:id", member.delete);
 
 route.post("/sync-transactions-outlet", transaction.createTransactionsOutlet);
-route.post("/sync-transactions-outlet-testing", transaction.createTransactionsOutletV2Testing); // Testing
-
 // Complaint
 route.get("/complaint", complaint.getComplaints);
 route.post("/complaint", complaint.create);

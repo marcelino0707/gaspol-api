@@ -264,7 +264,7 @@ const CartDetail = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "INSERT INTO cart_details (cart_id, ref_refund_detail_id, menu_id, menu_detail_id, serving_type_id, price, subtotal_price, total_price, qty, note_item, created_at, updated_at) VALUES ?",
+            "INSERT INTO cart_details (cart_id, ref_refund_detail_id, menu_id, menu_detail_id, serving_type_id, price, subtotal_price, total_price, qty, note_item, is_ordered, is_canceled, is_cancel_printed, cancel_reason, discount_id, discounted_price, created_at, updated_at) VALUES ?",
             [
               data.map((item) => [
                 item.cart_id,
@@ -277,6 +277,12 @@ const CartDetail = {
                 item.total_price,
                 item.qty,
                 item.note_item,
+                item.is_ordered,
+                item.is_canceled,
+                item.is_cancel_printed,
+                item.cancel_reason,
+                item.discount_id,
+                item.discounted_price,
                 item.created_at,
                 item.updated_at,
               ]),
