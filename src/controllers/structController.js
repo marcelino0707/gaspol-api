@@ -237,7 +237,7 @@ exports.getShiftStruct = async (req, res) => {
         );
         return !!associatedTransaction;
       })
-      .filter((cart) => cart.total_price > 0 && cart.is_canceled == 0);
+      .filter((cart) => cart.total_price > 0 && (cart.is_canceled == null || cart.is_canceled == 0));
 
     const cartDetailsPending = cartDetails.filter((cart) => {
       const associatedTransaction = transactions.find(
@@ -246,7 +246,7 @@ exports.getShiftStruct = async (req, res) => {
           transaction.invoice_number === null
       );
 
-      const isCanceled = cart.is_canceled == 0;
+      const isCanceled = cart.is_canceled == null || cart.is_canceled == 0;
 
       return !!associatedTransaction && isCanceled;
     });
@@ -685,7 +685,7 @@ exports.getLastShiftStruct = async (req, res) => {
           );
           return !!associatedTransaction;
         })
-        .filter((cart) => cart.total_price > 0 && cart.is_canceled == 0);
+        .filter((cart) => cart.total_price > 0 && (cart.is_canceled == null || cart.is_canceled == 0));
 
       const cartDetailsPending = cartDetails.filter((cart) => {
         const associatedTransaction = transactions.find(
@@ -694,7 +694,7 @@ exports.getLastShiftStruct = async (req, res) => {
             transaction.invoice_number === null
         );
 
-        const isCanceled = cart.is_canceled == 0;
+        const isCanceled = cart.is_canceled == null || cart.is_canceled == 0;
 
         return !!associatedTransaction && isCanceled;
       });
@@ -1138,7 +1138,7 @@ exports.getShift = async (req, res) => {
           );
           return !!associatedTransaction;
         })
-        .filter((cart) => cart.total_price > 0 && cart.is_canceled == 0);
+        .filter((cart) => cart.total_price > 0 && (cart.is_canceled == null || cart.is_canceled == 0));
 
       const cartDetailsPending = cartDetails.filter((cart) => {
         const associatedTransaction = transactions.find(
@@ -1147,7 +1147,7 @@ exports.getShift = async (req, res) => {
             transaction.invoice_number === null
         );
 
-        const isCanceled = cart.is_canceled == 0;
+        const isCanceled = cart.is_canceled == null || cart.is_canceled == 0;
 
         return !!associatedTransaction && isCanceled;
       });

@@ -48,7 +48,7 @@ const CartDetail = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT id AS cart_detail_id, subtotal_price FROM cart_details WHERE cart_id = ? AND is_canceled = 0 AND deleted_at IS NULL AND qty != 0 AND (discount_id != NULL || discount_id != 0)",
+            "SELECT id AS cart_detail_id, subtotal_price FROM cart_details WHERE cart_id = ? AND (is_canceled = 0 || is_canceled IS NULL) AND deleted_at IS NULL AND qty != 0 AND (discount_id != NULL || discount_id != 0)",
             cart_id,
             (error, results) => {
               disconnectDB(connection);
