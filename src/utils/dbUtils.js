@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true, // This option ensures that new queries will wait for a connection if there are no connections available in the pool.
-  connectionLimit: 200, // Adjust the connection limit as needed.
+  connectionLimit: 500, // Adjust the connection limit as needed.
   queueLimit: 0, // No limit for the number of queued queries.
 });
 
