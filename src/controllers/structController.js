@@ -10,6 +10,7 @@ const Outlet = require("../models/outlet");
 const Expenditure = require("../models/expenditure");
 const PaymentType = require("../models/payment_type");
 const ShiftReport = require("../models/shift_report");
+const logger = require('../utils/logger');
 const moment = require("moment-timezone");
 
 exports.getCustomerStruct = async (req, res) => {
@@ -632,6 +633,7 @@ exports.getShiftStruct = async (req, res) => {
       data: result,
     });
   } catch (error) {
+    logger.error(`Error in outlet ${outlet_id}, getShiftStruct: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while get the transaction",
     });
@@ -1083,6 +1085,7 @@ exports.getLastShiftStruct = async (req, res) => {
       });
     }
   } catch (error) {
+    logger.error(`Error in outlet ${outlet_id}, getLastShiftStruct: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while get the transaction",
     });
@@ -1534,6 +1537,7 @@ exports.getShift = async (req, res) => {
       });
     }
   } catch (error) {
+    logger.error(`Error in outlet ${outlet_id}, getShift: ${error.stack}`);
     return res.status(500).json({
       message: error.message || "Some error occurred while get the transaction",
     });
