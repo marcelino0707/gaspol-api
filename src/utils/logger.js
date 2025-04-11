@@ -1,8 +1,8 @@
 const winston = require('winston');
+const TelegramTransport = require('winston-telegram').Telegram;
 const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 const path = require('path');
-require('winston-telegram'); // Import the Telegram transport
 
 // Telegram configuration
 const telegramConfig = {
@@ -10,7 +10,7 @@ const telegramConfig = {
   chatIds: [1546898379, 5421340211]
 };
 
-// Pastikan folder logs ada
+// Ensure logs directory exists
 const logDirectory = path.join(__dirname, '../../logs');
 if (!fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory, { recursive: true });
@@ -20,7 +20,6 @@ if (!fs.existsSync(logDirectory)) {
 const fileLogFormat = winston.format.printf(({ timestamp, level, message, ...metadata }) => {
   let metaStr = '';
   if (Object.keys(metadata).length > 0) {
-    // Remove the error object from metadata to avoid circular references
     const { error, ...restMetadata } = metadata;
     metaStr = Object.keys(restMetadata).length > 0 ? 
       ` | ${JSON.stringify(restMetadata)}` : '';
@@ -29,13 +28,11 @@ const fileLogFormat = winston.format.printf(({ timestamp, level, message, ...met
   return `${timestamp} [${level.toUpperCase()}]: ${message}${metaStr}`;
 });
 
-// Create a formatter specifically for Telegram messages (more compact)
+// Create a formatter specifically for Telegram messages
 const telegramLogFormat = winston.format.printf(({ level, message, ...metadata }) => {
-  // Extract relevant information for a concise Telegram message
   const { outlet_id, cart_id, transaction_id, function: func, model, error } = metadata;
   
-  // Build a more readable message for Telegram
-  let telegramMsg = `🔴 *ERROR API AHONG KONTOL* 🔴\n\n`;
+  let telegramMsg = `🔴 *ERROR API* 🔴\n\n`;
   telegramMsg += `*Message:* ${message}\n`;
   
   if (func) telegramMsg += `*Function:* ${func}\n`;
@@ -44,7 +41,6 @@ const telegramLogFormat = winston.format.printf(({ level, message, ...metadata }
   if (cart_id) telegramMsg += `*Cart:* ${cart_id}\n`;
   if (transaction_id) telegramMsg += `*Transaction:* ${transaction_id}\n`;
   
-  // Add stack trace if available
   if (error && error.stack) {
     const shortStack = error.stack.split('\n').slice(0, 3).join('\n');
     telegramMsg += `\n*Stack:*\n\`\`\`\n${shortStack}\n\`\`\``;
@@ -53,9 +49,9 @@ const telegramLogFormat = winston.format.printf(({ level, message, ...metadata }
   return telegramMsg;
 });
 
-// Buat instance logger dasar tanpa transport Telegram dulu
-const baseLogger = winston.createLogger({
-  level: 'error', // Hanya mencatat error
+// Create base logger
+const logger = winston.createLogger({
+  level: 'error',
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true })
@@ -68,62 +64,43 @@ const baseLogger = winston.createLogger({
       level: 'error',
       zippedArchive: true,
       maxSize: '20m',
-      maxFiles: '7d', // Simpan log selama 7 hari
+      maxFiles: '7d',
       format: winston.format.combine(fileLogFormat)
     }),
     
-    // Console transport for development
+    // Console transport
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
       )
-    })
-  ]
-});
-
-// Buat instance logger dengan transport Telegram
-const telegramLogger = winston.createLogger({
-  level: 'error',
-  format: winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true })
-  ),
-  transports: [
-    // Telegram transport for primary chat ID
-    new winston.transports.Telegram({
-      token: telegramConfig.token,
-      chatId: telegramConfig.chatIds[0],
-      level: 'error',
-      formatMessage: () => {}, // We'll use our custom formatter
-      format: winston.format.combine(telegramLogFormat)
     }),
     
-    // Telegram transport for secondary chat ID
-    new winston.transports.Telegram({
-      token: telegramConfig.token,
-      chatId: telegramConfig.chatIds[1],
-      level: 'error',
-      formatMessage: () => {}, // We'll use our custom formatter
-      format: winston.format.combine(telegramLogFormat)
-    })
+    // Telegram transports for each chat ID
+    ...telegramConfig.chatIds.map(chatId => 
+      new TelegramTransport({
+        token: telegramConfig.token,
+        chatId: chatId,
+        level: 'error',
+        format: winston.format.combine(
+          winston.format.printf(info => {
+            return telegramLogFormat.transform(info);
+          })
+        ),
+        disableNotification: false,
+        parseMode: 'Markdown'
+      })
+    )
   ]
 });
 
-// Gabungkan logger dasar dengan logger Telegram
-const logger = baseLogger;
-
-// Override metode error agar juga mengirim ke Telegram
-const originalError = baseLogger.error.bind(baseLogger);
+// Enhanced error logging method
+const originalError = logger.error.bind(logger);
 logger.error = function(message, metadata = {}) {
-  // Log ke file dan console menggunakan logger dasar
   originalError(message, metadata);
-  
-  // Log ke Telegram menggunakan logger Telegram
-  telegramLogger.error(message, metadata);
 };
 
-// Add a helper to send critical errors with higher priority
+// Critical error method
 logger.critical = function(message, metadata) {
   this.error(message, { 
     ...metadata, 
