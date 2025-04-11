@@ -1,4 +1,6 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
+const logger = require("../utils/logger");
+
 const Transaction = {
   getAllByOutletID: (outlet_id) => {
     return new Promise((resolve, reject) => {
@@ -6,11 +8,19 @@ const Transaction = {
         .then((connection) => {
           connection.query(
             "SELECT transactions.id, transactions.receipt_number, transactions.updated_at, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN carts ON transactions.cart_id = carts.id WHERE transactions.outlet_id = " +
-              outlet_id +
-              " AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
+            outlet_id +
+            " AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in getAllByOutletID: ${error.message}`, {
+                  outlet_id,
+                  function: 'getAllByOutletID',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -18,7 +28,14 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in getAllByOutletID: ${error.message}`, {
+            outlet_id,
+            function: 'getAllByOutletID',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
   },
   getAllByIsSuccess: (outlet_id, date) => {
@@ -27,10 +44,10 @@ const Transaction = {
         .then((connection) => {
           connection.query(
             "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.invoice_due_date, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE transactions.outlet_id = " +
-              outlet_id +
-              " AND DATE(transactions.updated_at) = '" +
-              date +
-              "' AND transactions.invoice_due_date IS NOT NULL AND transactions.deleted_at IS NULL ORDER BY transactions.invoice_due_date DESC",
+            outlet_id +
+            " AND DATE(transactions.updated_at) = '" +
+            date +
+            "' AND transactions.invoice_due_date IS NOT NULL AND transactions.deleted_at IS NULL ORDER BY transactions.invoice_due_date DESC",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
@@ -114,6 +131,18 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in create transaction: ${error.message}`, {
+                  function: 'create',
+                  model: 'Transaction',
+                  data: JSON.stringify({
+                    outlet_id: transaction.outlet_id,
+                    cart_id: transaction.cart_id,
+                    customer_name: transaction.customer_name
+                  }),
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -121,7 +150,14 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in create transaction: ${error.message}`, {
+            function: 'create',
+            model: 'Transaction',
+            outlet_id: transaction.outlet_id || 'unknown'
+          });
+          reject(error);
+        });
     });
   },
   update: (id, transaction) => {
@@ -134,6 +170,15 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in update: ${error.message}`, {
+                  transaction_id: id,
+                  function: 'update',
+                  model: 'Transaction',
+                  data: JSON.stringify(transaction).substring(0, 200), // Limit log size
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -141,7 +186,14 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in update: ${error.message}`, {
+            transaction_id: id,
+            function: 'update',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
   },
   getDataByTransactionReference: (transaction_ref) => {
@@ -154,6 +206,14 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in getDataByTransactionReference: ${error.message}`, {
+                  transaction_ref: transaction_ref,
+                  function: 'getDataByTransactionReference',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results[0]);
@@ -161,9 +221,17 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in getDataByTransactionReference: ${error.message}`, {
+            transaction_ref: transaction_ref,
+            function: 'getDataByTransactionReference',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
   },
+
   getAllReport: (outlet_id, start_date, end_date, is_success, is_pending) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -193,6 +261,18 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in getAllReport: ${error.message}`, {
+                  outlet_id,
+                  start_date,
+                  end_date,
+                  is_success,
+                  is_pending,
+                  function: 'getAllReport',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -200,9 +280,19 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in getAllReport: ${error.message}`, {
+            outlet_id,
+            start_date,
+            end_date,
+            function: 'getAllReport',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
   },
+
   getByAllPaymentReport: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -215,6 +305,16 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in getByAllPaymentReport: ${error.message}`, {
+                  outlet_id,
+                  start_date,
+                  end_date,
+                  function: 'getByAllPaymentReport',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -222,9 +322,19 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in getByAllPaymentReport: ${error.message}`, {
+            outlet_id,
+            start_date,
+            end_date,
+            function: 'getByAllPaymentReport',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
-  },  
+  },
+
   haveSuccessTransactions: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -237,6 +347,16 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in haveSuccessTransactions: ${error.message}`, {
+                  outlet_id,
+                  start_date,
+                  end_date,
+                  function: 'haveSuccessTransactions',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -244,9 +364,19 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in haveSuccessTransactions: ${error.message}`, {
+            outlet_id,
+            start_date,
+            end_date,
+            function: 'haveSuccessTransactions',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
-  },  
+  },
+
   getShiftReport: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -259,6 +389,16 @@ const Transaction = {
             (error, results) => {
               disconnectDB(connection);
               if (error) {
+                logger.error(`Database error in getShiftReport: ${error.message}`, {
+                  outlet_id,
+                  start_date,
+                  end_date,
+                  function: 'getShiftReport',
+                  model: 'Transaction',
+                  sql: error.sql,
+                  sqlState: error.sqlState,
+                  sqlCode: error.code
+                });
                 reject(error);
               } else {
                 resolve(results);
@@ -266,7 +406,16 @@ const Transaction = {
             }
           );
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          logger.error(`Connection error in getShiftReport: ${error.message}`, {
+            outlet_id,
+            start_date,
+            end_date,
+            function: 'getShiftReport',
+            model: 'Transaction'
+          });
+          reject(error);
+        });
     });
   },
 };
