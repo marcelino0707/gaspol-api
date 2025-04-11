@@ -9,8 +9,16 @@ if (!fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory, { recursive: true });
 }
 
-const logFormat = winston.format.printf(({ timestamp, level, message, stack }) => {
-  return `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
+const logFormat = winston.format.printf(({ timestamp, level, message, ...metadata }) => {
+  let metaStr = '';
+  if (Object.keys(metadata).length > 0) {
+    // Remove the error object from metadata to avoid circular references
+    const { error, ...restMetadata } = metadata;
+    metaStr = Object.keys(restMetadata).length > 0 ? 
+      ` | ${JSON.stringify(restMetadata)}` : '';
+  }
+  
+  return `${timestamp} [${level.toUpperCase()}]: ${message}${metaStr}`;
 });
 
 const logger = winston.createLogger({
@@ -28,6 +36,13 @@ const logger = winston.createLogger({
       zippedArchive: true,
       maxSize: '20m',
       maxFiles: '7d' // Simpan log selama 7 hari
+    }),
+    // Optional: Add console logging for development
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
     })
   ]
 });
