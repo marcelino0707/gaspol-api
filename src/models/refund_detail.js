@@ -1,6 +1,22 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const RefundDetail = {
+  deleteRefundDetailsByRefundId: (refund_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("DELETE FROM refund_details WHERE refund_id = ?", refund_id, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getByRefundId: (refund_id) => {
     return new Promise((resolve, reject) => {
       connectDB()

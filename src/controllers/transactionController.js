@@ -630,6 +630,7 @@ exports.createTransactionsOutlet = async (req, res) => {
           }
 
           const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(transactionData.cart_id);
+          await RefundDetail.deleteRefundDetailsByRefundId(refundId);
           const newRefundDetails = cart.refund_details.map(item => ({
             refund_id: refundId,
             cart_detail_id: refCartDetail.find(refItem => refItem.ref_refund_detail_id == item.cart_detail_id)?.cart_detail_id,
