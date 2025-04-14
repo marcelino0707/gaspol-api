@@ -479,6 +479,7 @@ exports.createDiscountTransaction = async (req, res) => {
 exports.createTransactionsOutlet = async (req, res) => {
   const { outlet_id } = req.query;
   let currentTransactionRef = null;
+  let receiptNumbers = []; // Tambahkan array untuk menampung receipt numbers
 
   try {
     const { data } = req.body;
@@ -664,6 +665,9 @@ exports.createTransactionsOutlet = async (req, res) => {
         newTransaction.created_at = cart.created_at; // string
         newTransaction.updated_at = cart.updated_at; // string
 
+// Tambahkan receipt number ke array
+receiptNumbers.push(cart.receipt_number);
+
         // already paid transaction
         if (cart.invoice_number != null) {
           newTransaction.invoice_number = cart.invoice_number;
@@ -765,7 +769,15 @@ exports.createTransactionsOutlet = async (req, res) => {
           await RefundDetail.bulkCreate(newRefundDetails);  
         }
       }      
-    };
+    }
+    logger.syncSuccess({
+      outlet_id: outlet_id,
+      details: {
+        totalTransactions: data.length,
+        receiptNumbers: data.map(cart => cart.receipt_number),
+        transactions: data.map(cart => cart.transaction_ref)
+      }
+    });
 
     return res.status(201).json({
       message: "Transaksi outlet berhasil ditambahkan!",
@@ -778,4 +790,4 @@ exports.createTransactionsOutlet = async (req, res) => {
       code: 500
     })
   }
-}
+};
