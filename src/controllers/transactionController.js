@@ -72,7 +72,7 @@ exports.createTransaction = async (req, res) => {
 
   const transaction = {};
 
-  if(member_id) {
+  if (member_id) {
     transaction.member_id = member_id;
   }
 
@@ -106,7 +106,7 @@ exports.createTransaction = async (req, res) => {
 
       // add discount name for transaction
       if (cart.discount_id > 0) {
-        transaction.discount_name = cart.discount_code; 
+        transaction.discount_name = cart.discount_code;
       }
 
       transaction.customer_cash = customer_cash;
@@ -157,8 +157,8 @@ exports.createTransaction = async (req, res) => {
           discountNames.push(cartDetail.discount_code);
         }
         const transactionId = transaction_id
-        ? transaction_id
-        : existingTransaction.id;
+          ? transaction_id
+          : existingTransaction.id;
         if (discountNames.length > 0) {
           let discountNameString = discountNames.join(', ').replace(/,\s$/, '');
           await Transaction.update(transactionId, {
@@ -171,12 +171,12 @@ exports.createTransaction = async (req, res) => {
       canceledItems = await CartDetail.getCanceledByCartId(cartId);
       kitchenBarCartDetails = cartDetails;
       kitchenBarCanceledItems = canceledItems;
-      if(canceledItems.length > 0) {
+      if (canceledItems.length > 0) {
         const cartDetailIds = [
           ...new Set(canceledItems.map((cartDetail) => cartDetail.cart_detail_id)),
         ];
         await CartDetail.updateAllByCartDetailId(cartDetailIds, {
-          is_cancel_printed : 1
+          is_cancel_printed: 1
         });
       }
     }
@@ -223,7 +223,7 @@ exports.createTransaction = async (req, res) => {
       kitchenBarCanceledItems: kitchenBarCanceledItems,
     };
 
-    if(existingTransaction.member_name) {
+    if (existingTransaction.member_name) {
       result.member_name = existingTransaction.member_name;
       const memberPhoneNumber = existingTransaction.member_phone_number;
       result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
@@ -284,7 +284,7 @@ exports.getTransactionById = async (req, res) => {
     const transaction = await Transaction.getById(id);
     const cart = await Cart.getByCartId(transaction.cart_id);
     let cartDetails = [];
-    if(is_report == "true") {
+    if (is_report == "true") {
       cartDetails = await CartDetail.getReportByCartId(transaction.cart_id);
     } else {
       cartDetails = await CartDetail.getByCartId(transaction.cart_id, true);
@@ -296,7 +296,7 @@ exports.getTransactionById = async (req, res) => {
     }
     let canceledItems = [];
     const getCanceledItems = await CartDetail.getCanceledByCartIdStructChecker(cart.id);
-    if(getCanceledItems.length > 0) {
+    if (getCanceledItems.length > 0) {
       canceledItems = getCanceledItems;
     }
 
@@ -318,7 +318,7 @@ exports.getTransactionById = async (req, res) => {
       canceled_items: canceledItems,
     };
 
-    if(transaction.member_name) {
+    if (transaction.member_name) {
       result.member_name = transaction.member_name;
       const memberPhoneNumber = transaction.member_phone_number;
       result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
@@ -360,7 +360,7 @@ exports.getTransactionById = async (req, res) => {
     } else {
       result.status = "Pending";
     }
-    
+
     if (refund && refund.is_refund_all == 1) {
       result.status = "Refunded";
     } else if (cart.is_canceled == 1) {
@@ -377,7 +377,7 @@ exports.getTransactionById = async (req, res) => {
       const isActivedCart = await Cart.getActiveCartId(cart.outlet_id);
       if (isActivedCart && isActivedCart.id != transaction.cart_id) {
         const isSavedTransaction = await Transaction.getByCartId(isActivedCart.id)
-        if(isSavedTransaction == undefined || isSavedTransaction == null) {
+        if (isSavedTransaction == undefined || isSavedTransaction == null) {
           await Cart.update(isActivedCart.id, {
             is_queuing: true,
           })
@@ -418,7 +418,7 @@ exports.createDiscountTransaction = async (req, res) => {
 
     // delete all discount from discounted cart detail
     const discountedCartDetails = await CartDetail.getDiscountedItemsByCartId(cart_id);
-    if(discountedCartDetails.length != 0) {
+    if (discountedCartDetails.length != 0) {
       for (const cartDetail of discountedCartDetails) {
         await CartDetail.update(cartDetail.cart_detail_id, {
           discount_id: 0,
@@ -488,14 +488,14 @@ exports.createTransactionsOutlet = async (req, res) => {
       currentTransactionRef = cart.transaction_ref;
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
-      if(transactionData && cart.is_edited_sync == 0 || transactionData && cart.is_edited_sync == 1) {
+      if (transactionData && cart.is_edited_sync == 0 || transactionData && cart.is_edited_sync == 1) {
         // Edit Transaction
         let updateTransactionData = {};
         updateTransactionData.updated_at = cart.updated_at; // string
         updateTransactionData.customer_name = cart.customer_name;
         updateTransactionData.customer_seat = cart.customer_seat;
 
-         // already paid transaction
+        // already paid transaction
         if (cart.invoice_number != null) {
           updateTransactionData.invoice_number = cart.invoice_number;
           updateTransactionData.invoice_due_date = cart.invoice_due_date; // string
@@ -555,10 +555,10 @@ exports.createTransactionsOutlet = async (req, res) => {
             await CartDetail.create({
               cart_id: transactionData.cart_id,
               ref_refund_detail_id: cartDetail.cart_detail_id,
-              menu_id : cartDetail.menu_id,
-              menu_detail_id : cartDetail.menu_detail_id,
+              menu_id: cartDetail.menu_id,
+              menu_detail_id: cartDetail.menu_detail_id,
               serving_type_id: cartDetail.serving_type_id,
-              price : cartDetail.price,
+              price: cartDetail.price,
               subtotal_price: cartDetail.subtotal_price,
               total_price: cartDetail.total_price,
               qty: cartDetail.qty,
@@ -580,23 +580,22 @@ exports.createTransactionsOutlet = async (req, res) => {
           const haveRefund = await Refund.getExistRefundByTransactionId(transactionData.transaction_id);
 
           let refundId = 0;
-          if (haveRefund && haveRefund.id != 0)
-          {
+          if (haveRefund && haveRefund.id != 0) {
             refundId = haveRefund.id;
             // Edit Refund
             let editRefund = {
               updated_at: cart.updated_at,
             };
-    
-            if(cart.is_refund_all == 1 ) {
+
+            if (cart.is_refund_all == 1) {
               editRefund.is_refund_type_all = 1;
               editRefund.payment_type_id_all = cart.refund_payment_id_all;
               editRefund.refund_reason = cart.refund_reason_all;
               editRefund.total_refund = cart.total_refund;
               editRefund.updated_at = cart.refund_created_at_all;
             };
-    
-            if(cart.total == 0 && cart.total_refund != 0) {
+
+            if (cart.total == 0 && cart.total_refund != 0) {
               editRefund.is_refund_all = 1;
             };
 
@@ -611,8 +610,8 @@ exports.createTransactionsOutlet = async (req, res) => {
               created_at: cart.created_at, // string
               updated_at: cart.updated_at, // string
             }
-    
-            if(cart.is_refund_all == 1 ) {
+
+            if (cart.is_refund_all == 1) {
               newRefund.is_refund_type_all = 1;
               newRefund.payment_type_id_all = cart.refund_payment_id_all;
               newRefund.refund_reason = cart.refund_reason_all;
@@ -620,8 +619,8 @@ exports.createTransactionsOutlet = async (req, res) => {
               newRefund.created_at = cart.refund_created_at_all;
               newRefund.updated_at = cart.refund_created_at_all;
             }
-    
-            if(cart.total == 0 && cart.total_refund != 0) {
+
+            if (cart.total == 0 && cart.total_refund != 0) {
               newRefund.is_refund_all = 1;
             }
 
@@ -642,8 +641,8 @@ exports.createTransactionsOutlet = async (req, res) => {
             created_at: item.created_at,
             updated_at: item.updated_at,
           }));
-  
-          await RefundDetail.bulkCreate(newRefundDetails);  
+
+          await RefundDetail.bulkCreate(newRefundDetails);
         }
       } else {
         // Add new transaction (is_edited_sync == 0)
@@ -665,8 +664,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         newTransaction.created_at = cart.created_at; // string
         newTransaction.updated_at = cart.updated_at; // string
 
-// Tambahkan receipt number ke array
-receiptNumbers.push(cart.receipt_number);
+        // Tambahkan receipt number ke array
+        receiptNumbers.push(cart.receipt_number);
 
         // already paid transaction
         if (cart.invoice_number != null) {
@@ -704,14 +703,14 @@ receiptNumbers.push(cart.receipt_number);
 
         const createdTransaction = await Transaction.create(newTransaction);
         const transactionId = createdTransaction.insertId;
-  
+
         const newCartDetails = cart.cart_details.map(item => ({
           cart_id: cartId,
           ref_refund_detail_id: item.cart_detail_id,
-          menu_id : item.menu_id,
-          menu_detail_id : item.menu_detail_id,
+          menu_id: item.menu_id,
+          menu_detail_id: item.menu_detail_id,
           serving_type_id: item.serving_type_id,
-          price : item.price,
+          price: item.price,
           subtotal_price: item.subtotal_price,
           total_price: item.total_price,
           qty: item.qty,
@@ -725,10 +724,10 @@ receiptNumbers.push(cart.receipt_number);
           created_at: item.created_at,
           updated_at: item.updated_at,
         }));
-        
+
         await CartDetail.bulkCreate(newCartDetails);
-  
-        if(cart.refund_details && cart.refund_details.length > 0) {
+
+        if (cart.refund_details && cart.refund_details.length > 0) {
           // Add Refund
           // Not Clean Code
           let newRefund = {
@@ -738,8 +737,8 @@ receiptNumbers.push(cart.receipt_number);
             created_at: cart.created_at, // string
             updated_at: cart.updated_at, // string
           }
-  
-          if(cart.is_refund_all == 1 ) {
+
+          if (cart.is_refund_all == 1) {
             newRefund.is_refund_type_all = 1;
             newRefund.payment_type_id_all = cart.refund_payment_id_all;
             newRefund.refund_reason = cart.refund_reason_all;
@@ -747,13 +746,13 @@ receiptNumbers.push(cart.receipt_number);
             newRefund.created_at = cart.refund_created_at_all;
             newRefund.updated_at = cart.refund_created_at_all;
           }
-  
-          if(cart.total == 0 && cart.total_refund != 0) {
+
+          if (cart.total == 0 && cart.total_refund != 0) {
             newRefund.is_refund_all = 1;
           }
-  
+
           const createdRefund = await Refund.create(newRefund);
-  
+
           const refCartDetail = await CartDetail.getRefRefundDetailsByCartId(cartId);
           const newRefundDetails = cart.refund_details.map(item => ({
             refund_id: createdRefund.insertId,
@@ -765,41 +764,41 @@ receiptNumbers.push(cart.receipt_number);
             created_at: item.created_at,
             updated_at: item.updated_at,
           }));
-  
-          await RefundDetail.bulkCreate(newRefundDetails);  
+
+          await RefundDetail.bulkCreate(newRefundDetails);
         }
-      }      
+      }
     }
-    try {
+   /*  try {
       logger.syncSuccess({
-          outlet_id: outlet_id,
-          details: {
-              totalTransactions: data.length,
-              // Batasi jumlah receipt numbers yang dilog
-              receiptNumbers: data.length > 5 
-                  ? [...data.slice(0, 5).map(cart => cart.receipt_number), '...dan lainnya'] 
-                  : data.map(cart => cart.receipt_number),
-              // Jangan kirim semua transaction references
-              transactions: [`Total ${data.length} transaksi`],
-              additionalInfo: {
-                  serverTimestamp: new Date().toISOString()
-              }
+        outlet_id: outlet_id,
+        details: {
+          totalTransactions: data.length,
+          // Batasi jumlah receipt numbers yang dilog
+          receiptNumbers: data.length > 5
+            ? [...data.slice(0, 5).map(cart => cart.receipt_number), '...dan lainnya']
+            : data.map(cart => cart.receipt_number),
+          // Jangan kirim semua transaction references
+          transactions: [`Total ${data.length} transaksi`],
+          additionalInfo: {
+            serverTimestamp: new Date().toISOString()
           }
+        }
       });
-  } catch (logError) {
+    } catch (logError) {
       // Tangkap error logging tapi jangan gagalkan transaksi
       console.error('Gagal mencatat log sukses:', logError);
-  }
+    } */
 
-  return res.status(201).json({
+    return res.status(201).json({
       message: "Transaksi outlet berhasil ditambahkan!",
       code: 201,
-  });
-} catch (error) {
-  logger.error(`Error in outlet ${outlet_id}, transaction_ref: ${currentTransactionRef}, createTransactionsOutlet: ${error.stack}`);
-  return res.status(500).json({
+    });
+  } catch (error) {
+    logger.error(`Error in outlet ${outlet_id}, transaction_ref: ${currentTransactionRef}, createTransactionsOutlet: ${error.stack}`);
+    return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
-  });
-}
+    });
+  }
 };
