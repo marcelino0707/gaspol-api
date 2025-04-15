@@ -770,27 +770,36 @@ receiptNumbers.push(cart.receipt_number);
         }
       }      
     }
-    logger.syncSuccess({
-      outlet_id: outlet_id,
-      details: {
-        totalTransactions: data.length,
-        receiptNumbers: data.map(cart => cart.receipt_number),
-        transactions: data.map(cart => cart.transaction_ref),
-        additionalInfo: {
-          serverTimestamp: new Date().toISOString()
-        }
-      }
-    });
+    try {
+      logger.syncSuccess({
+          outlet_id: outlet_id,
+          details: {
+              totalTransactions: data.length,
+              // Batasi jumlah receipt numbers yang dilog
+              receiptNumbers: data.length > 5 
+                  ? [...data.slice(0, 5).map(cart => cart.receipt_number), '...dan lainnya'] 
+                  : data.map(cart => cart.receipt_number),
+              // Jangan kirim semua transaction references
+              transactions: [`Total ${data.length} transaksi`],
+              additionalInfo: {
+                  serverTimestamp: new Date().toISOString()
+              }
+          }
+      });
+  } catch (logError) {
+      // Tangkap error logging tapi jangan gagalkan transaksi
+      console.error('Gagal mencatat log sukses:', logError);
+  }
 
-    return res.status(201).json({
+  return res.status(201).json({
       message: "Transaksi outlet berhasil ditambahkan!",
       code: 201,
-    });
-  } catch (error) {
-    logger.error(`Error in outlet ${outlet_id}, transaction_ref: ${currentTransactionRef}, createTransactionsOutlet: ${error.stack}`);
-    return res.status(500).json({
+  });
+} catch (error) {
+  logger.error(`Error in outlet ${outlet_id}, transaction_ref: ${currentTransactionRef}, createTransactionsOutlet: ${error.stack}`);
+  return res.status(500).json({
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
-    })
-  }
+  });
+}
 };
