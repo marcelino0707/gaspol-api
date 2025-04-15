@@ -76,19 +76,16 @@ class TelegramTransport extends winston.Transport {
     // Lanjutkan dengan format pesan sukses
     let formattedMessage = `✅ *SYNC SUCCESS ALERT AHONG PANTEQ* ✅\n\n`;
 
-    const {
-      timestamp,
-      message,
-      metadata = {},
-    } = info;
+  const {
+    timestamp,
+    message,
+    metadata = {},
+  } = info;
 
-    const hostname = os.hostname();
+  formattedMessage += `*Timestamp:* ${timestamp}\n`;
 
-    formattedMessage += `*Timestamp:* ${timestamp}\n`;
-    formattedMessage += `*Hostname:* ${hostname}\n`;
-
-    if (metadata.service) formattedMessage += `*Service:* ${metadata.service}\n`;
-    if (outlet_id) formattedMessage += `*Outlet ID:* ${outlet_id}\n`;
+  if (metadata.service) formattedMessage += `*Service:* ${metadata.service}\n`;
+  if (outlet_id) formattedMessage += `*Outlet ID:* ${outlet_id}\n`;
 
     formattedMessage += `*Message:* ${message}\n`;
 
@@ -167,26 +164,28 @@ const logger = winston.createLogger({
       )
     }),
     // Daily rotating file for info logs
-    new DailyRotateFile({
-      filename: path.join(logDirectory, 'sync-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      level: 'info',
-      zippedArchive: true,
-      maxSize: '20m',
-      maxFiles: '7d',
-      format: winston.format.combine(
-        winston.format.printf(({ timestamp, level, message, service, outlet_id, transaction_ref }) => {
-          return JSON.stringify({
-            timestamp,
-            level,
-            message,
-            service,
-            outlet_id,
-            transaction_ref
-          });
-        })
-      )
-    }),
+// Daily rotating file for info logs
+new DailyRotateFile({
+  filename: path.join(logDirectory, 'sync-%DATE%.log'),
+  datePattern: 'YYYY-MM-DD',
+  level: 'info',
+  zippedArchive: true,
+  maxSize: '20m',
+  maxFiles: '7d',
+  format: winston.format.combine(
+    winston.format.printf(({ timestamp, level, message, service, outlet_id, transaction_ref, details }) => {
+      return JSON.stringify({
+        timestamp,
+        level,
+        message,
+        service,
+        outlet_id,
+        transaction_ref,
+        details // Tambahkan details ke log file
+      });
+    })
+  )
+}),
     // Console transport for development
     new winston.transports.Console({
       format: winston.format.combine(
@@ -237,7 +236,7 @@ logger.syncSuccess = (context = {}) => {
     details: {
       totalTransactions: details.totalTransactions || 0,
       receiptNumbers: details.receiptNumbers || [],
-      transactions: details.transactions || [] // Tambahkan ini jika ada
+      transactions: details.transactions || []
     }
   });
 };

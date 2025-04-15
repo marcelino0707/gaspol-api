@@ -775,7 +775,10 @@ receiptNumbers.push(cart.receipt_number);
       details: {
         totalTransactions: data.length,
         receiptNumbers: data.map(cart => cart.receipt_number),
-        transactions: data.map(cart => cart.transaction_ref)
+        transactions: data.map(cart => cart.transaction_ref),
+        additionalInfo: {
+          serverTimestamp: new Date().toISOString()
+        }
       }
     });
 
