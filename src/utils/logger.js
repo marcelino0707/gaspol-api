@@ -258,7 +258,7 @@ logger.syncSuccess = (context = {}) => {
     };
 
     // PERUBAHAN: Hanya kirim notifikasi Telegram untuk outlet 1 dan 4
-    const enabledOutlets = ['1', '4'];
+    const enabledOutlets = ['1', '2','3','4','5','6','7','8'];
     if (!enabledOutlets.includes(outlet_id)) {
       // Hanya log ke file tanpa Telegram
       const fileOnlyLogger = winston.createLogger({
