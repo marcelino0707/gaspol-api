@@ -485,6 +485,11 @@ exports.createTransactionsOutlet = async (req, res) => {
     const { data } = req.body;
 
     for (const cart of data) {
+      // Skip transaksi jika created_at null
+      if (!cart.created_at) {
+        logger.warn(`Skipping transaction with null created_at: ${cart.transaction_ref}`);
+        continue;
+      }
       currentTransactionRef = cart.transaction_ref;
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
@@ -646,6 +651,11 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
       } else {
         // Add new transaction (is_edited_sync == 0)
+        // Tambahkan pemeriksaan created_at di sini
+        if (!cart.created_at) {
+          logger.warn(`Skipping new transaction with null created_at: ${cart.transaction_ref}`);
+          continue;
+        }/*  */
         // initialize the cart object
         let newCart = {};
         newCart.outlet_id = outlet_id;
@@ -769,26 +779,26 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
       }
     }
-   /*  try {
-      logger.syncSuccess({
-        outlet_id: outlet_id,
-        details: {
-          totalTransactions: data.length,
-          // Batasi jumlah receipt numbers yang dilog
-          receiptNumbers: data.length > 5
-            ? [...data.slice(0, 5).map(cart => cart.receipt_number), '...dan lainnya']
-            : data.map(cart => cart.receipt_number),
-          // Jangan kirim semua transaction references
-          transactions: [`Total ${data.length} transaksi`],
-          additionalInfo: {
-            serverTimestamp: new Date().toISOString()
-          }
-        }
-      });
-    } catch (logError) {
-      // Tangkap error logging tapi jangan gagalkan transaksi
-      console.error('Gagal mencatat log sukses:', logError);
-    } */
+    /*  try {
+       logger.syncSuccess({
+         outlet_id: outlet_id,
+         details: {
+           totalTransactions: data.length,
+           // Batasi jumlah receipt numbers yang dilog
+           receiptNumbers: data.length > 5
+             ? [...data.slice(0, 5).map(cart => cart.receipt_number), '...dan lainnya']
+             : data.map(cart => cart.receipt_number),
+           // Jangan kirim semua transaction references
+           transactions: [`Total ${data.length} transaksi`],
+           additionalInfo: {
+             serverTimestamp: new Date().toISOString()
+           }
+         }
+       });
+     } catch (logError) {
+       // Tangkap error logging tapi jangan gagalkan transaksi
+       console.error('Gagal mencatat log sukses:', logError);
+     } */
 
     return res.status(201).json({
       message: "Transaksi outlet berhasil ditambahkan!",
