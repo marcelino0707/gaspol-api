@@ -485,10 +485,11 @@ exports.createTransactionsOutlet = async (req, res) => {
     const { data } = req.body;
 
     for (const cart of data) {
-      // Skip transaksi jika created_at null
+      // Jika created_at null, isi dengan timestamp saat ini
       if (!cart.created_at) {
-        logger.warn(`Skipping transaction with null created_at: ${cart.transaction_ref}`);
-        continue;
+        cart.created_at = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
+        cart.updated_at = cart.created_at;
+        logger.warn(`Filling null created_at with current timestamp for transaction: ${cart.transaction_ref}`);
       }
       currentTransactionRef = cart.transaction_ref;
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
@@ -651,11 +652,12 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
       } else {
         // Add new transaction (is_edited_sync == 0)
-        // Tambahkan pemeriksaan created_at di sini
-        if (!cart.created_at) {
-          logger.warn(`Skipping new transaction with null created_at: ${cart.transaction_ref}`);
-          continue;
-        }/*  */
+      // Jika created_at null, isi dengan timestamp saat ini
+      if (!cart.created_at) {
+        cart.created_at = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
+        cart.updated_at = cart.created_at;
+        logger.warn(`Filling null created_at with current timestamp for transaction: ${cart.transaction_ref}`);
+      }
         // initialize the cart object
         let newCart = {};
         newCart.outlet_id = outlet_id;
