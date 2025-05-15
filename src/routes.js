@@ -49,6 +49,7 @@ route.delete("/serving-type/:id", servingType.delete); // CMS
 
 // Payment Type
 route.get("/payment-type", paymentType.getPaymentType); // Kasir 
+route.put("/update-payment-order", paymentType.updatePaymentOrder); // CMS
 route.get("/payment-management", paymentType.getPaymentTypesCMS); // CMS
 route.post("/payment-management", paymentType.create); // CMS
 route.get("/payment-management/:id", paymentType.getPaymentTypesById); // CMS

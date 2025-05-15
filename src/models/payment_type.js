@@ -5,7 +5,11 @@ const PaymentType = {
   getAll: (outletId) => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id, payment_categories.name AS payment_category_name FROM payment_types JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE payment_types.is_active = 1 AND payment_types.deleted_at IS NULL", outletId, (error, results) => {
+        connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id, payment_categories.name AS payment_category_name, payment_types.order " + // Add 'order' to SELECT clause
+        "FROM payment_types " +
+        "JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id " +
+        "WHERE payment_types.is_active = 1 AND payment_types.deleted_at IS NULL " + 
+        "ORDER BY payment_types.order ASC", outletId, (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);

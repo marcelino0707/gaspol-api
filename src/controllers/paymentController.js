@@ -101,6 +101,29 @@ exports.update = async (req, res) => {
   }
 };
 
+//update urutan payment type
+exports.updatePaymentOrder = async (req, res) => {
+  const { paymentTypesOrder } = req.body; // this should be the array of payment types with their updated order
+
+  try {
+    // Update the order of each payment type
+    for (const [index, paymentType] of paymentTypesOrder.entries()) {
+      const updatedPayment = {
+        order: index + 1, // 1-based index for order
+      };
+      await PaymentType.update(paymentType.id, updatedPayment);
+    }
+
+    return res.status(200).json({
+      message: "Payment types order updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to update payment types order",
+    });
+  }
+};
+
 exports.delete = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
