@@ -101,7 +101,6 @@ exports.update = async (req, res) => {
   }
 };
 
-//update urutan payment type
 exports.updatePaymentOrder = async (req, res) => {
   const { paymentTypesOrder } = req.body; // this should be the array of payment types with their updated order
 
@@ -123,6 +122,7 @@ exports.updatePaymentOrder = async (req, res) => {
     });
   }
 };
+
 
 exports.delete = async (req, res) => {
   const thisTimeNow = moment();
