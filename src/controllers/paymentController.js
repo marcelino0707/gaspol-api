@@ -5,8 +5,7 @@ const moment = require("moment-timezone");
 // for kasir
 exports.getPaymentType = async (req, res) => {
   try {
-    const outlet_id = req.params.id;
-    const paymentTypes = await PaymentType.getAll(outlet_id);
+    const paymentTypes = await PaymentType.getAll();
 
     return res.status(200).json({
       data: paymentTypes,
@@ -21,9 +20,8 @@ exports.getPaymentType = async (req, res) => {
 // cms
 exports.getPaymentTypesCMS = async (req, res) => {
   try {
-    const { outlet_id } = req.query;
-    const paymentTypes = await PaymentType.getAllCMS(outlet_id);
-    const paymentCategories = await PaymentCategory.getAll(outlet_id);
+    const paymentTypes = await PaymentType.getAllCMS();
+    const paymentCategories = await PaymentCategory.getAll();
     const result = {
       payment_type: paymentTypes,
       payment_categories: paymentCategories,
@@ -105,13 +103,7 @@ exports.updatePaymentOrder = async (req, res) => {
   const { paymentTypesOrder } = req.body; // this should be the array of payment types with their updated order
 
   try {
-    // Update the order of each payment type
-    for (const [index, paymentType] of paymentTypesOrder.entries()) {
-      const updatedPayment = {
-        order: index + 1, // 1-based index for order
-      };
-      await PaymentType.update(paymentType.id, updatedPayment);
-    }
+    await PaymentType.bulkUpdateOrder(paymentTypesOrder);
 
     return res.status(200).json({
       message: "Payment types order updated successfully",

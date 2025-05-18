@@ -2,14 +2,14 @@ const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const PaymentType = {
   // kasir
-  getAll: (outletId) => {
+  getAll: () => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
         connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id, payment_categories.name AS payment_category_name, payment_types.order " + // Add 'order' to SELECT clause
         "FROM payment_types " +
         "JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id " +
-        "WHERE payment_types.is_active = 1 AND payment_types.deleted_at IS NULL " + 
-        "ORDER BY payment_types.order ASC", outletId, (error, results) => {
+        "WHERE payment_types.outlet_id = 1 AND payment_types.is_active = 1 AND payment_types.deleted_at IS NULL " + 
+        "ORDER BY payment_types.order ASC", (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);
@@ -20,11 +20,11 @@ const PaymentType = {
       });
     });
   },
-  getAllCMS: (outletId) => {
+  getAllCMS: () => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
         // connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id AS payment_category_id, payment_categories.name AS payment_category_name, payment_types.is_active, payment_types.order FROM payment_types JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE payment_types.outlet_id = ? AND payment_types.deleted_at IS NULL", outletId, (error, results) => {
-        connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id AS payment_category_id, payment_categories.name AS payment_category_name, payment_types.is_active, payment_types.order FROM payment_types JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE payment_types.outlet_id = ? AND payment_types.deleted_at IS NULL ORDER BY payment_types.order ASC", outletId, (error, results) => {
+        connection.query("SELECT payment_types.id, payment_types.name, payment_types.payment_category_id AS payment_category_id, payment_categories.name AS payment_category_name, payment_types.is_active, payment_types.order FROM payment_types JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE payment_types.outlet_id = 1 AND payment_types.deleted_at IS NULL ORDER BY payment_types.order ASC", (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);
@@ -117,6 +117,37 @@ const PaymentType = {
               }
             }
           );
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  bulkUpdateOrder: (paymentTypesOrder) => {
+    return new Promise((resolve, reject) => {
+      if (!paymentTypesOrder.length) return resolve();
+
+      const ids = paymentTypesOrder.map((pt) => pt.id);
+      const caseStatements = paymentTypesOrder
+        .map((pt) => `WHEN ${pt.id} THEN ${pt.order}`)
+        .join(" ");
+
+      const query = `
+        UPDATE payment_types
+        SET \`order\` = CASE id
+          ${caseStatements}
+        END
+        WHERE id IN (${ids.join(",")})
+      `;
+
+      connectDB()
+        .then((connection) => {
+          connection.query(query, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
         })
         .catch((error) => reject(error));
     });

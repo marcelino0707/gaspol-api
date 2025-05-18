@@ -1,10 +1,10 @@
 const { connectDB, disconnectDB } = require("../utils/dbUtils");
 
 const PaymentCategory = {
-  getAll: (outletId) => {
+  getAll: () => {
     return new Promise((resolve, reject) => {
       connectDB().then((connection) => {
-        connection.query("SELECT id, name, outlet_id FROM payment_categories WHERE outlet_id = ? AND deleted_at IS NULL", outletId, (error, results) => {
+        connection.query("SELECT id, name, outlet_id FROM payment_categories WHERE outlet_id = 1 AND deleted_at IS NULL", (error, results) => {
           disconnectDB(connection);
           if (error) {
             reject(error);
