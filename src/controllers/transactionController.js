@@ -480,6 +480,7 @@ exports.createTransactionsOutlet = async (req, res) => {
   const { outlet_id } = req.query;
   let currentTransactionRef = null;
   let receiptNumbers = []; // Tambahkan array untuk menampung receipt numbers
+  const thisTimeNow = moment();
 
   try {
     const { data } = req.body;
@@ -491,6 +492,16 @@ exports.createTransactionsOutlet = async (req, res) => {
         cart.updated_at = cart.created_at;
         logger.warn(`Filling null created_at with current timestamp for transaction: ${cart.transaction_ref}`);
       }
+
+      // Jika transaction_ref null, buat dengan format [outletid]-[YYYYMMDD-hhmmss]-[customername]
+      if (!cart.transaction_ref) {
+        const currentOutletId = outlet_id || "1";
+        const timeFormat = cart.created_at || thisTimeNow.tz("Asia/Jakarta").format("YYYYMMDD-HHmmss");
+        const customerName = cart.customer_name || "Noname";
+        cart.transaction_ref = `${currentOutletId}-${timeFormat}-${customerName}`;
+        logger.warn(`Generated transaction_ref for null value: ${cart.transaction_ref}`);
+      }
+
       currentTransactionRef = cart.transaction_ref;
       const transactionData = await Transaction.getDataByTransactionReference(cart.transaction_ref);
 
@@ -652,12 +663,13 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
       } else {
         // Add new transaction (is_edited_sync == 0)
-      // Jika created_at null, isi dengan timestamp saat ini
-      if (!cart.created_at) {
-        cart.created_at = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
-        cart.updated_at = cart.created_at;
-        logger.warn(`Filling null created_at with current timestamp for transaction: ${cart.transaction_ref}`);
-      }
+        // Jika created_at null, isi dengan timestamp saat ini
+        if (!cart.created_at) {
+          cart.created_at = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
+          cart.updated_at = cart.created_at;
+          logger.warn(`Filling null created_at with current timestamp for transaction: ${cart.transaction_ref}`);
+        }
+
         // initialize the cart object
         let newCart = {};
         newCart.outlet_id = outlet_id;
