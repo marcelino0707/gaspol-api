@@ -122,7 +122,7 @@ exports.createTransaction = async (req, res) => {
     let existingTransaction = await Transaction.getByCartId(cart_id);
     if (!transaction_id && !existingTransaction) {
       transaction.receipt_number =
-        "AT-" +
+        "DT-" +
         customer_name +
         "-" +
         customer_seat +
@@ -484,6 +484,8 @@ exports.createTransactionsOutlet = async (req, res) => {
 
   try {
     const { data } = req.body;
+
+    await Transaction.setTransactionIsolationLevel("READ UNCOMMITTED");
 
     for (const cart of data) {
 

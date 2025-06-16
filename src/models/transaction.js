@@ -269,6 +269,22 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  setTransactionIsolationLevel(level) {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then(async (connection) => {
+          // Menjalankan query untuk mengatur tingkat isolasi
+          connection.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${level}`, (error) => {
+            disconnectDB(connection); // Pastikan koneksi dilepaskan setelah query
+            if (error) {
+              return reject(error);
+            }
+            resolve(); // Berhasil
+          });
+        })
+        .catch((error) => reject(error)); // Menangkap kesalahan dari koneksi
+    });
+  }
 };
 
 module.exports = Transaction;
