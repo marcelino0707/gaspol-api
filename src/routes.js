@@ -81,6 +81,7 @@ route.get("/struct-customer-transaction/:id", struct.getCustomerStruct);
 route.get("/struct-kitchen/:id", struct.getKitchenStruct);
 route.get("/struct-shift", struct.getLastShiftStruct);
 route.post("/struct-shift", struct.getShiftStruct);
+route.post("/struct-shift-sync", struct.getSyncStructShift);
 route.get("/shift", struct.getShift);
 
 // Report 
@@ -126,6 +127,7 @@ route.patch("/custom-menu-price/:id", customPrice.updateCustomizePrice);
 
 // Expenditure
 route.post("/expenditure", expenditure.createExpense);
+route.post("/expenditure-sync", expenditure.createSyncExpense);
 
 // Split Cart
 route.post("/split-cart", cart.splitCart);
@@ -150,6 +152,7 @@ route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
 route.get("/membership", member.getMembers);
 route.post("/membership", member.create);
 route.patch("/membership/:id", member.update);
+route.patch("/membership-point/:id", member.updatePoint);
 route.delete("/membership/:id", member.delete);
 
 route.post("/sync-transactions-outlet", transaction.createTransactionsOutlet);

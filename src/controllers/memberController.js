@@ -42,7 +42,62 @@ exports.create = async (req, res) => {
         });
     }
 };
+exports.updatePoint = async (req, res) => {
+    try {
+        const memberId = req.params.id; // Member ID from the route parameter
+        const { points, updated_at } = req.body;  // Expecting points and updated_at in the request body
 
+        // Validate the input data
+        if (points == null || updated_at == null) {
+            return res.status(400).json({
+                code: 400,
+                message: "Invalid input. Please provide both points and updated_at."
+            });
+        }
+
+        // Get current member data from the database
+        const member = await Member.getById(memberId);
+        
+        if (!member) {
+            return res.status(404).json({
+                code: 404,
+                message: "Member not found."
+            });
+        }
+
+        // Check if the update_at from the request is more recent than the one in the database
+        const currentUpdateAt = moment(member.updated_at);
+        const newUpdateAt = moment(updated_at);
+
+        if (newUpdateAt.isAfter(currentUpdateAt)) {
+            // Prepare the update object for points
+            const updatePoints = {
+                points: points,
+                updated_at: newUpdateAt.toDate(), // Set to new updated_at
+            };
+
+            // Update points in the database
+            await Member.update(memberId, updatePoints);
+
+            return res.status(200).json({
+                code: 200,
+                message: "Points updated successfully!",
+            });
+        } else {
+            // If the new updated_at is not more recent
+            return res.status(400).json({
+                code: 400,
+                message: "The provided updated_at is not more recent than the current record."
+            });
+        }
+    } catch (error) {
+        console.error(`Error updating points for member ${req.params.id}: ${error.message}`); // Logging with memberId from req.params.id
+        return res.status(500).json({
+            code: 500,
+            message: error.message || "Failed to update points.",
+        });
+    }
+};
 exports.update = async (req, res) => {
     try {
         const thisTimeNow = moment();

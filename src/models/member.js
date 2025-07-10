@@ -17,6 +17,7 @@ const Member = {
         .catch((error) => reject(error));
     });
   },
+
   create: (member) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -33,6 +34,7 @@ const Member = {
         .catch((error) => reject(error));
     });
   },
+
   update: (id, member) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -43,6 +45,23 @@ const Member = {
               reject(error);
             } else {
               resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+
+  getById: (id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query("SELECT * FROM members WHERE id = ? AND deleted_at IS NULL", [id], (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results[0] || null); // Return the first result or null if not found
             }
           });
         })

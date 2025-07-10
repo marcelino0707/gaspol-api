@@ -55,7 +55,7 @@ exports.getCustomerStruct = async (req, res) => {
       cart_details: cartDetailsWithoutId,
     };
 
-    if(transaction.member_name) {
+    if (transaction.member_name) {
       result.member_name = transaction.member_name;
       const memberPhoneNumber = transaction.member_phone_number;
       result.member_phone_number = "*****" + memberPhoneNumber.slice(-4);
@@ -144,6 +144,76 @@ exports.getKitchenStruct = async (req, res) => {
   }
 };
 
+// Function to handle sync shift report creation
+exports.getSyncStructShift = async (req, res) => {
+  const {
+    outlet_id,
+    actual_ending_cash,
+    cash_difference,
+    start_date,
+    end_date,
+    created_at,
+    updated_at,
+    expected_ending_cash,
+    total_amount,
+    total_discount,
+    shift_number,
+    casher_name
+  } = req.body;
+  // outlet_id: outlet_id,
+  // start_date: getStartDate(),
+  // shift_number: 1,
+  // end_date: indoDateTime,
+  // casher_name: casher_name,
+  // actual_ending_cash: actual_ending_cash,
+  // Validate the input data
+  if (!outlet_id || !actual_ending_cash || !start_date || !end_date || !shift_number) {
+    return res.status(400).json({
+      code: 400,
+      message: "Invalid input. Please provide all required fields: outlet_id, actual_ending_cash, start_date, end_date, shift_number."
+    });
+  }
+
+  try {
+    // Convert your date strings to Date objects
+    const thisTimeNow = moment();
+    const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
+    const startDate = moment.tz(start_date, "Asia/Jakarta").toDate();
+    const endDate = moment.tz(end_date, "Asia/Jakarta").toDate();
+    const createdAt = moment.tz(created_at, "Asia/Jakarta").toDate();
+
+    // Create shift report entry in the database
+    await ShiftReport.create({
+      outlet_id,
+      actual_ending_cash,
+      cash_difference,
+      start_date: startDate,
+      end_date: endDate,
+      created_at: createdAt,
+      updated_at: indoDateTime,
+      expected_ending_cash,
+      total_amount,
+      total_discount,
+      shift_number,
+      deleted_at: null,
+      casher_name
+    });
+
+    return res.status(200).json({
+      code: 200,
+      message: `Sync success! Shift report created for outlet_id ${outlet_id} and shift_number ${shift_number}.`
+    });
+
+  } catch (error) {
+    console.error(`Error while syncing shift report for outlet_id ${outlet_id}: ${error.message}`);
+    return res.status(500).json({
+      code: 500,
+      message: "An error occurred while syncing shift data.",
+      details: error.message,
+    });
+  }
+};
+
 exports.getShiftStruct = async (req, res) => {
   const thisTimeNow = moment();
   const indoDateTime = thisTimeNow.tz("Asia/Jakarta").toDate();
@@ -186,8 +256,8 @@ exports.getShiftStruct = async (req, res) => {
       if (
         (shiftStartDate.isSame(indoDateTimeNow, 'day') && shiftStartDate.hour() < 6 && indoDateTimeNow.hour() >= 6) ||
         (shiftStartDate.isBefore(indoDateTimeNow, 'day') && indoDateTimeNow.hour() >= 6)
-      ) { 
-        shiftUpdateObj.shift_number = 1; 
+      ) {
+        shiftUpdateObj.shift_number = 1;
       } else {
         shiftNumber = shiftReports.shift_number;
       }
@@ -272,7 +342,7 @@ exports.getShiftStruct = async (req, res) => {
         (total, transaction) => total + transaction.total,
         0
       );
-      
+
       if (paymentType.id != 1) {
         // Create payment type detail object
         const paymentTypeDetail = {
@@ -283,14 +353,14 @@ exports.getShiftStruct = async (req, res) => {
         };
 
         const refundTransactionByPaymentType = refundAllTransactions
-        .filter((refund) => refund.payment_type_id == paymentType.id);
+          .filter((refund) => refund.payment_type_id == paymentType.id);
 
         const refundTransactionIds = refundTransactionByPaymentType
-        .map((refund) => refund.id);
+          .map((refund) => refund.id);
 
         const totalRefundTransaction = refundTransactionByPaymentType
-        .reduce((total, refund) => total + refund.total_refund, 0);
-        
+          .reduce((total, refund) => total + refund.total_refund, 0);
+
         const totalRefundPerItemByPaymentType = refundDetails
           .filter((refund) => refund.payment_type_id == paymentType.id && !refundTransactionIds.includes(refund.refund_id))
           .reduce((total, refund) => total + refund.total_refund_price, 0);
@@ -348,14 +418,14 @@ exports.getShiftStruct = async (req, res) => {
     // for Cash payment type
     const totalRefundedCashFromOtherPaymentWithRefundAll = refundAllTransactions
       .filter((refund) => refund.payment_type_id == 1)
-      .reduce((total, refund) => total + refund.total_refund, 0 );
+      .reduce((total, refund) => total + refund.total_refund, 0);
 
     const totalRefundedCashFromOtherPaymentWithNotRefundAll = refundDetails
       .filter((refund) => refund.payment_type_id == 1 && refund.is_refund_type_all == 0)
-      .reduce((total, refund) => total + refund.total_refund_price, 0 );
+      .reduce((total, refund) => total + refund.total_refund_price, 0);
 
     const totalCashRefunded = totalRefundedCashFromOtherPaymentWithRefundAll + totalRefundedCashFromOtherPaymentWithNotRefundAll;
-    
+
     const paymentDetailsCash = {
       payment_category: "Cash Payment",
       payment_type_detail: [
@@ -517,31 +587,31 @@ exports.getShiftStruct = async (req, res) => {
 
       // sum total discount cart
       const transactionsIds = transactions
-      .filter((transaction) => {
-        return transaction.discount_id > 0 && transaction.invoice_number !== null;
-      })
-      .map((transaction) => transaction.transaction_id);
+        .filter((transaction) => {
+          return transaction.discount_id > 0 && transaction.invoice_number !== null;
+        })
+        .map((transaction) => transaction.transaction_id);
 
       const discountedRefundTransaction = refundAllTransactions
-      .filter((refund) => {
-        refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
-      })
-      .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
+        .filter((refund) => {
+          refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
+        })
+        .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
 
       const discountedTransactions = transactions
-      .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
-      .reduce(
-        (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
-      
+        .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
+        .reduce(
+          (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
+
       const discount_amount_transactions = discountedTransactions + discountedRefundTransaction;
 
       // sum total discount per item
       const totalDiscountedAmountPerSuccessItems = cartDetailsSuccess
-      .filter((item) => item.discount_id > 0 || item.discount_id != null)
-      .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
-      
+        .filter((item) => item.discount_id > 0 || item.discount_id != null)
+        .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
+
       const discount_amount_per_items = totalDiscountedAmountPerSuccessItems + (subtotalCartRefundAmount - totalCartRefundAmount);
-      
+
       return {
         totalSuccessQty,
         totalPendingQty,
@@ -723,7 +793,7 @@ exports.getLastShiftStruct = async (req, res) => {
           (total, transaction) => total + transaction.total,
           0
         );
-        
+
         if (paymentType.id != 1) {
           // Create payment type detail object
           const paymentTypeDetail = {
@@ -734,14 +804,14 @@ exports.getLastShiftStruct = async (req, res) => {
           };
 
           const refundTransactionByPaymentType = refundAllTransactions
-          .filter((refund) => refund.payment_type_id == paymentType.id);
+            .filter((refund) => refund.payment_type_id == paymentType.id);
 
           const refundTransactionIds = refundTransactionByPaymentType
-          .map((refund) => refund.id);
+            .map((refund) => refund.id);
 
           const totalRefundTransaction = refundTransactionByPaymentType
-          .reduce((total, refund) => total + refund.total_refund, 0);
-          
+            .reduce((total, refund) => total + refund.total_refund, 0);
+
           const totalRefundPerItemByPaymentType = refundDetails
             .filter((refund) => refund.payment_type_id == paymentType.id && !refundTransactionIds.includes(refund.refund_id))
             .reduce((total, refund) => total + refund.total_refund_price, 0);
@@ -799,14 +869,14 @@ exports.getLastShiftStruct = async (req, res) => {
       // for Cash payment type
       const totalRefundedCashFromOtherPaymentWithRefundAll = refundAllTransactions
         .filter((refund) => refund.payment_type_id == 1)
-        .reduce((total, refund) => total + refund.total_refund, 0 );
+        .reduce((total, refund) => total + refund.total_refund, 0);
 
       const totalRefundedCashFromOtherPaymentWithNotRefundAll = refundDetails
         .filter((refund) => refund.payment_type_id == 1 && refund.is_refund_type_all == 0)
-        .reduce((total, refund) => total + refund.total_refund_price, 0 );
+        .reduce((total, refund) => total + refund.total_refund_price, 0);
 
       const totalCashRefunded = totalRefundedCashFromOtherPaymentWithRefundAll + totalRefundedCashFromOtherPaymentWithNotRefundAll;
-      
+
       const paymentDetailsCash = {
         payment_category: "Cash Payment",
         payment_type_detail: [
@@ -976,31 +1046,31 @@ exports.getLastShiftStruct = async (req, res) => {
 
         // sum total discount cart
         const transactionsIds = transactions
-        .filter((transaction) => {
-          return transaction.discount_id > 0 && transaction.invoice_number !== null;
-        })
-        .map((transaction) => transaction.transaction_id);
+          .filter((transaction) => {
+            return transaction.discount_id > 0 && transaction.invoice_number !== null;
+          })
+          .map((transaction) => transaction.transaction_id);
 
         const discountedRefundTransaction = refundAllTransactions
-        .filter((refund) => {
-          refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
-        })
-        .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
+          .filter((refund) => {
+            refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
+          })
+          .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
 
         const discountedTransactions = transactions
-        .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
-        .reduce(
-          (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
-        
+          .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
+          .reduce(
+            (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
+
         const discount_amount_transactions = discountedTransactions + discountedRefundTransaction;
 
         // sum total discount per item
         const totalDiscountedAmountPerSuccessItems = cartDetailsSuccess
-        .filter((item) => item.discount_id > 0 || item.discount_id != null)
-        .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
-        
+          .filter((item) => item.discount_id > 0 || item.discount_id != null)
+          .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
+
         const discount_amount_per_items = totalDiscountedAmountPerSuccessItems + (subtotalCartRefundAmount - totalCartRefundAmount);
-        
+
         return {
           totalSuccessQty,
           totalPendingQty,
@@ -1189,14 +1259,14 @@ exports.getShift = async (req, res) => {
           };
 
           const refundTransactionByPaymentType = refundAllTransactions
-          .filter((refund) => refund.payment_type_id == paymentType.id);
+            .filter((refund) => refund.payment_type_id == paymentType.id);
 
           const refundTransactionIds = refundTransactionByPaymentType
-          .map((refund) => refund.id);
+            .map((refund) => refund.id);
 
           const totalRefundTransaction = refundTransactionByPaymentType
-          .reduce((total, refund) => total + refund.total_refund, 0);
-          
+            .reduce((total, refund) => total + refund.total_refund, 0);
+
           const totalRefundPerItemByPaymentType = refundDetails
             .filter((refund) => refund.payment_type_id == paymentType.id && !refundTransactionIds.includes(refund.refund_id))
             .reduce((total, refund) => total + refund.total_refund_price, 0);
@@ -1254,14 +1324,14 @@ exports.getShift = async (req, res) => {
       // for Cash payment type
       const totalRefundedCashFromOtherPaymentWithRefundAll = refundAllTransactions
         .filter((refund) => refund.payment_type_id == 1)
-        .reduce((total, refund) => total + refund.total_refund, 0 );
+        .reduce((total, refund) => total + refund.total_refund, 0);
 
       const totalRefundedCashFromOtherPaymentWithNotRefundAll = refundDetails
         .filter((refund) => refund.payment_type_id == 1 && refund.is_refund_type_all == 0)
-        .reduce((total, refund) => total + refund.total_refund_price, 0 );
+        .reduce((total, refund) => total + refund.total_refund_price, 0);
 
       const totalCashRefunded = totalRefundedCashFromOtherPaymentWithRefundAll + totalRefundedCashFromOtherPaymentWithNotRefundAll;
-      
+
       const paymentDetailsCash = {
         payment_category: "Cash Payment",
         payment_type_detail: [
@@ -1431,31 +1501,31 @@ exports.getShift = async (req, res) => {
 
         // sum total discount cart
         const transactionsIds = transactions
-        .filter((transaction) => {
-          return transaction.discount_id > 0 && transaction.invoice_number !== null;
-        })
-        .map((transaction) => transaction.transaction_id);
+          .filter((transaction) => {
+            return transaction.discount_id > 0 && transaction.invoice_number !== null;
+          })
+          .map((transaction) => transaction.transaction_id);
 
         const discountedRefundTransaction = refundAllTransactions
-        .filter((refund) => {
-          refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
-        })
-        .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
+          .filter((refund) => {
+            refund.discount_id > 0 && !transactionsIds.includes(refund.transaction_id)
+          })
+          .reduce((total, refund) => total + (refund.subtotal_cart - refund.total_refund), 0);
 
         const discountedTransactions = transactions
-        .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
-        .reduce(
-          (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
-        
+          .filter((transaction) => transaction.discount_id > 0 && transaction.invoice_number !== null)
+          .reduce(
+            (total, transaction) => total + (transaction.subtotal - transaction.total), 0);
+
         const discount_amount_transactions = discountedTransactions + discountedRefundTransaction;
 
         // sum total discount per item
         const totalDiscountedAmountPerSuccessItems = cartDetailsSuccess
-        .filter((item) => item.discount_id > 0 || item.discount_id != null)
-        .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
-        
+          .filter((item) => item.discount_id > 0 || item.discount_id != null)
+          .reduce((total, item) => total + (item.subtotal_price - item.total_price), 0);
+
         const discount_amount_per_items = totalDiscountedAmountPerSuccessItems + (subtotalCartRefundAmount - totalCartRefundAmount);
-        
+
         return {
           totalSuccessQty,
           totalPendingQty,
@@ -1509,7 +1579,7 @@ exports.getShift = async (req, res) => {
         discount_amount_transactions,
         discount_amount_per_items,
         discount_total_amount,
-        
+
         cart_details_success: cartDetailsSuccessFiltered,
         totalSuccessQty,
         totalCartSuccessAmount,
