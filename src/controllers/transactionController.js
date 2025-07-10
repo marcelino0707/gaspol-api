@@ -715,7 +715,8 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
 
         // Member
-        if (cart.member_name != null || cart.member_phone_number != null) {
+        if (cart.member_name != null && cart.member_id != null) {
+          newTransaction.member_id = cart.member_id;
           newTransaction.member_name = cart.member_name;
           newTransaction.member_phone_number = cart.member_phone_number;
         }
