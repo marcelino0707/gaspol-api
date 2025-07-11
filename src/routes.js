@@ -150,6 +150,7 @@ route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
 
 // Membership
 route.get("/membership", member.getMembers);
+route.get("/membership-bonus-point", member.getMembersBonusPoint);
 route.post("/membership", member.create);
 route.patch("/membership/:id", member.update);
 route.patch("/membership-point/:id", member.updatePoint);

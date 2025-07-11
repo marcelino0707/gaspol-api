@@ -149,3 +149,20 @@ exports.delete = async (req, res) => {
         });
     }
 };
+exports.getMembersBonusPoint = async (req, res) => {
+    try {
+        const settings = await Member.getMembersBonusPoint();
+        
+        return res.status(200).json({
+            code: 200,
+            data: settings,
+            message: "Berhasil mengambil persentase point"
+        });
+    } catch (error) {
+        console.error('Error fetching membership bonus point:', error);
+        return res.status(500).json({
+            code: 500,
+            message: error.message || "Gagal mengambil persentase point"
+        });
+    }
+};
