@@ -303,6 +303,7 @@ exports.getTransactionById = async (req, res) => {
     const result = {
       transaction_id: transaction.id,
       receipt_number: transaction.receipt_number,
+      transaction_ref: transaction.transaction_ref,
       customer_name: transaction.customer_name,
       customer_seat: transaction.customer_seat,
       payment_type: transaction.payment_type,
@@ -527,6 +528,7 @@ exports.createTransactionsOutlet = async (req, res) => {
         }
 
         if (cart.member_name != null || cart.member_phone_number != null) {
+          updateTransactionData.member_id = cart.member_id;
           updateTransactionData.member_name = cart.member_name;
           updateTransactionData.member_phone_number = cart.member_phone_number;
         }
@@ -838,5 +840,28 @@ exports.createTransactionsOutlet = async (req, res) => {
       message: error.message || "Some error occurred while creating the transactions for outlet",
       code: 500
     });
+  }
+};
+exports.getTransactionsByReference = async (req, res) => {
+  const { transaction_ref } = req.body; // Ambil transaction_ref dari body request
+  try {
+      // Panggil fungsi yang telah dimodifikasi
+      const transaction = await Transaction.getTransactionsByReference(transaction_ref);
+      
+      if (!transaction) {
+          return res.status(404).json({
+              message: "No transactions found for the given transaction reference.",
+          });
+      }
+
+      return res.status(200).json({
+          code: 200,
+          message: "Transaction retrieved successfully!",
+          data: transaction,
+      });
+  } catch (error) {
+      return res.status(500).json({
+          message: error.message || "Some error occurred while retrieving transactions.",
+      });
   }
 };

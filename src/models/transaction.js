@@ -6,8 +6,8 @@ const Transaction = {
         .then((connection) => {
           connection.query(
             "SELECT transactions.id, transactions.receipt_number, transactions.updated_at, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN carts ON transactions.cart_id = carts.id WHERE transactions.outlet_id = " +
-              outlet_id +
-              " AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
+            outlet_id +
+            " AND transactions.deleted_at IS NULL AND transactions.invoice_due_date IS NULL AND carts.is_canceled = 0",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
@@ -21,16 +21,51 @@ const Transaction = {
         .catch((error) => reject(error));
     });
   },
+  getTransactionsByReference: async (transaction_ref) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const connection = await connectDB();
+            const results = await new Promise((resolve, reject) => {
+                connection.query(
+                    "SELECT id FROM transactions WHERE transaction_ref LIKE ? AND deleted_at IS NULL",
+                    [`%${transaction_ref}%`],
+                    (error, results) => {
+                        disconnectDB(connection);
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(results);
+                        }
+                    }
+                );
+            });
+
+            if (results.length === 0) {
+                resolve(null); // Tidak ada transaksi yang ditemukan
+            } else {
+                // Ambil ID transaksi pertama
+                const transactionId = results[0].id;
+
+                // Gunakan ID untuk mendapatkan detail transaksi
+                // Panggil Transaction.getById
+                const transactionDetail = await Transaction.getById(transactionId);
+                resolve(transactionDetail); // Kembalikan detail transaksi
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+},
   getAllByIsSuccess: (outlet_id, date) => {
     return new Promise((resolve, reject) => {
       connectDB()
         .then((connection) => {
           connection.query(
             "SELECT transactions.id, transactions.receipt_number, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.invoice_due_date, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id WHERE transactions.outlet_id = " +
-              outlet_id +
-              " AND DATE(transactions.updated_at) = '" +
-              date +
-              "' AND transactions.invoice_due_date IS NOT NULL AND transactions.deleted_at IS NULL ORDER BY transactions.invoice_due_date DESC",
+            outlet_id +
+            " AND DATE(transactions.updated_at) = '" +
+            date +
+            "' AND transactions.invoice_due_date IS NOT NULL AND transactions.deleted_at IS NULL ORDER BY transactions.invoice_due_date DESC",
             (error, results) => {
               disconnectDB(connection);
               if (error) {
@@ -49,7 +84,7 @@ const Transaction = {
       connectDB()
         .then((connection) => {
           connection.query(
-            "SELECT transactions.id, members.name AS member_name, members.phone_number AS member_phone_number, transactions.receipt_number, refunds.is_refund_all AS is_refunded, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, transactions.invoice_due_date, transactions.updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN refunds ON transactions.id = refunds.transaction_id LEFT JOIN members ON transactions.member_id = members.id WHERE transactions.id = ? AND transactions.deleted_at IS NULL",
+            "SELECT transactions.id, members.name AS member_name, members.phone_number AS member_phone_number, transactions.transaction_ref, transactions.receipt_number, refunds.is_refund_all AS is_refunded, transactions.outlet_id, transactions.cart_id, transactions.customer_name, transactions.customer_seat, transactions.customer_cash, transactions.customer_change, payment_types.name AS payment_type, payment_categories.name AS payment_category, transactions.delivery_type, transactions.delivery_note, transactions.invoice_number, transactions.invoice_due_date, transactions.updated_at FROM transactions LEFT JOIN payment_types ON transactions.payment_type_id = payment_types.id LEFT JOIN payment_categories ON payment_types.payment_category_id = payment_categories.id LEFT JOIN refunds ON transactions.id = refunds.transaction_id LEFT JOIN members ON transactions.member_id = members.id WHERE transactions.id = ? AND transactions.deleted_at IS NULL",
             [id],
             (error, results) => {
               disconnectDB(connection);
@@ -224,7 +259,7 @@ const Transaction = {
         })
         .catch((error) => reject(error));
     });
-  },  
+  },
   haveSuccessTransactions: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
@@ -246,7 +281,7 @@ const Transaction = {
         })
         .catch((error) => reject(error));
     });
-  },  
+  },
   getShiftReport: (outlet_id, start_date, end_date) => {
     return new Promise((resolve, reject) => {
       connectDB()
