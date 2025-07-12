@@ -168,7 +168,49 @@ const Member = {
         .catch((error) => reject(error));
     });
   },
-
+  createHistoryMemberPoints: (historyData) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          const query = "INSERT INTO membership_transaction_history SET ?";
+          connection.query(query, historyData, (error, results) => {
+            disconnectDB(connection);
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        })
+        .catch((error) => reject(error));
+    });
+  },
+  getMembershipHistoryByMemberId: (member_id) => {
+    return new Promise((resolve, reject) => {
+      connectDB()
+        .then((connection) => {
+          connection.query(
+            `SELECT 
+                      * 
+                   FROM 
+                      membership_transaction_history 
+                   WHERE 
+                      member_id = ? 
+                   ORDER BY created_at DESC`, // Sorting by created_at for a more recent history
+            [member_id],
+            (error, results) => {
+              disconnectDB(connection);
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results || []); // Return results or an empty array if no results
+              }
+            }
+          );
+        })
+        .catch((error) => reject(error));
+    });
+  },
   getById: (id) => {
     return new Promise((resolve, reject) => {
       connectDB()

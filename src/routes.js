@@ -159,8 +159,12 @@ route.delete("/membership/:id", member.delete);
 route.get("/membership-bonus-point", member.getMembersBonusPoint);
 route.post("/membership-bonus", member.createMembersBonusPoint);
 route.get("/membership-bonus-getall", member.getAllMembersSettings);
+//router.post('/membership-history', member.createHistoryPoints);
+route.get('/membership-history/:id', member.getMembershipHistory);
 
+//Sync Transaction
 route.post("/sync-transactions-outlet", transaction.createTransactionsOutlet);
+
 // Complaint
 route.get("/complaint", complaint.getComplaints);
 route.post("/complaint", complaint.create);
