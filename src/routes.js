@@ -150,11 +150,15 @@ route.delete("/empty-cart", cart.emptyCart) // delete cart if is ordered false
 
 // Membership
 route.get("/membership", member.getMembers);
-route.get("/membership-bonus-point", member.getMembersBonusPoint);
 route.post("/membership", member.create);
 route.patch("/membership/:id", member.update);
 route.patch("/membership-point/:id", member.updatePoint);
 route.delete("/membership/:id", member.delete);
+
+//Membership Bonus Scheme
+route.get("/membership-bonus-point", member.getMembersBonusPoint);
+route.post("/membership-bonus", member.createMembersBonusPoint);
+route.get("/membership-bonus-getall", member.getAllMembersSettings);
 
 route.post("/sync-transactions-outlet", transaction.createTransactionsOutlet);
 // Complaint

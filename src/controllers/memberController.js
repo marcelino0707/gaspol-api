@@ -166,3 +166,53 @@ exports.getMembersBonusPoint = async (req, res) => {
         });
     }
 };
+exports.createMembersBonusPoint = async (req, res) => {
+    try {
+        const { point_percentage, updated_by } = req.body; // Expecting points and updated_by in the request body
+        
+        // Validate the input data
+        if (point_percentage == null || updated_by == null) {
+            return res.status(400).json({
+                code: 400,
+                message: "Invalid input. Please provide both points and updated_by."
+            });
+        }
+
+        const createdAt = moment().tz("Asia/Jakarta").toDate(); // Get the current time in Jakarta timezone
+
+        // Build the bonus point object
+        const bonusPoint = {
+            point_percentage: point_percentage,
+            updated_by: updated_by,
+            updated_at: createdAt // Set the current time
+        };
+
+        // Call the method to create the bonus point
+        await Member.createMembersBonusPoint(bonusPoint);
+
+        return res.status(201).json({
+            code: 201,
+            message: "Membership bonus point created successfully!",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: error.message || "Some error occurred while creating the membership bonus point.",
+        });
+    }
+};
+exports.getAllMembersSettings = async (req, res) => {
+    try {
+        const result = await Member.getAllMembersSettings();
+        return res.status(200).json({
+            code: 200,
+            data: result,
+            message: "Successfully fetched all member settings.",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: error.message || "Failed to fetch member settings.",
+        });
+    }
+};
