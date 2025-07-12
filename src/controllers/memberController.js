@@ -24,10 +24,12 @@ exports.create = async (req, res) => {
             outlet_id
         } = req.body;
 
+        console.log("Received member data for creation:", { name, email, phone_number, outlet_id }); // Add this line for debugging
+
         const member = {
             name: name,
             email: email,
-            outlet_id: outlet_id,
+            outlet_id: outlet_id, // Ensure this key is a primitive value before inserting
             phone_number: phone_number,
         };
 
@@ -37,11 +39,13 @@ exports.create = async (req, res) => {
             member: "Data members created successfully",
         });
     } catch (error) {
+        console.error("Error creating member:", error); // Log the error
         return res.status(500).json({
             message: error.message || "Some error occurred while creating members",
         });
     }
 };
+
 exports.update = async (req, res) => {
     try {
         const thisTimeNow = moment();
