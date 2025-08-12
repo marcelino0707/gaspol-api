@@ -25,6 +25,17 @@ const ingredeintOrderList = require("./controllers/ingredientOrderController");
 const member = require("./controllers/memberController");
 const complaint = require("./controllers/complaintController");
 const updateConfirm = require("./controllers/updateConfirmationController");
+// app.js atau routes.js
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../swagger-output.json');
+
+// Endpoint khusus untuk swagger
+route.get('/swagger-docs', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+// Atau bisa lebih spesifik
+route.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Menu
 route.get("/menu", menu.getMenus); // Kasir

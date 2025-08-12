@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "swagger-autogen": "node swagger-gen.js",  
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
@@ -17,6 +18,9 @@
     "path": "^0.12.7",
     "sequelize": "^6.32.1",
     "sequelize-cli": "^6.6.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",

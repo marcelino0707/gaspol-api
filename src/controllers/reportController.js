@@ -25,15 +25,15 @@ exports.getReport = async (req, res) => {
 
     const listShift = await ShiftReport.getShiftNumber(outlet_id, startDate, endDate);
     const unShift = await ShiftReport.getUnShiftNumber(outlet_id, startDate);
-    
-    if(unShift.length > 0) {
+
+    if (unShift.length > 0) {
       const shiftStartDate = moment(startDate).tz("Asia/Jakarta");
       const shiftEndDate = moment(endDate).tz("Asia/Jakarta");
-      if(shiftStartDate.isSame(shiftEndDate, 'day')) {
+      if (shiftStartDate.isSame(shiftEndDate, 'day')) {
         const unShiftEndDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
         const unShiftTransaction = await Transaction.haveSuccessTransactions(outlet_id, unShift[0].start_date, unShiftEndDate);
-        if(unShiftTransaction.length > 0) {
-          listShift.unshift({shift_number: "Unshift"});
+        if (unShiftTransaction.length > 0) {
+          listShift.unshift({ shift_number: "Unshift" });
         }
       }
     }
@@ -57,7 +57,7 @@ exports.getReport = async (req, res) => {
       } else {
         transaction.status = "Pending";
       }
-      
+
       if (transaction.is_refunded == 1) {
         transaction.status = "Refunded";
       } else if (transaction.is_canceled == 1) {
@@ -70,17 +70,17 @@ exports.getReport = async (req, res) => {
       // Skip transactions without invoice_due_date
       if (invoice_due_date !== null) {
         const totalTransactionAmount = total;
-    
+
         // Extract the date part (yyyy-mm-dd) from invoice_due_date
         const datePart = invoice_due_date.split(' ')[0];
-    
+
         // Check if datePart already exists in the result array
         const existingDateIndex = result.findIndex(item => item.invoice_due_date === datePart);
-    
+
         if (existingDateIndex !== -1) {
           // If datePart exists, update the total amount and details
           result[existingDateIndex].total_turnover += totalTransactionAmount;
-    
+
           // Check if payment type already exists in details array
           const existingPaymentTypeIndex = result[existingDateIndex].details.findIndex(item => item.payment_type_id === payment_type_id);
           if (existingPaymentTypeIndex !== -1) {
@@ -130,68 +130,81 @@ exports.getReport = async (req, res) => {
 exports.getPaymentReport = async (req, res) => {
   const { outlet_id, start_date, end_date, is_shift } = req.query;
   try {
-    let startDate, endDate, startDateShow;
-    startDate = moment(start_date).format("YYYY-MM-DD HH:mm:ss");
-    endDate = moment(end_date).endOf('day').add(5, 'hours').add(59, 'minutes').add(59, 'seconds').format("YYYY-MM-DD HH:mm:ss");
-    startDateShow = startDate;
-    let shifts = [], totalAmount = 0, totalDiscount = 0, casherNames = [], actualEndingCash = 0, cashDifference = 0, expectedEndingCash = 0;
-    if (is_shift && (is_shift > 0 || is_shift == "Unshift")) {
-      shifts = await ShiftReport.getShiftByShiftNumber(outlet_id, startDate, endDate, is_shift);
+    // Ambil tanggal saja untuk filter awal
+    const startDateOnly = moment(start_date).format("YYYY-MM-DD");
+    const endDateOnly = moment(end_date).format("YYYY-MM-DD");
+
+    let shifts = [], totalAmount = 0, totalDiscount = 0, casherNames = [],
+      actualEndingCash = 0, cashDifference = 0, expectedEndingCash = 0;
+
+    // Fetch shifts dengan rentang tanggal yang lebih luas
+    if (is_shift && (is_shift > 0 || is_shift === "Unshift")) {
+      shifts = await ShiftReport.getShiftByShiftNumber(
+        outlet_id,
+        moment(startDateOnly).subtract(1, 'day').format("YYYY-MM-DD HH:mm:ss"),
+        moment(endDateOnly).add(1, 'day').endOf('day').format("YYYY-MM-DD HH:mm:ss"),
+        is_shift
+      );
     } else {
-      shifts = await ShiftReport.getShiftByShiftNumber(outlet_id, startDate, endDate);
+      shifts = await ShiftReport.getShiftByShiftNumber(
+        outlet_id,
+        moment(startDateOnly).subtract(1, 'day').format("YYYY-MM-DD HH:mm:ss"),
+        moment(endDateOnly).add(1, 'day').endOf('day').format("YYYY-MM-DD HH:mm:ss")
+      );
     }
 
-    if (shifts.length > 0) {
-      let hasNullEndDate = false;
+    // Filter shifts yang sesuai dengan kriteria tanggal dan shift
+    const filteredShifts = shifts.filter(shift => {
+      const shiftStartMoment = moment(shift.start_date);
+      const shiftEndMoment = shift.end_date ? moment(shift.end_date) : moment();
 
-      if(shifts[0].end_date == null) {
-        startDate = moment(shifts[0].start_date).format("YYYY-MM-DD HH:mm:ss");
-        hasNullEndDate = true;
-      }
+      // Cek apakah shift berada dalam rentang tanggal yang diminta
+      return (
+        (shiftStartMoment.isSameOrAfter(moment(startDateOnly).subtract(1, 'day')) &&
+          shiftStartMoment.isSameOrBefore(moment(endDateOnly).add(1, 'day'))) ||
+        (shiftEndMoment.isSameOrAfter(moment(startDateOnly).subtract(1, 'day')) &&
+          shiftEndMoment.isSameOrBefore(moment(endDateOnly).add(1, 'day')))
+      );
+    });
 
-      if(shifts[0].end_date != null) {
-        let minStartDate = moment(shifts[0].start_date); 
-        startDateShow =  minStartDate;
-        let maxEndDate = moment(endDate);
-        if(shifts[0].end_date) {
-          maxEndDate = moment(shifts[0].end_date)
-        }
-
-        for (const shift of shifts) {
-          const shiftStartDate = moment(shift.start_date);
-          const shiftEndDate = moment(shift.end_date);
-  
-          if (shiftStartDate.isBefore(minStartDate)) {
-            minStartDate = shiftStartDate;
-          }
-  
-          if (shift.end_date && shiftEndDate.isAfter(maxEndDate)) {
-            maxEndDate = shiftEndDate;
-          }
-  
-          totalAmount = totalAmount + shift.total_amount;
-          totalDiscount = totalDiscount + shift.total_discount;
-          actualEndingCash = actualEndingCash + shift.actual_ending_cash;
-          cashDifference = cashDifference + shift.cash_difference;
-          expectedEndingCash = expectedEndingCash + shift.expected_ending_cash;
-          casherNames.push(shift.casher_name);
-
-          if (shift.end_date == null) {
-            hasNullEndDate = true;
-          }
-        }
-        startDate = minStartDate.format("YYYY-MM-DD HH:mm:ss");
-        endDate = maxEndDate.format("YYYY-MM-DD HH:mm:ss");
-      }
-
-      if(hasNullEndDate == true) {
-        const thisTimeNow = moment();
-        endDate = thisTimeNow.tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss");
-      }
-
-      startDateShow = startDate;
+    if (filteredShifts.length === 0) {
+      return res.status(404).json({
+        code: 404,
+        message: "Laporan Kosong!",
+        data: null,
+      });
     }
-    
+
+    // Tentukan startDate dan endDate berdasarkan shift
+    const firstShift = filteredShifts[0];
+    let startDate = moment(firstShift.start_date).format("YYYY-MM-DD HH:mm:ss");
+    let endDate = firstShift.end_date
+      ? moment(firstShift.end_date).format("YYYY-MM-DD HH:mm:ss")
+      : moment().format("YYYY-MM-DD HH:mm:ss");
+
+    // Proses shift untuk mendapatkan rentang waktu yang tepat
+    filteredShifts.forEach(shift => {
+      const shiftStartMoment = moment(shift.start_date);
+      const shiftEndMoment = shift.end_date ? moment(shift.end_date) : moment();
+
+      // Perbarui startDate dan endDate
+      if (shiftStartMoment.isBefore(moment(startDate))) {
+        startDate = shiftStartMoment.format("YYYY-MM-DD HH:mm:ss");
+      }
+      if (shiftEndMoment.isAfter(moment(endDate))) {
+        endDate = shiftEndMoment.format("YYYY-MM-DD HH:mm:ss");
+      }
+
+      // Akumulasi detail shift
+      totalAmount += shift.total_amount || 0;
+      totalDiscount += shift.total_discount || 0;
+      actualEndingCash += shift.actual_ending_cash || 0;
+      cashDifference += shift.cash_difference || 0;
+      expectedEndingCash += shift.expected_ending_cash || 0;
+      casherNames.push(shift.casher_name || '');
+    });
+
+    // Fetch transactions dan expenditures dengan rentang waktu yang didapat
     const transactions = await Transaction.getByAllPaymentReport(
       outlet_id,
       startDate,
@@ -236,16 +249,16 @@ exports.getPaymentReport = async (req, res) => {
       const totalUangCashPengeluaranKeranjang = transactions
         .filter((transaction) => transaction.is_refund_type_all === 1 && transaction.payment_type_id_all === 1)
         .reduce((total, transaction) => total + transaction.total_refund, 0);
-      
+
       const refundedPerItemIds = transactionsWithRefund
-      .filter((transaction) => transaction.is_refund_type_all === 0)
-      .map((transaction) => transaction.refund_id );
-      
+        .filter((transaction) => transaction.is_refund_type_all === 0)
+        .map((transaction) => transaction.refund_id);
+
       let totalUangCashPengeluaranPeritem = 0;
-      if(result.refund) {
+      if (result.refund) {
         totalUangCashPengeluaranPeritem = result.refund[0]
-        .filter((refundDetail) => refundedPerItemIds.includes(refundDetail.refund_id) && refundDetail.payment_type_id === 1)
-        .reduce((total, refundDetail) => total + refundDetail.total_refund_price, 0);
+          .filter((refundDetail) => refundedPerItemIds.includes(refundDetail.refund_id) && refundDetail.payment_type_id === 1)
+          .reduce((total, refundDetail) => total + refundDetail.total_refund_price, 0);
       }
       const totalUangCashPengeluaran = totalUangCashPengeluaranKeranjang + totalUangCashPengeluaranPeritem;
 
@@ -259,13 +272,13 @@ exports.getPaymentReport = async (req, res) => {
             paymentMethods[transaction.payment_type] += transaction.total;
           }
         }
-    
+
         transaction.discount_type =
           transaction.discount_id > 0
             ? 1
             : transaction.transaction_discount_code !== null
-            ? 2
-            : 0;
+              ? 2
+              : 0;
       });
 
       const totalOmset = Object.values(paymentMethods).reduce(
@@ -273,7 +286,7 @@ exports.getPaymentReport = async (req, res) => {
         0
       );
 
-      const startDateString = moment(startDateShow).locale('id').format("dddd, YYYY-MM-DD HH:mm:ss");
+      const startDateString = moment(startDate).locale('id').format("dddd, YYYY-MM-DD HH:mm:ss");
       const endDateString = moment(endDate).locale('id').format("dddd, YYYY-MM-DD HH:mm:ss");
 
       result.payment_reports = {
