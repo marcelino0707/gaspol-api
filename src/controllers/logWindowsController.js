@@ -64,11 +64,11 @@ exports.getAllLogs = async (req, res) => {
 
 exports.getLogsByOutletId = async (req, res) => {
   try {
-    const { outlet_id } = req.params;
-    const logs = await LogWindowsClient.getByOutletId(outlet_id);
+    const { id } = req.params;
+    const logs = await LogWindowsClient.getByOutletId(id);
     if (!logs || logs.length === 0) {
       return res.status(404).json({
-        message: `No logs found for outlet_id: ${outlet_id}`,
+        message: `No logs found for outlet_id: ${id}`,
       });
     }
     return res.status(200).json({
