@@ -155,7 +155,7 @@ const doc = {
   },
   host: process.env.HOST || 'api.gaspollmanagementcenter.com',
   basePath: '/',
-  schemes: ['http', 'https'],
+  schemes: ['https', 'http'],
   consumes: ['application/json', 'multipart/form-data'],
   produces: ['application/json'],
   securityDefinitions: {

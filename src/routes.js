@@ -25,7 +25,8 @@ const ingredeintOrderList = require("./controllers/ingredientOrderController");
 const member = require("./controllers/memberController");
 const complaint = require("./controllers/complaintController");
 const updateConfirm = require("./controllers/updateConfirmationController");
-// app.js atau routes.js
+const logs = require("./controllers/logWindowsController");
+
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../swagger-output.json');
 
@@ -185,5 +186,10 @@ route.post("/complaint", complaint.create);
 // Update Confirm
 route.get("/update-confirm", updateConfirm.getUpdateConfirms);
 route.post("/update-confirm", updateConfirm.create);
+
+// Logging Client
+route.post("/logs",logs.createLog);
+route.get("/logs",logs.getAllLogs);
+route.get("/logs/:id",logs.getLogsByOutletId);
 
 module.exports = route;
